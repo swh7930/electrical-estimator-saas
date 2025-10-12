@@ -25,7 +25,18 @@ def create_app():
     
      # --- register blueprints ---
     from .blueprints.dashboard import bp as dashboard_bp
+    from .blueprints.auth import bp as auth_bp
+    from .blueprints.admin import bp as admin_bp
+    from .blueprints.api import bp as api_bp
+    from .blueprints.estimator import bp as estimator_bp
+
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(api_bp)
+    app.register_blueprint(estimator_bp)
+
+
 
     # Temporary smoke route (we'll replace with blueprints next)
     @app.get("/healthz")
