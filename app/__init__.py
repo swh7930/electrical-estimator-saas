@@ -22,6 +22,10 @@ def create_app():
     login_manager.init_app(app)
     limiter.init_app(app)
     mail.init_app(app)
+    
+     # --- register blueprints ---
+    from .blueprints.dashboard import bp as dashboard_bp
+    app.register_blueprint(dashboard_bp)
 
     # Temporary smoke route (we'll replace with blueprints next)
     @app.get("/healthz")
