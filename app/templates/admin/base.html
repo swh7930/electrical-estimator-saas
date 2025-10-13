@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Admin · Electrical Estimator{% endblock %}
+
+{% block head_extra %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div class="admin-page">
+    <div class="row">
+      <aside class="col-12 col-md-3 col-lg-2 mb-3">
+        <div class="list-group">
+          <!-- REMOVED: Assemblies link here -->
+          <!-- add other admin links as they exist -->
+        </div>
+      </aside>
+
+      <section class="col-12 col-md-9 col-lg-10">
+        {% block admin_content %}{% endblock %}
+      </section>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block scripts %}
+  {{ super() }}
+  <!-- place admin-only scripts here if needed -->
+{% endblock %}
