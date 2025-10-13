@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Adjustments · Electrical Estimator{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+{% endblock %}
+
+{# Wider than default; options: container-xxl (1320px max) or container-fluid (full width) #}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+<div class="adjustments-page">
+
+  <!-- Section 1: Labor-Unit Adjustments -->
+  <h2 class="section-title flex-header">
+    <span>Labor Adjustments</span>
+    <button id="resetAdjustmentsPageBtn" type="button">Reset</button>
+  </h2>
+
+  <table id="laborAdjustmentsTable">
+    <thead>
+      <tr>
+        <th>Labor-Unit Adjustment</th>
+        <th>Adj %</th>
+        <th>Hrs</th>
+      </tr>
+      <tr class="row-summary">
+        <td>Estimated Labor Hours</td>
+        <td></td>
+        <td id="est_lbr_hrs" class="right">0.00</td>
+      </tr>
+    </thead>
+    <tbody id="laborAdjustmentsBody"></tbody>
+    <tfoot>
+      <tr class="row-summary">
+        <td>Labor-Unit Adjustment Hours</td>
+        <td></td>
+        <td class="right" id="adjustmentHours">0.00</td>
+      </tr>
+      <tr class="row-total">
+        <td>Total Hours w/ Adjustment Hours</td>
+        <td></td>
+        <td class="right" id="totalAdjustedHours">0.00</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- Section 2: Additional Labor -->
+  <table id="additionalLaborTable">
+    <thead>
+      <tr>
+        <th>Additional Labor</th>
+        <th>Adj %</th>
+        <th>Hrs</th>
+      </tr>
+      <tr class="row-summary">
+        <td>Total Hours w/ Adjustments</td>
+        <td></td>
+        <td id="total_adjusted_base" class="right">0.00</td>
+      </tr>
+    </thead>
+    <tbody id="additionalLaborBody"></tbody>
+    <tfoot>
+      <tr class="row-summary">
+        <td>Additional Labor Hours</td>
+        <td></td>
+        <td class="right" id="additionalLaborTotal">0.00</td>
+      </tr>
+      <tr class="row-total">
+        <td>Total Hours w/ Additional Labor</td>
+        <td></td>
+        <td class="right" id="totalWithAdditionalLabor">21.70</td>
+      </tr>
+    </tfoot>
+  </table>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/estimateData.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/adjustments.js') }}"></script>
+{% endblock %}

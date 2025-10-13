@@ -1,0 +1,98 @@
+{% extends "base.html" %} {% block title %}DJE · Electrical Estimator{% endblock
+%} {% block head_extra %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/styles.css') }}"
+/>
+{% endblock %} {# Wider than default; options: container-xxl (1320px max) or
+container-fluid (full width) #} {% block container_class %}container-xxl{%
+endblock %} {% block content %}
+<div class="dje-page">
+  <h2 class="section-title flex-header">
+    <span>DJE Entry Form</span>
+    <button id="djeResetBtn" type="button">Reset</button>
+  </h2>
+
+  <table>
+    <thead>
+      <!-- Top aligned totals + reset row -->
+      <tr class="totals-row">
+        <th></th>
+        <!-- Notes -->
+        <th></th>
+        <!-- Category -->
+        <th></th>
+        <!-- Subcategory -->
+        <th></th>
+        <!-- Description -->
+        <th></th>
+        <!-- Qty -->
+        <th></th>
+        <!-- Multi -->
+        <th></th>
+        <!-- Cost -->
+        <th class="right">
+          <strong>DJE Total:</strong>
+          <span id="djeTotalDisplay">$0.00</span>
+        </th>
+      </tr>
+
+      <!-- Column headers -->
+      <tr>
+        <th>Notes</th>
+        <th>Category</th>
+        <th>Subcategory</th>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Multi</th>
+        <th>Cost</th>
+        <th>Ext</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for i in range(10) %}
+      <tr>
+        <td>
+          <input
+            type="text"
+            name="notes_{{ i }}"
+            class="grid-input cell-notes"
+            data-row="{{ i }}"
+          />
+        </td>
+        <td id="djeCategory_{{ i }}"></td>
+        <td id="djeSubcategory_{{ i }}"></td>
+        <td id="djeDescription_{{ i }}"></td>
+        <td>
+          <input
+            type="number"
+            name="qty_{{ i }}"
+            min="0"
+            step="1"
+            class="grid-input cell-qty"
+            data-row="{{ i }}"
+          />
+        </td>
+        <td>
+          <input
+            type="number"
+            name="multi_{{ i }}"
+            min="1"
+            step="1"
+            value="1"
+            class="grid-input cell-multi"
+            data-row="{{ i }}"
+          />
+        </td>
+        <td id="djeCost_{{ i }}" class="right"></td>
+        <td id="djeExt_{{ i }}" class="right">$0.00</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} {% block scripts %} {{ super() }}
+<script src="{{ url_for('static', filename='js/estimateData.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dje.js') }}"></script>
+{% endblock %}
