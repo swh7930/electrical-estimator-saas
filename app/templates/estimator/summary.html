@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}Estimate Summary · Electrical Estimator{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+{% endblock %}
+
+{# Wider than default; options: container-xxl (1320px max) or container-fluid (full width) #}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+<div class="summary-page">
+  <h2 class="section-title flex-header">
+    <span>Summary Sheet</span>
+    <button id="resetAllBtn" type="button">Reset</button>
+  </h2>
+
+  <!-- Step A Table -->
+  <table>
+    <tr>
+      <th colspan="3">Labor Cost Summary</th>
+    </tr>
+    <tr>
+      <td class="step-label" rowspan="4">Step A</td>
+      <td class="bold">Labor Hours (Pricing Sheet)</td>
+      <td class="right bold" id="labor-hours-pricing-sheet">0.00</td>
+    </tr>
+    <tr>
+      <td>Adjusted Labor Hours</td>
+      <td id="summaryAdjustedHours">0.00</td>
+    </tr>
+    <tr>
+      <td>Additional Labor Hours</td>
+      <td id="summaryAdditionalHours">0.00</td>
+    </tr>
+    <tr>
+      <td class="bold">Total Labor Hours</td>
+      <td id="summaryTotalHours" class="right bold">0.00</td>
+    </tr>
+  </table>
+
+  <!-- Labor Rate Row (4 columns) -->
+  <table>
+    <tr>
+      <td></td>
+      <td>Labor rate</td>
+      <td class="right">
+        <input type="text" id="laborRateInput" value="$0">
+      </td>
+      <td></td>
+    </tr>
+  </table>
+
+  <!-- Step B Table -->
+  <table>
+    <tr>
+      <td class="step-label">Step B</td>
+      <td class="bold">Total Labor Cost</td>
+      <td id="summaryTotalLaborCost" class="right bold">$0.00</td>
+    </tr>
+  </table>
+
+  <!-- Step C: Material Cost Summary -->
+  <table>
+    <tr>
+      <th colspan="4">Material Cost Summary</th>
+    </tr>
+
+    <!-- Row 1 -->
+    <tr>
+      <td class="step-label" rowspan="8">Step C</td>
+      <td class="bold">Material Cost (Pricing Sheet)</td>
+      <td></td>
+      <td class="right bold" id="material-cost-price-sheet">$0.00</td>
+    </tr>
+
+    <!-- Row 2 -->
+    <tr>
+      <td>Misc Material</td>
+      <td>
+        <select name="misc_percent">
+          {% for i in misc_range %}
+            <option value="{{ i }}" {% if i==10 %}selected{% endif %}>{{ i }}%</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td class="right" id="miscMaterialValue">$0.00</td>
+    </tr>
+
+    <!-- Row 3 -->
+    <tr>
+      <td>Small Tools</td>
+      <td>
+        <select name="small_tools_percent">
+          {% for i in misc_range %}
+            <option value="{{ i }}" {% if i==5 %}selected{% endif %}>{{ i }}%</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td class="right" id="smallToolsValue">$0.00</td>
+    </tr>
+
+    <!-- Row 4 -->
+    <tr>
+      <td>Large Tools</td>
+      <td>
+        <select name="large_tools_percent">
+          {% for i in large_tools_range %}
+            <option value="{{ i }}" {% if i==3 %}selected{% endif %}>{{ i }}%</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td class="right" id="largeToolsValue">$0.00</td>
+    </tr>
+
+    <!-- Row 5 -->
+    <tr>
+      <td>Waste and Theft</td>
+      <td>
+        <select name="waste_theft_percent">
+          {% for i in waste_theft_range %}
+            <option value="{{ i }}" {% if i==10 %}selected{% endif %}>{{ i }}%</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td class="right" id="wasteTheftValue">$0.00</td>
+    </tr>
+
+    <!-- Row 6 - Taxable Material (bold) -->
+    <tr>
+      <td><strong>Taxable Material</strong></td>
+      <td></td>
+      <td class="right"><strong id="taxableMaterialValue">$0.00</strong></td>
+    </tr>
+
+    <!-- Row 7 -->
+    <tr>
+      <td>Sales Tax</td>
+      <td>
+        <select name="sales_tax_percent">
+          {% for i in sales_tax_range %}
+            <option value="{{ i }}" {% if i==8 %}selected{% endif %}>{{ i }}%</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td class="right" id="salesTaxValue">$0.00</td>
+    </tr>
+
+    <!-- Row 8 - Total Material Cost (bold) -->
+    <tr>
+      <td><strong>Total Material Cost</strong></td>
+      <td></td>
+      <td class="right"><strong id="totalMaterialCostValue">$0.00</strong></td>
+    </tr>
+  </table>
+
+  <!-- Table Group 1: Step D & Step E -->
+  <table>
+    <tr>
+      <th colspan="3">Break-Even Cost</th>
+    </tr>
+    <tr>
+      <td class="step-label">Step D</td>
+      <td>DJE</td>
+      <td class="right" id="djeValue">$0.00</td>
+    </tr>
+    <tr>
+      <td class="step-label">Step E</td>
+      <td>Prime Cost (A + B + C + D)</td>
+      <td class="right" id="primeCostValue">$0.00</td>
+    </tr>
+  </table>
+
+  <!-- Table Group 2: Step F -->
+  <table>
+    <tr>
+      <td class="step-label">Step F</td>
+      <td>Overhead</td>
+      <td>
+        <select id="overheadPercentSelect">
+          <option value="10">10%</option>
+          <option value="15">15%</option>
+          <option value="20">20%</option>
+          <option value="25">25%</option>
+          <option value="30" selected>30%</option>
+          <option value="35">35%</option>
+          <option value="40">40%</option>
+        </select>
+      </td>
+      <td class="right" id="overheadValue">$0.00</td>
+    </tr>
+  </table>
+
+  <!-- Table Group 3: Step G -->
+  <table>
+    <tr>
+      <td class="step-label">Step G</td>
+      <td>Break-Even</td>
+      <td class="right"><strong id="breakEvenValue">$0.00</strong></td>
+    </tr>
+  </table>
+
+  <!-- Unified Table: Step H–K (Fixed for Full Column Grid) -->
+  <table>
+    <tr>
+      <th colspan="5">Sales Price Summary</th>
+    </tr>
+    <!-- Step H: 5 Columns -->
+    <tr>
+      <td class="step-label">Step H</td>
+      <td>Profit Margin</td>
+      <td class="right">
+        <select name="margin_percent" id="marginSelect">
+          {% for i in range(1, 26) %}
+            <option value="{{ i }}" {% if i==10 %}selected{% endif %}>{{ i }}%</option>
+          {% endfor %}
+          <option value="30">30%</option>
+          <option value="40">40%</option>
+          <option value="50">50%</option>
+          <option value="100">100%</option>
+        </select>
+      </td>
+      <td class="right" id="markupValue">0.00%</td>
+      <td class="right" id="profitMarginValue">$0.00</td>
+    </tr>
+
+    <!-- Step I: 3 Columns centered over middle -->
+    <tr>
+      <td class="step-label">Step I</td>
+      <td class="bold" colspan="3">Estimated Sales Price</td>
+      <td class="right bold" id="estimatedSalesPriceValue">$0.00</td>
+    </tr>
+  </table>
+
+  <!-- Labor Hour Breakdown -->
+  <table>
+    <tr>
+      <th colspan="3">Labor Hour Breakdown</th>
+    </tr>
+    <tr>
+      <th>1 man</th>
+      <th>2 man</th>
+      <th>4 man</th>
+    </tr>
+    <tr>
+      <td id="oneManDays" class="center"></td>
+      <td id="twoManDays" class="center"></td>
+      <td id="fourManDays" class="center"></td>
+    </tr>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/estimateData.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/summary.js') }}"></script>
+{% endblock %}
