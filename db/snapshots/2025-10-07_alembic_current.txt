@@ -1,0 +1,11 @@
+Current revision(s) for postgresql+psycopg2://postgres:***@localhost/electrical_estimator:
+Rev: 34555746e79c (head)
+Parent: <base>
+Path: C:\Users\sharm\Desktop\electrical-estimator\migrations\versions\34555746e79c_initial_materials_table.py
+
+    Initial materials table
+    
+    Revision ID: 34555746e79c
+    Revises: 
+    Create Date: 2025-06-07 10:47:55.201492
+
