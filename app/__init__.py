@@ -1,4 +1,3 @@
-# app/__init__.py
 import os
 from flask import Flask
 
@@ -21,7 +20,7 @@ def create_app():
 
     # Init extensions
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, directory="migrations")
     csrf.init_app(app)
     login_manager.init_app(app)
     limiter.init_app(app)
@@ -43,7 +42,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
-    app.register_blueprint(estimator_bp)
+    app.register_blueprint(estimator_bp, url_prefix="/estimator")
 
     # Health + index
     @app.get("/healthz")
