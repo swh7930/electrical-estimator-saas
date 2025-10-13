@@ -1,0 +1,104 @@
+{% extends "admin/base.html" %} {% block title %}New Assembly{% endblock %} {%
+block container_class %}container-xl{% endblock %} {% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex align-items-center gap-3">
+    <a
+      href="{{ url_for('admin.list_assemblies') }}"
+      class="link-secondary text-decoration-none"
+    >
+      &larr; Back to Assemblies
+    </a>
+    <h1 class="h3 mb-0">New Assembly</h1>
+  </div>
+  <button class="btn btn-primary" data-open="dlgCreate">New Assembly</button>
+</div>
+
+<p class="text-muted">
+  Use the button to create. The dialog opens centered and posts to the same
+  route.
+</p>
+
+<!-- Native dialog (no Bootstrap .modal class) -->
+<dialog id="dlgCreate">
+  <form
+    method="post"
+    action="{{ url_for('admin.create_assembly') }}"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <header><strong>Create Assembly</strong></header>
+    <main>
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label for="name" class="form-label">Name *</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            class="form-control"
+            required
+            placeholder='e.g., EMT 3/4" Stub-Up Kit'
+          />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="form-check">
+            <input
+              id="is_featured"
+              name="is_featured"
+              type="checkbox"
+              class="form-check-input"
+            />
+            <label for="is_featured" class="form-check-label">Featured</label>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="category" class="form-label">Category</label>
+          <select id="category" name="category" class="form-select">
+            <option value="">— none —</option>
+            <option>Residential</option>
+            <option>Commercial</option>
+            <option>Industrial</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="subcategory" class="form-label">Subcategory</label>
+          <input
+            id="subcategory"
+            name="subcategory"
+            type="text"
+            class="form-control"
+            placeholder="e.g., Rough-in, Trim, Site, Gear"
+          />
+        </div>
+
+        <div class="col-12">
+          <label for="notes" class="form-label">Notes</label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows="3"
+            class="form-control"
+            placeholder="Optional internal notes..."
+          ></textarea>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <button
+        class="btn btn-outline-secondary"
+        data-close="dlgCreate"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button class="btn btn-primary" type="submit">Create</button>
+    </footer>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/admin.assemblies_new.js') }}"></script>
+{% endblock %}
+

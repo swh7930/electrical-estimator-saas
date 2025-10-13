@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+{% block title %}Assemblies{% endblock %}
+{% block container_class %}container-xl{% endblock %}
+
+{% block admin_content %}
+<div class="assemblies-index-page">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 mb-0">Assemblies</h1>
+    <button class="btn btn-primary" data-open="dlgCreate">New Assembly</button>
+  </div>
+
+  <!-- Filters -->
+  <form class="row g-2 align-items-end mb-3" method="get" action="">
+    <div class="col-12 col-md-4">
+      <label for="category" class="form-label">Category</label>
+      <select id="category" name="category" class="form-select">
+        <option value="">— Any —</option>
+        {% for c in categories %}
+          <option value="{{ c }}" {% if sel_category and sel_category.lower()==c.lower() %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-4">
+      <label for="subcategory" class="form-label">Subcategory</label>
+      <select id="subcategory" name="subcategory" class="form-select">
+        <option value="">— Any —</option>
+        {% for s in subcategories %}
+          <option value="{{ s }}" {% if sel_subcategory and sel_subcategory.lower()==s.lower() %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="featured" class="form-label">Featured</label>
+      <select id="featured" name="featured" class="form-select">
+        <option value="" {% if not sel_featured %}selected{% endif %}>Any</option>
+        <option value="yes" {% if sel_featured=='yes' %}selected{% endif %}>Yes</option>
+        <option value="no" {% if sel_featured=='no' %}selected{% endif %}>No</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2 d-flex gap-2">
+      <button class="btn btn-outline-secondary w-100" type="submit">Apply</button>
+      <a class="btn btn-outline-secondary w-100" href="{{ url_for('admin.list_assemblies') }}">Reset</a>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle mb-4 assemblies-table">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Subcategory</th>
+          <th>Featured</th>
+          <th>Active</th>
+          <th>Updated</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in assemblies %}
+        <tr>
+          <td>{{ a.id }}</td>
+          <td>{{ a.name }}</td>
+          <td>{{ a.category or "" }}</td>
+          <td>{{ a.subcategory or "" }}</td>
+          <td>{{ "yes" if a.is_featured else "" }}</td>
+          <td>{{ "yes" if a.is_active else "no" }}</td>
+          <td>{{ a.updated_at }}</td>
+          <td>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.edit_assembly', assembly_id=a.id) }}">Edit</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-muted">No assemblies match your filters.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Create Assembly Dialog (native <dialog>) -->
+  <dialog id="dlgCreate">
+    <form method="post" action="{{ url_for('admin.create_assembly') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <header><strong>Create Assembly</strong></header>
+      <main>
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label for="name_create" class="form-label">Name *</label>
+            <input id="name_create" name="name" type="text" class="form-control" required placeholder='e.g., EMT 3/4" Stub-Up Kit'>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check">
+              <input id="is_featured_create" name="is_featured" type="checkbox" class="form-check-input">
+              <label for="is_featured_create" class="form-check-label">Featured</label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="category_create" class="form-label">Category</label>
+            <select id="category_create" name="category" class="form-select">
+              <option value="">— none —</option>
+              <option>Residential</option>
+              <option>Commercial</option>
+              <option>Industrial</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="subcategory_create" class="form-label">Subcategory</label>
+            <input id="subcategory_create" name="subcategory" type="text" class="form-control" placeholder="e.g., Rough-in, Trim, Site, Gear">
+          </div>
+
+          <div class="col-12">
+            <label for="notes_create" class="form-label">Notes</label>
+            <textarea id="notes_create" name="notes" rows="3" class="form-control" placeholder="Optional internal notes..."></textarea>
+          </div>
+        </div>
+      </main>
+      <footer>
+        <button class="btn btn-outline-secondary" data-close="dlgCreate" type="button">Cancel</button>
+        <button class="btn btn-primary" type="submit">Create</button>
+      </footer>
+    </form>
+  </dialog>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/admin.assemblies_index.js') }}"></script>
+{% endblock %}
