@@ -1,0 +1,64 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Data files (ignore general, but not seed files)
+*.xlsx
+*.csv
+!data/Materials DB Seed.xlsx
+!data/dje_items.xlsx
+
+# Logs
+*.log
+
+# Editor backups
+*.bak
+
+# Alembic and migrations (keep versions/ if you want)
+migrations/__pycache__/
+migrations/versions/__pycache__/
+
+# Local instance files
+instance/
+*.sqlite3
+*.db
+
+# VS Code and project metadata
+.vscode/
+.idea/
+*.code-workspace
+
+# Node/npm or frontend builds (if ever added)
+node_modules/
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.swp
+
+# DB snapshots (keep text metadata, ignore heavy dumps)
+db/snapshots/*.sql
+db/snapshots/*.dump
+
+# Python packaging / build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Flask cache / temp runtime
+flask_session/
+__pycache__/
+*.pid
+*.tmp
