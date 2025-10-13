@@ -52,5 +52,14 @@ def create_app():
     @app.get("/")
     def index():
         return "OK", 200
+    
+        # Error handlers (minimal)
+    @app.errorhandler(404)
+    def not_found(e):
+        return ("Not Found", 404)
+
+    @app.errorhandler(500)
+    def server_error(e):
+        return ("Internal Server Error", 500)
 
     return app
