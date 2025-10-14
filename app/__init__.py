@@ -61,5 +61,13 @@ def create_app():
     @app.errorhandler(500)
     def server_error(e):
         return ("Internal Server Error", 500)
+    
+    # CSRF error handler (clean 400 instead of generic 500)
+    from flask_wtf.csrf import CSRFError
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        # If you have templates/errors/csrf_error.html you can render it instead:
+        # return render_template("errors/csrf_error.html", reason=e.description), 400
+        return (f"CSRF validation failed: {e.description}", 400)
 
     return app
