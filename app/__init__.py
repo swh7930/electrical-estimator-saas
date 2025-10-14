@@ -23,7 +23,7 @@ def create_app():
     migrate.init_app(app, db, directory="migrations")
     csrf.init_app(app)
     login_manager.init_app(app)
-    limiter.init_app(app)
+    limiter.init_app(app, default_limits=(app.config.get("RATELIMIT_DEFAULT") or []))
     mail.init_app(app)
 
     # Minimal placeholder until real auth is wired
