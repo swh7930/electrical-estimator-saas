@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}DJE Items · Electrical Estimator{% endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Header -->
+  <div class="col-12">
+    <header class="d-flex align-items-center justify-content-between border-bottom py-3">
+      <div>
+        <h1 class="h3 mb-1">DJE Items</h1>
+        <div class="text-muted">Browse, add, and edit DJE items. Inline “Add” bar is at the top.</div>
+      </div>
+      <div class="text-muted small">Design-only stub</div>
+    </header>
+  </div>
+
+  <!-- Inline Add Bar -->
+  <div class="col-12">
+    <form class="card p-3">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-3">
+          <label class="form-label">Category</label>
+          <select class="form-select">
+            <option value="">Select…</option>
+            <option>Rough-In</option>
+            <option>Device</option>
+            <option>Gear</option>
+            <option>Lighting</option>
+          </select>
+        </div>
+        <div class="col-12 col-lg-3">
+          <label class="form-label">Subcategory</label>
+          <select class="form-select">
+            <option value="">Select…</option>
+            <option>Raceway</option>
+            <option>Wire Pull</option>
+            <option>Trim</option>
+            <option>Fixtures</option>
+          </select>
+        </div>
+        <div class="col-12 col-lg-4">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" placeholder="e.g., Install duplex receptacle, standard height">
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label">Base Hours</label>
+          <input type="number" step="0.01" class="form-control" placeholder="0.00">
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button type="button" class="btn btn-primary">Add</button>
+          <button type="button" class="btn btn-outline-secondary">Add &amp; continue</button>
+          <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#djeAdvancedModal">More fields…</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="col-12">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Subcategory</th>
+              <th>Description</th>
+              <th class="text-end">Base Hours</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- sample rows; replace with real data later -->
+            <tr>
+              <td>Device</td>
+              <td>Trim</td>
+              <td>Install duplex receptacle (spec grade)</td>
+              <td class="text-end">0.35</td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#djeEditModal">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Rough-In</td>
+              <td>Raceway</td>
+              <td>Install 3/4" EMT per 10' stick (avg)</td>
+              <td class="text-end">0.28</td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#djeEditModal">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Lighting</td>
+              <td>Fixtures</td>
+              <td>Install 2x4 LED troffer (grid ceiling)</td>
+              <td class="text-end">0.75</td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#djeEditModal">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <!-- /sample rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals (visual only) -->
+<div class="modal fade" id="djeAdvancedModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Add DJE Item — Advanced</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Notes</label>
+            <input type="text" class="form-control" placeholder="Optional">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Rule / Conditions</label>
+            <input type="text" class="form-control" placeholder="e.g., Height &gt; 10', ladder required">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Min Qty</label>
+            <input type="number" class="form-control" placeholder="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Active</label>
+            <select class="form-select"><option>Yes</option><option>No</option></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Internal Code</label>
+            <input type="text" class="form-control" placeholder="Optional">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" disabled>Save (stub)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="djeEditModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Edit DJE Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" value="Install duplex receptacle (spec grade)">
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label">Category</label>
+            <input type="text" class="form-control" value="Device">
+          </div>
+          <div class="col-6">
+            <label class="form-label">Subcategory</label>
+            <input type="text" class="form-control" value="Trim">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Base Hours</label>
+            <input type="number" step="0.01" class="form-control" value="0.35">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" disabled>Save changes (stub)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Delete DJE Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        This will remove the DJE item. Visual-only stub.
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" disabled>Delete (stub)</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

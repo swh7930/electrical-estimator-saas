@@ -37,6 +37,8 @@ def create_app():
     from .blueprints.api import bp as api_bp
     from .blueprints.estimator import bp as estimator_bp
     from .blueprints.main import bp as main_bp
+    from app.blueprints.estimates import bp as estimates_bp
+    from app.blueprints.libraries import bp as libraries_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
@@ -44,6 +46,8 @@ def create_app():
     app.register_blueprint(api_bp)
     app.register_blueprint(estimator_bp, url_prefix="/estimator")
     app.register_blueprint(main_bp)
+    app.register_blueprint(estimates_bp)
+    app.register_blueprint(libraries_bp)
 
     # Health + index
     @app.get("/healthz")

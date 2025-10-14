@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Materials · Electrical Estimator{% endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Header -->
+  <div class="col-12">
+    <header class="d-flex align-items-center justify-content-between border-bottom py-3">
+      <div>
+        <h1 class="h3 mb-1">Material List</h1>
+        <div class="text-muted">Browse, add, and edit materials. Inline “Add” bar is at the top.</div>
+      </div>
+      <div class="text-muted small">Design-only stub</div>
+    </header>
+  </div>
+
+  <!-- Inline Add Bar -->
+  <div class="col-12">
+    <form class="card p-3">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-3">
+          <label class="form-label">Category</label>
+          <select class="form-select">
+            <option value="">Select…</option>
+            <option>Conduit</option>
+            <option>Wire</option>
+            <option>Devices</option>
+            <option>Panels</option>
+          </select>
+        </div>
+        <div class="col-12 col-lg-4">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" placeholder="e.g., 3/4&quot; EMT, 10' stick">
+        </div>
+        <div class="col-6 col-lg-1">
+          <label class="form-label">Unit</label>
+          <input type="text" class="form-control" placeholder="ea / ft / stick">
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label">Cost ea</label>
+          <input type="number" step="0.01" class="form-control" placeholder="0.00">
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label">Unit Labor</label>
+          <input type="number" step="0.01" class="form-control" placeholder="0.00">
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button type="button" class="btn btn-primary">Add</button>
+          <button type="button" class="btn btn-outline-secondary">Add &amp; continue</button>
+          <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#materialAdvancedModal">More fields…</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="col-12">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Unit</th>
+              <th class="text-end">Cost ea</th>
+              <th class="text-end">Unit Labor (hrs)</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- sample rows; replace with real data later -->
+            <tr>
+              <td>Conduit</td>
+              <td>3/4" EMT, 10' stick</td>
+              <td>stick</td>
+              <td class="text-end">$8.25</td>
+              <td class="text-end">0.12</td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#materialEditModal">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Wire</td>
+              <td>THHN Cu #12, per ft</td>
+              <td>ft</td>
+              <td class="text-end">$0.18</td>
+              <td class="text-end">0.01</td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#materialEditModal">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <!-- /sample rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals (visual only) -->
+<div class="modal fade" id="materialAdvancedModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Add Material — Advanced</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <!-- placeholder advanced fields -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Vendor / SKU</label>
+            <input type="text" class="form-control" placeholder="Optional">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Notes</label>
+            <input type="text" class="form-control" placeholder="Optional">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Min Qty</label>
+            <input type="number" class="form-control" placeholder="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Taxable</label>
+            <select class="form-select"><option>Yes</option><option>No</option></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Active</label>
+            <select class="form-select"><option>Yes</option><option>No</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" disabled>Save (stub)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="materialEditModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Edit Material</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" value="3/4&quot; EMT, 10' stick">
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label">Unit</label>
+            <input type="text" class="form-control" value="stick">
+          </div>
+          <div class="col-6">
+            <label class="form-label">Cost ea</label>
+            <input type="number" step="0.01" class="form-control" value="8.25">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Unit Labor</label>
+            <input type="number" step="0.01" class="form-control" value="0.12">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" disabled>Save changes (stub)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Delete Material</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        This will remove the material. Visual-only stub.
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" disabled>Delete (stub)</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
