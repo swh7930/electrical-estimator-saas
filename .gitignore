@@ -4,6 +4,9 @@ venv/
 # Python cache
 __pycache__/
 *.pyc
+*.py[cod]
+*.pyo
+*.pyd
 
 # Environment files
 .env
@@ -26,7 +29,6 @@ Thumbs.db
 
 # Alembic and migrations (keep versions/ if you want)
 migrations/__pycache__/
-migrations/versions/__pycache__/
 
 # Local instance files
 instance/
