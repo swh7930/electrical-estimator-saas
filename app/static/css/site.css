@@ -473,3 +473,12 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 
 /* Table numeric alignment helpers (optional) */
 .table td.text-end, .table th.text-end { white-space: nowrap; }
+
+/* =====================================================
+   Libraries/Assemblies list alignment helpers
+   ===================================================== */
+.card > .table { margin-bottom: 0; }
+header.border-bottom + .card { margin-top: 1rem; } /* keep rhythm under section headers */
+
+/* When Assemblies table is wrapped in a card */
+.card > .assemblies-table { margin-bottom: 0; } /* removes extra bottom gap */
