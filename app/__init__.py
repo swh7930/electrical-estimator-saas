@@ -37,21 +37,19 @@ def create_app():
     from .blueprints.admin import bp as admin_bp
     from .blueprints.api import bp as api_bp
     from .blueprints.estimator import bp as estimator_bp
+    from .blueprints.main import bp as main_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(estimator_bp, url_prefix="/estimator")
+    app.register_blueprint(main_bp)
 
     # Health + index
     @app.get("/healthz")
     def healthz():
         return {"status": "ok"}, 200
-
-    @app.get("/")
-    def index():
-        return "OK", 200
     
         # Error handlers (minimal)
     @app.errorhandler(404)
