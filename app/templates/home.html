@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Home · Electrical Estimator{% endblock %}
+
+{% block head_extra %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+{% endblock %}
+
+{# Wider than default; options: container-xxl (1320px max) or container-fluid #}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+<div class="home-page">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-body">
+      <h1 class="hero-title">Electrical Estimator</h1>
+      <p class="hero-subtitle">
+        Estimate faster. Bid smarter. Built by the trade, for the trade.
+      </p>
+      <div class="hero-cta">
+        <a href="/estimator" class="btn btn-primary">Start New Estimate</a>
+        <a href="/summary" class="btn btn-secondary">View Summary</a>
+        <a href="/dje" class="btn btn-ghost">DJE Entry</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <section class="quick-actions">
+    <div class="qa-grid">
+      <a class="qa-card" href="/estimator">
+        <div class="qa-icon">🧮</div>
+        <h3>Start an Estimate</h3>
+        <p>Enter materials, labor, and adjustments—real-time totals as you go.</p>
+      </a>
+      <a class="qa-card" href="/estimates">
+        <div class="qa-icon">💾</div>
+        <h3>Saved Estimates</h3>
+        <p>Open drafts and finalized bids. Duplicate, revise, and export.</p>
+      </a>
+      <a class="qa-card" href="/dje">
+        <div class="qa-icon">🧰</div>
+        <h3>DJE Items</h3>
+        <p>Add direct job expenses—equipment, rentals, fees, permits.</p>
+      </a>
+      <a class="qa-card" href="/adjustments">
+        <div class="qa-icon">⚙️</div>
+        <h3>Adjustments</h3>
+        <p>Labor factors, environment, site conditions, and markup.</p>
+      </a>
+      <a class="qa-card" href="/summary">
+        <div class="qa-icon">📊</div>
+        <h3>Summary Sheet</h3>
+        <p>Prime cost, overhead, margin/markup, and sales price.</p>
+      </a>
+      <a class="qa-card" href="/admin/assemblies">
+        <div class="qa-icon">🗂️</div>
+        <h3>Admin / Assemblies</h3>
+        <p>Manage assemblies and data sources for consistent estimating.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section class="how-it-works">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Build your takeoff</h3>
+        <p>Use the Material Entry Form to capture notes, types, and quantities.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Apply adjustments</h3>
+        <p>Set labor factors and miscellaneous percentages aligned to your shop.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Add DJE</h3>
+        <p>Include equipment, rentals, fees, and one-off expenses.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Price it right</h3>
+        <p>Review the Summary Sheet for prime cost, overhead, and margin.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tips / Getting Started -->
+  <section class="tips">
+    <div class="tips-grid">
+      <div class="tips-card">
+        <h3>New here?</h3>
+        <ul>
+          <li>Start with <a href="/estimator">Material Entry</a></li>
+          <li>Set <a href="/adjustments">Adjustments</a> for your project</li>
+          <li>Enter <a href="/dje">DJE Items</a> like lifts, rentals, fees</li>
+          <li>Review totals on the <a href="/summary">Summary Sheet</a></li>
+        </ul>
+      </div>
+      <div class="tips-card">
+        <h3>Admin quick links</h3>
+        <ul>
+          <li><a href="/admin/assemblies">Assemblies</a></li>
+          <li><a href="/admin/materials">Materials</a></li>
+          <li><a href="/admin/settings">Settings</a></li>
+        </ul>
+      </div>
+      <div class="tips-card">
+        <h3>Export & handoff</h3>
+        <ul>
+          <li>Export estimate (PDF/CSV) from Summary</li>
+          <li>Attach to bids, proposals, or PM kickoff</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer CTA -->
+  <section class="footer-cta">
+    <div class="footer-cta-inner">
+      <h2>Ready to build your next estimate?</h2>
+      <div class="footer-cta-actions">
+        <a href="/estimator" class="btn btn-primary">Start New Estimate</a>
+        <a href="/estimates" class="btn btn-secondary">Open Saved</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+

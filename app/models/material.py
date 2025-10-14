@@ -1,39 +1,97 @@
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Optional
+
+from sqlalchemy import Index, text
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy.sql import func
+
 from app.extensions import db
 
+"""
+Estimator catalog models — critical indexes & constraints (doc only)
+
+• materials
+  - ix_materials_lower_item_description / ix_materials_lower_item_description_pattern:
+    Functional BTREE indexes on lower(item_description) (pattern_ops) for fast ILIKE / prefix search.
+
+  - ix_materials_material_type / ix_materials_type_active_desc:
+    Common filtering/sorting paths for grid views (type + active + description).
+
+  - ux_materials_type_desc_active_true:
+    UNIQUE INDEX (material_type, item_description) WHERE is_active = true
+    Rationale: Avoid duplicate live SKUs by type/description; allow inactive history.
+
+  - chk_materials_unit (DB-level check):
+    unit_quantity_size ∈ {1, 100, 1000} (enforced in DB, not re-declared in ORM to prevent autogen churn).
+
+"""
 
 class Material(db.Model):
     __tablename__ = "materials"
-
+    __allow_unmapped__ = True
+    
     id = db.Column(db.Integer, primary_key=True)
-    material_type = db.Column(db.String(120), index=True, nullable=False)
-    sku = db.Column(db.String(120))
-    manufacturer = db.Column(db.String(120))
-    item_description = db.Column(db.String(255), nullable=False)
-    vendor = db.Column(db.String(120))
-    price = db.Column(db.Numeric(10, 2))
-    labor_unit = db.Column(db.Numeric(10, 4))
-    unit_quantity_size = db.Column(db.String(64))
-    material_cost_code = db.Column(db.String(64))
-    mat_cost_code_desc = db.Column(db.String(255))
-    labor_cost_code = db.Column(db.String(64))
-    labor_cost_code_desc = db.Column(db.String(255))
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
 
-    def to_dict(self):
-        """Serialize minimal fields for JSON responses."""
-        return {
-            "id": self.id,
-            "material_type": self.material_type,
-            "sku": self.sku,
-            "manufacturer": self.manufacturer,
-            "item_description": self.item_description,
-            "vendor": self.vendor,
-            "price": float(self.price or 0),
-            "labor_unit": float(self.labor_unit or 0),
-            "unit_quantity_size": self.unit_quantity_size,
-            "material_cost_code": self.material_cost_code,
-            "mat_cost_code_desc": self.mat_cost_code_desc,
-            "labor_cost_code": self.labor_cost_code,
-            "labor_cost_code_desc": self.labor_cost_code_desc,
-            "is_active": self.is_active,
-        }
+    # Core attributes (nullable per baseline; DB is source of truth)
+    material_type = db.Column(db.String, nullable=True)
+    sku = db.Column(db.String, nullable=True)
+    manufacturer = db.Column(db.String, nullable=True)
+    item_description = db.Column(db.String, nullable=True)
+    vendor = db.Column(db.String, nullable=True)
+
+    # Pricing / labor
+    price = db.Column(db.Numeric(10, 4), nullable=True)
+    labor_unit = db.Column(db.Numeric(10, 4), nullable=True)
+
+    # Unit rule (DB migration enforces CHECK + NOT NULL)
+    unit_quantity_size = db.Column(db.Integer, nullable=False)
+
+    # Cost-code enrichment (added in S3-03a.1)
+    material_cost_code = db.Column(db.Text, nullable=True)
+    mat_cost_code_desc = db.Column(db.Text, nullable=True)
+    labor_cost_code = db.Column(db.Text, nullable=True)
+    labor_cost_code_desc = db.Column(db.Text, nullable=True)
+
+    # Lifecycle (added in S3-03a.4) — server-side defaults
+    is_active = db.Column(db.Boolean, nullable=False, server_default=text("TRUE"))
+    created_at = db.Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
+    updated_at = db.Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
+
+    price: Optional[Decimal]
+    labor_unit: Optional[Decimal]
+    unit_quantity_size: int
+
+    # Index strategy (doc):
+    # - Case-insensitive search/prefix matches on description via functional indexes.
+    # - Uniqueness within active catalog on (material_type, item_description).
+    # - DB-level check enforces allowed unit_quantity_size values; we avoid duplicating that in ORM.
+    __table_args__ = (
+        # Case-insensitive search helpers on description
+        Index("ix_materials_lower_item_description", func.lower(item_description)),
+        Index(
+            "ix_materials_lower_item_description_pattern", func.lower(item_description)
+        ),
+        # Common filters / sort
+        Index("ix_materials_material_type", material_type),
+        Index(
+            "ix_materials_type_active_desc", material_type, is_active, item_description
+        ),
+        # Partial-unique: prevent dup (type, description) among active rows
+        Index(
+            "ux_materials_type_desc_active_true",
+            material_type,
+            item_description,
+            unique=True,
+            postgresql_where=text("(is_active = true)"),
+        ),
+    )
+
+    def __repr__(self) -> str:
+        desc = (self.item_description or "").strip()
+        return f"<Material id={self.id} type={self.material_type!r} desc={desc[:40]!r} active={self.is_active}>"

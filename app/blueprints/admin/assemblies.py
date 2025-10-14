@@ -6,7 +6,7 @@ from . import bp  # the single admin blueprint
 
 from app.extensions import db
 from app.models.assembly import Assembly, AssemblyComponent
-from app.models.estimate import Material
+from app.models.material import Material
 
 from app.services.assemblies import (
     ServiceError,

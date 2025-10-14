@@ -2,7 +2,7 @@ from __future__ import annotations
 from decimal import Decimal, ROUND_HALF_UP
 from app.extensions import db
 from app.models.assembly import Assembly, AssemblyComponent
-from app.models.estimate import Material
+from app.models.material import Material
 from dataclasses import dataclass
 from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
