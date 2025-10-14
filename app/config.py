@@ -7,7 +7,12 @@ class BaseConfig:
     WTF_CSRF_TIME_LIMIT = None  # avoid surprise expirations during long edits
 
     # Database (env in prod; dev/test may use default)
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///:memory:")
+    try:
+        from dotenv import dotenv_values
+        _ENV_FALLBACK = dotenv_values(".env")
+    except Exception:
+        _ENV_FALLBACK = {}
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or _ENV_FALLBACK.get("DATABASE_URL") or "sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Logging / misc

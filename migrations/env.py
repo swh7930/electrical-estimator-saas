@@ -3,6 +3,7 @@ from logging.config import fileConfig
 import os
 import importlib
 import pkgutil
+from pathlib import Path
 
 from flask import current_app
 from alembic import context
@@ -10,8 +11,21 @@ from alembic import context
 # Alembic Config object (reads alembic.ini)
 config = context.config
 
-# Logging
-fileConfig(config.config_file_name)
+# Logging (robust: works with alembic.ini in migrations/ or in repo root)
+def _init_logging():
+    ini = config.config_file_name  # what Alembic thinks the INI is
+    if ini and Path(ini).exists():
+        fileConfig(ini)
+        return
+    # Try repo-root alembic.ini (…/migrations/env.py -> parents[1] is repo root)
+    root_ini = Path(__file__).resolve().parents[1] / "alembic.ini"
+    if root_ini.exists():
+        fileConfig(str(root_ini))
+        return
+    # Fallback: don't crash if no INI present
+    logging.basicConfig(level=logging.INFO)
+
+_init_logging()
 logger = logging.getLogger("alembic.env")
 
 # ──────────────────────────────────────────────────────────────────────────────

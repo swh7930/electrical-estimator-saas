@@ -3,11 +3,10 @@ from flask import Flask
 
 # Load .env only for local/dev. In prod, env vars come from the platform.
 if os.getenv("APP_ENV", "development") != "production":
-    try:
-        from dotenv import load_dotenv  # python-dotenv
-        load_dotenv()
-    except Exception:
-        pass
+    from dotenv import load_dotenv
+    # Always load .env if present and override any pre-set envs (prod: no .env → no-op)
+    load_dotenv(".env", override=True)
+
 
 from .config import get_config
 from .extensions import db, migrate, csrf, login_manager, limiter, mail
