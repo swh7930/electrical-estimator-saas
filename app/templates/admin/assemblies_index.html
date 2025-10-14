@@ -5,80 +5,121 @@
 {% block admin_content %}
 <div class="assemblies-index-page">
 
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h3 mb-0">Assemblies</h1>
-    <button class="btn btn-primary" data-open="dlgCreate">New Assembly</button>
-  </div>
+   <header class="d-flex align-items-center justify-content-between border-bottom py-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">Assemblies</h1>
+      <div class="text-muted">Browse, add, and edit assemblies. Inline “Add” bar is at the top.</div>
+    </div>
+    <div class="text-muted small">Design-only stub</div>
+  </header>
+
+    <!-- Inline Add (visual-only, mirrors Materials/DJE) -->
+  <section class="card p-3 mb-3">
+    <form class="row g-3 align-items-end" onsubmit="return false;">
+      <div class="col-12 col-lg-4">
+        <label class="form-label">Assembly Name</label>
+        <input type="text" class="form-control" placeholder="e.g., Receptacle, 20A, Trim">
+      </div>
+      <div class="col-6 col-lg-3">
+        <label class="form-label">Category</label>
+        <select class="form-select">
+          <option value="">Select…</option>
+          <option>Rough-In</option>
+          <option>Trim</option>
+          <option>Site</option>
+          <option>Gear</option>
+          <option>Lighting</option>
+        </select>
+      </div>
+      <div class="col-6 col-lg-3">
+        <label class="form-label">Subcategory</label>
+        <input type="text" class="form-control" placeholder="e.g., Duplex, GFCI, Panelboard">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Notes</label>
+        <input type="text" class="form-control" placeholder="Optional internal notes…">
+      </div>
+
+      <div class="col-12 d-flex gap-2">
+        <button type="button" class="btn btn-primary">Add</button>
+        <button type="button" class="btn btn-outline-secondary">Reset</button>
+      </div>
+    </form>
+  </section>
 
   <!-- Filters -->
-  <form class="row g-2 align-items-end mb-3" method="get" action="">
-    <div class="col-12 col-md-4">
-      <label for="category" class="form-label">Category</label>
-      <select id="category" name="category" class="form-select">
-        <option value="">— Any —</option>
-        {% for c in categories %}
-          <option value="{{ c }}" {% if sel_category and sel_category.lower()==c.lower() %}selected{% endif %}>{{ c }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-12 col-md-4">
-      <label for="subcategory" class="form-label">Subcategory</label>
-      <select id="subcategory" name="subcategory" class="form-select">
-        <option value="">— Any —</option>
-        {% for s in subcategories %}
-          <option value="{{ s }}" {% if sel_subcategory and sel_subcategory.lower()==s.lower() %}selected{% endif %}>{{ s }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-6 col-md-2">
-      <label for="featured" class="form-label">Featured</label>
-      <select id="featured" name="featured" class="form-select">
-        <option value="" {% if not sel_featured %}selected{% endif %}>Any</option>
-        <option value="yes" {% if sel_featured=='yes' %}selected{% endif %}>Yes</option>
-        <option value="no" {% if sel_featured=='no' %}selected{% endif %}>No</option>
-      </select>
-    </div>
-    <div class="col-6 col-md-2 d-flex gap-2">
-      <button class="btn btn-outline-secondary w-100" type="submit">Apply</button>
-      <a class="btn btn-outline-secondary w-100" href="{{ url_for('admin.list_assemblies') }}">Reset</a>
-    </div>
-  </form>
+   <section class="card p-3 mb-3">
+    <form class="row g-2 align-items-end mb-3" method="get" action="">
+      <div class="col-12 col-md-4">
+        <label for="category" class="form-label">Category</label>
+        <select id="category" name="category" class="form-select">
+          <option value="">— Any —</option>
+          {% for c in categories %}
+            <option value="{{ c }}" {% if sel_category and sel_category.lower()==c.lower() %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label for="subcategory" class="form-label">Subcategory</label>
+        <select id="subcategory" name="subcategory" class="form-select">
+          <option value="">— Any —</option>
+          {% for s in subcategories %}
+            <option value="{{ s }}" {% if sel_subcategory and sel_subcategory.lower()==s.lower() %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label for="featured" class="form-label">Featured</label>
+        <select id="featured" name="featured" class="form-select">
+          <option value="" {% if not sel_featured %}selected{% endif %}>Any</option>
+          <option value="yes" {% if sel_featured=='yes' %}selected{% endif %}>Yes</option>
+          <option value="no" {% if sel_featured=='no' %}selected{% endif %}>No</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2 d-flex gap-2">
+        <button class="btn btn-outline-secondary w-100" type="submit">Apply</button>
+        <a class="btn btn-outline-secondary w-100" href="{{ url_for('admin.list_assemblies') }}">Reset</a>
+      </div>
+    </form>
+  </section>
 
   <div class="table-responsive">
-    <table class="table table-sm table-hover align-middle mb-4 assemblies-table">
-      <thead class="table-light">
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Category</th>
-          <th>Subcategory</th>
-          <th>Featured</th>
-          <th>Active</th>
-          <th>Updated</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for a in assemblies %}
-        <tr>
-          <td>{{ a.id }}</td>
-          <td>{{ a.name }}</td>
-          <td>{{ a.category or "" }}</td>
-          <td>{{ a.subcategory or "" }}</td>
-          <td>{{ "yes" if a.is_featured else "" }}</td>
-          <td>{{ "yes" if a.is_active else "no" }}</td>
-          <td>{{ a.updated_at }}</td>
-          <td>
-            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.edit_assembly', assembly_id=a.id) }}">Edit</a>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="8" class="text-muted">No assemblies match your filters.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <section class="card">
+      <table class="table table-sm table-hover align-middle mb-4 assemblies-table">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Subcategory</th>
+            <th>Featured</th>
+            <th>Active</th>
+            <th>Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in assemblies %}
+          <tr>
+            <td>{{ a.id }}</td>
+            <td>{{ a.name }}</td>
+            <td>{{ a.category or "" }}</td>
+            <td>{{ a.subcategory or "" }}</td>
+            <td>{{ "yes" if a.is_featured else "" }}</td>
+            <td>{{ "yes" if a.is_active else "no" }}</td>
+            <td>{{ a.updated_at }}</td>
+            <td>
+              <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.edit_assembly', assembly_id=a.id) }}">Edit</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-muted">No assemblies match your filters.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
   </div>
 
   <!-- Create Assembly Dialog (native <dialog>) -->
