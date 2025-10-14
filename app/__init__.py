@@ -30,31 +30,37 @@ def create_app():
     def load_user(user_id):
         return None
 
-    # Blueprints
+        # Blueprints (explicit, consistent prefixes)
     from .blueprints.dashboard import bp as dashboard_bp
     from .blueprints.auth import bp as auth_bp
     from .blueprints.admin import bp as admin_bp
     from .blueprints.api import bp as api_bp
     from .blueprints.estimator import bp as estimator_bp
     from .blueprints.main import bp as main_bp
-    from app.blueprints.estimates import bp as estimates_bp
-    from app.blueprints.libraries import bp as libraries_bp
+    from .blueprints.estimates import bp as estimates_bp
+    from .blueprints.libraries import bp as libraries_bp
 
-    app.register_blueprint(dashboard_bp)
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(api_bp)
+    # Core / marketing
+    app.register_blueprint(main_bp)                         # "/"
+    app.register_blueprint(dashboard_bp, url_prefix="/dash")
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+
+    # Product areas
     app.register_blueprint(estimator_bp, url_prefix="/estimator")
-    app.register_blueprint(main_bp)
-    app.register_blueprint(estimates_bp)
-    app.register_blueprint(libraries_bp)
+    app.register_blueprint(estimates_bp,  url_prefix="/estimates")
+    app.register_blueprint(libraries_bp,  url_prefix="/libraries")  # materials, dje, customers
 
-    # Health + index
+    # Admin & API
+    app.register_blueprint(admin_bp, url_prefix="/admin")
+    app.register_blueprint(api_bp,   url_prefix="/api")
+
+
+    # Health
     @app.get("/healthz")
     def healthz():
         return {"status": "ok"}, 200
     
-        # Error handlers (minimal)
+    # Error handlers (minimal)
     @app.errorhandler(404)
     def not_found(e):
         return ("Not Found", 404)
