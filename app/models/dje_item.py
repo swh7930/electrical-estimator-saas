@@ -1,27 +1,87 @@
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Optional
+
+from sqlalchemy import Index, text
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy.sql import func
+
 from app.extensions import db
+
+"""
+Estimator catalog models — critical indexes & constraints (doc only)
+• dje_items
+  - ix_dje_items_category / ix_dje_items_cat_sub_desc:
+    Category/Subcategory browse and search helpers.
+
+  - ix_dje_items_lower_description / ix_dje_items_lower_description_pattern:
+    Case-insensitive search and prefix matching on description.
+
+  - ux_dje_items_cat_desc_vendor_active_true:
+    UNIQUE INDEX (category, description, vendor) WHERE is_active = true
+    Rationale: Catalog-level de-dup of active items per vendor.
+
+  - chk_dje_items_unit_cost_nonneg (DB-level check):
+    default_unit_cost ≥ 0 (enforced in DB).
+"""
 
 
 class DjeItem(db.Model):
-    """
-    Direct Job Expense (DJE) item.
-    Used to populate DJE category, subcategory, and description dropdowns.
-    """
     __tablename__ = "dje_items"
-
+    __allow_unmapped__ = True
+    
     id = db.Column(db.Integer, primary_key=True)
-    category = db.Column(db.String(120), index=True, nullable=False)
-    subcategory = db.Column(db.String(120), index=True, nullable=True)
-    description = db.Column(db.String(255), nullable=False)
-    default_unit_cost = db.Column(db.Numeric(10, 2), nullable=True)
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
 
-    def to_dict(self):
-        """Return minimal fields used by the frontend API."""
-        return {
-            "id": self.id,
-            "category": self.category,
-            "subcategory": self.subcategory,
-            "description": self.description,
-            "default_unit_cost": float(self.default_unit_cost or 0),
-            "is_active": self.is_active,
-        }
+    # Classification
+    category = db.Column(db.String, nullable=False)
+    subcategory = db.Column(db.String, nullable=True)
+
+    # Display / selection
+    description = db.Column(db.String, nullable=False)
+    vendor = db.Column(db.String, nullable=True)
+
+    # Default pricing (non-negative; DB has server_default and CHECK)
+    default_unit_cost = db.Column(
+        db.Numeric(12, 4), nullable=False, server_default=text("0")
+    )
+
+    # Optional cost code (added in S3-03b.1a)
+    cost_code = db.Column(db.Text, nullable=True)
+
+    # Lifecycle — server-side defaults
+    is_active = db.Column(db.Boolean, nullable=False, server_default=text("TRUE"))
+    created_at = db.Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
+    updated_at = db.Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
+
+    default_unit_cost: Decimal
+    vendor: Optional[str]
+
+    # Index strategy (doc):
+    # - Category/subcategory search helpers + case-insensitive description search.
+    # - Active-catalog uniqueness on (category, description, vendor).
+    # - DB-level check ensures non-negative default_unit_cost.
+    __table_args__ = (
+        Index("ix_dje_items_category", category),
+        Index("ix_dje_items_cat_sub_desc", category, subcategory, description),
+        Index("ix_dje_items_lower_description", func.lower(description)),
+        Index("ix_dje_items_lower_description_pattern", func.lower(description)),
+        # Partial-unique across active catalog
+        Index(
+            "ux_dje_items_cat_desc_vendor_active_true",
+            category,
+            description,
+            vendor,
+            unique=True,
+            postgresql_where=text("(is_active = true)"),
+        ),
+    )
+
+    def __repr__(self) -> str:
+      vend = self.vendor or "-"
+      desc = (self.description or "")[:40]
+      return f"<DjeItem id={self.id} cat={self.category!r} desc={desc!r} vendor={vend!r} active={self.is_active}>"

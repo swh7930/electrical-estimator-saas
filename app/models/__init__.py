@@ -1,2 +1,3 @@
-from .assembly import Assembly, AssemblyComponent  # noqa: F401
-from .estimate import Material                    # noqa: F401
+from .assembly import Assembly, AssemblyComponent
+from .material import Material
+from .dje_item import DjeItem

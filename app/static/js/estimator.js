@@ -192,7 +192,7 @@ async function hydrateGridFromStorage() {
 
 document.addEventListener("DOMContentLoaded", () => {
   paintHeaderFromStorage();   // ← show last known totals immediately
-  fetch("//estimator/api/material-types")
+  fetch("/estimator/api/material-types")
     .then(response => response.json())
     .then(async data => {
       // S1-05b: cache for populating Material Type on new rows
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cell) {
           // Create a <select> element for Material Type
           const select = document.createElement("select");         // build a new <select> element
-          select.name = `material_type_${i}`;                      // give it a unique name attribute tied to row index
+          select.name = `material-type_${i}`;                      // give it a unique name attribute tied to row index
           select.classList.add("material-type");                   // existing class for styling / hydration
           select.classList.add("cell-type");                       // S1-06b: NEW standard hook class used by delegated event listener
           select.setAttribute('data-row', String(i));              // S1-06b: tag with row index
@@ -378,7 +378,7 @@ function renderLoadingDescSelect(descTd) {
 // Returns a Promise resolving to an array (possibly empty). Keeps errors handled upstream.
 async function fetchDescriptionsByType(selectedType) {
   // Build request URL safely
-  const url = `/api/material_descriptions?type=${encodeURIComponent(selectedType)}`;
+  const url = `/estimator/api/material-descriptions?type=${encodeURIComponent(selectedType)}`;
 
   // Perform the fetch; request JSON
   const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
@@ -1118,7 +1118,7 @@ function hydrateMaterialTypeCell(index) {
   if (!cell) return;
 
   const select = document.createElement('select');         // build a new <select> element
-  select.name = `material_type_${index}`;                  // give it a unique name attribute tied to row index
+  select.name = `material-type_${index}`;                  // give it a unique name attribute tied to row index
   select.classList.add('material-type');                   // existing class for styling / hydration
   select.classList.add('cell-type');                       // S1-06b: NEW standard hook class used by delegated event listener
   select.setAttribute('data-row', String(index));          // S1-06b: tag with row index
