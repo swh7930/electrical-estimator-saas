@@ -54,6 +54,31 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(api_bp,   url_prefix="/api")
 
+    # Template globals (shared across all templates)
+    from datetime import datetime, timezone
+    import os
+
+    @app.context_processor
+    def inject_globals():
+        """Inject global template variables."""
+        root = app.root_path
+        def mtime_fmt(rel_path: str) -> str:
+            """Return 'Month D, YYYY' from a template's mtime; fallback to current date."""
+            try:
+                ts = os.path.getmtime(os.path.join(root, "templates", rel_path))
+                return datetime.fromtimestamp(ts).strftime("%B %-d, %Y")  # *nix day format
+            except Exception:
+                # Windows strftime doesn't support %-d; try a portable format:
+                try:
+                    return datetime.fromtimestamp(ts).strftime("%B %d, %Y")
+                except Exception:
+                    return datetime.now(timezone.utc).strftime("%B %d, %Y")
+
+        return {
+            "current_year": datetime.now(timezone.utc).year,
+            "last_updated_terms": mtime_fmt("terms.html"),
+            "last_updated_privacy": mtime_fmt("privacy.html"),
+        }
 
     # Health
     @app.get("/healthz")

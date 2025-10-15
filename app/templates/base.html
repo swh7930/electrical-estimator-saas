@@ -116,8 +116,29 @@
     </main>
 
     <!-- Global Footer -->
-    <footer class="border-top py-3 mt-4">
-      <div class="container text-muted small">&copy; Electrical Estimator</div>
+    <footer class="border-top mt-4 py-3">
+      <div class="container-xxl small text-muted d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+        <div>
+          &copy; {{ current_year }} Electrical Estimator · All rights reserved.
+        </div>
+        <ul class="nav small">
+          <li class="nav-item">
+            <a class="nav-link px-2 text-muted" href="{{ url_for('main.instructions') }}">Help Center</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-2 text-muted" href="{{ url_for('main.faqs') }}">FAQs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-2 text-muted" href="{{ url_for('main.whats_new') }}">What’s New</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-2 text-muted" href="{{ url_for('main.terms') }}" title="Terms of Service (coming soon)">Terms</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-2 text-muted" href="{{ url_for('main.privacy') }}" title="Privacy Policy (coming soon)">Privacy</a>
+          </li>
+        </ul>
+      </div>
     </footer>
 
     {% block scripts %}
