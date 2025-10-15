@@ -1,5 +1,3 @@
-/* keep project-specific tweaks here; minimal defaults below */
-
 /* reduce container max-width on huge screens just a touch */
 @media (min-width: 1400px) {
   .container {
@@ -30,7 +28,7 @@ body {
 /* =====================================================
    estimator.html (SCOPED to .estimator-page)
    ===================================================== */
-.estimator-page nav {
+.estimator-page nav:not(.wf-crumbs) {
   margin-bottom: 20px;
 }
 
@@ -836,7 +834,7 @@ header.border-bottom + .card {
   justify-content: center;
   align-items: center;
   text-align: center;
-  position: relative; top: 10px;
+  position: relative; top: 0px;
 }
 
 /* title */
