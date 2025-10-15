@@ -1,19 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Estimate Summary · Electrical Estimator{% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
-{% endblock %}
-
 {# Wider than default; options: container-xxl (1320px max) or container-fluid (full width) #}
 {% block container_class %}container-xxl{% endblock %}
 
 {% block content %}
 <div class="summary-page">
-  <h2 class="section-title flex-header">
-    <span>Summary Sheet</span>
-    <button id="resetAllBtn" type="button">Reset</button>
-  </h2>
+  
+  {% set current_step = 'summary' %}
+  {% include "_includes/workflow_nav.html" %}
 
   <!-- Step A Table -->
   <table>

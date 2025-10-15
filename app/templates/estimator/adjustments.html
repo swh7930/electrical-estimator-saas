@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Adjustments · Electrical Estimator{% endblock %}
 
-{% block head_extra %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
-{% endblock %}
-
 {# Wider than default; options: container-xxl (1320px max) or container-fluid (full width) #}
 {% block container_class %}container-xxl{% endblock %}
 
@@ -12,10 +8,8 @@
 <div class="adjustments-page">
 
   <!-- Section 1: Labor-Unit Adjustments -->
-  <h2 class="section-title flex-header">
-    <span>Labor Adjustments</span>
-    <button id="resetAdjustmentsPageBtn" type="button">Reset</button>
-  </h2>
+  {% set current_step = 'adjustments' %}
+  {% include "_includes/workflow_nav.html" %}
 
   <table id="laborAdjustmentsTable">
     <thead>
