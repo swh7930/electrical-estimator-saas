@@ -10,73 +10,78 @@
     {% set current_step = 'estimator' %}
     {% include "_includes/workflow_nav.html" %}
 
-    <table class="estimator-grid">
-        <thead>
-            <!-- Top aligned totals + reset row -->
-            <tr class="totals-row">
-                <th></th>
-                <th></th> <!-- Material Type -->
-                <th></th> <!-- Description -->
-                <th></th> <!-- Qty -->
-                <th></th> <!-- Labor Adj -->
-                <th></th> <!-- Cost ea -->
-                <th>
-                    <div class="totals-cell">
-                        <strong>Mat Total:</strong>
-                        <span id="materialTotalDisplay">$0.00</span>
-                    </div>
-                </th>
-                <th></th> <!-- Labor Unit -->
-                <th>
-                    <div class="totals-cell">
-                        <strong>Total Hrs:</strong>
-                        <span id="laborTotalDisplay">0.00</span>
-                    </div>
-                </th>
-                <th></th> <!-- Unit -->
-            </tr>
+    <section class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle estimator-grid">
+                    <thead>
+                        <!-- Top aligned totals + reset row -->
+                        <tr class="totals-row">
+                            <th></th>
+                            <th></th> <!-- Material Type -->
+                            <th></th> <!-- Description -->
+                            <th></th> <!-- Qty -->
+                            <th></th> <!-- Labor Adj -->
+                            <th></th> <!-- Cost ea -->
+                            <th>
+                                <div class="totals-cell">
+                                    <strong>Mat Total:</strong>
+                                    <span id="materialTotalDisplay">$0.00</span>
+                                </div>
+                            </th>
+                            <th></th> <!-- Labor Unit -->
+                            <th>
+                                <div class="totals-cell">
+                                    <strong>Total Hrs:</strong>
+                                    <span id="laborTotalDisplay">0.00</span>
+                                </div>
+                            </th>
+                            <th></th> <!-- Unit -->
+                        </tr>
 
-            <!-- Column headers -->
-            <tr>
-                <th>Notes</th>
-                <th>Material Type</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Labor Adj</th>
-                <th>Cost ea</th>
-                <th>Material Ext</th>
-                <th>Labor Unit</th>
-                <th>Labor Hrs</th>
-                <th>Unit</th>
-            </tr>
-        </thead>
+                        <!-- Column headers -->
+                        <tr>
+                            <th>Notes</th>
+                            <th>Material Type</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Labor Adj</th>
+                            <th>Cost ea</th>
+                            <th>Material Ext</th>
+                            <th>Labor Unit</th>
+                            <th>Labor Hrs</th>
+                            <th>Unit</th>
+                        </tr>
+                    </thead>
 
-        <tbody>
-            {% for i in range(10) %}
-            <tr data-row="{{ i }}">
-                <td><input type="text" name="notes_{{ i }}" class="grid-input cell-notes" data-row="{{ i }}"></td>
-                <td id="materialType_{{ i }}"></td>
-                <td id="description_{{ i }}"></td>
-                <td><input type="number" name="quantity_{{ i }}" min="0" step="1" class="grid-input cell-qty" data-row="{{ i }}"></td>
-                <td>
-                    <select name="labor_adj_{{ i }}" class="grid-input cell-labor-adj" data-row="{{ i }}">
-                        <option value="0.25">0.25</option>
-                        <option value="0.5">0.5</option>
-                        <option value="1" selected>1</option>
-                        <option value="1.5">1.5</option>
-                        <option value="2">2</option>
-                    </select>
-                </td>
-                <td id="costEach_{{ i }}" class="right"></td>
-                <td id="materialExt_{{ i }}" class="right">$0.00</td>
-                <td id="laborUnit_{{ i }}" class="right"></td>
-                <td id="laborHrs_{{ i }}" class="right">0.00</td>
-                <td id="unit_{{ i }}" class="center"></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                    <tbody>
+                        {% for i in range(10) %}
+                        <tr data-row="{{ i }}">
+                            <td><input type="text" name="notes_{{ i }}" class="grid-input cell-notes" data-row="{{ i }}"></td>
+                            <td id="materialType_{{ i }}"></td>
+                            <td id="description_{{ i }}"></td>
+                            <td><input type="number" name="quantity_{{ i }}" min="0" step="1" class="grid-input cell-qty" data-row="{{ i }}"></td>
+                            <td>
+                                <select name="labor_adj_{{ i }}" class="grid-input cell-labor-adj" data-row="{{ i }}">
+                                    <option value="0.25">0.25</option>
+                                    <option value="0.5">0.5</option>
+                                    <option value="1" selected>1</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </td>
+                            <td id="costEach_{{ i }}" class="right"></td>
+                            <td id="materialExt_{{ i }}" class="right">$0.00</td>
+                            <td id="laborUnit_{{ i }}" class="right"></td>
+                            <td id="laborHrs_{{ i }}" class="right">0.00</td>
+                            <td id="unit_{{ i }}" class="center"></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 {% endblock %}
 
 {% block scripts %}
