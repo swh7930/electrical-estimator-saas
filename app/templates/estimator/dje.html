@@ -1,17 +1,10 @@
-{% extends "base.html" %} {% block title %}DJE · Electrical Estimator{% endblock
-%} {% block head_extra %}
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/site.css') }}"
-/>
-{% endblock %} {# Wider than default; options: container-xxl (1320px max) or
-container-fluid (full width) #} {% block container_class %}container-xxl{%
-endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}DJE · Electrical Estimator{% endblock%}  
+{# Wider than default; options: container-xxl (1320px max) or container-fluid (full width) #} 
+{% block container_class %}container-xxl{%endblock %} 
+{% block content %}
 <div class="dje-page">
-  <h2 class="section-title flex-header">
-    <span>DJE Entry Form</span>
-    <button id="djeResetBtn" type="button">Reset</button>
-  </h2>
+ {% set current_step = 'dje' %}
+{% include "_includes/workflow_nav.html" %}
 
   <table>
     <thead>
