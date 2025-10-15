@@ -32,20 +32,41 @@ body {
   margin-bottom: 20px;
 }
 
-.estimator-page table {
+/* Estimator grid: Bootstrap-native look (light borders, compact rhythm) */
+.estimator-page .table.estimator-grid {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 30px;
+  margin-bottom: 1.25rem;
+  border-collapse: separate; /* allow rounded corners & cleaner borders */
+  border-spacing: 0;
 }
-.estimator-page th,
-.estimator-page td {
-  border: 1px solid #999;
-  padding: 8px 12px;
-  text-align: left;
+
+/* Soften borders to Bootstrap tokens instead of hard #999 */
+.estimator-page .estimator-grid > :not(caption) > * > * {
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: .5rem .75rem; /* compact, app-like */
 }
-.estimator-page th {
-  background-color: #ddeeff;
+
+/* Header: light background, stronger weight */
+.estimator-page .estimator-grid thead th {
+  background-color: var(--bs-gray-100);
+  font-weight: 600;
 }
+
+/* Totals row: no noisy background/borders; right-aligned widgets remain */
+.estimator-page .estimator-grid thead tr.totals-row th {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+/* Hover (subtle, not “Excel highlight”) */
+.estimator-page .estimator-grid tbody tr:hover {
+  background-color: rgba(var(--bs-primary-rgb), .03);
+}
+
+/* Right/center helpers keep working (scoped to grid) */
+.estimator-page .estimator-grid .right { text-align: right; }
+.estimator-page .estimator-grid .center { text-align: center; }
+
 
 .estimator-page .section-title:not(.workflow-nav) {
   background-color: #0073e6;
@@ -76,10 +97,14 @@ body {
   padding: 10px;
 }
 
-/* 1) Uniform control height for inputs/selects in this grid */
+/* Uniform control sizing; app-like look without altering behavior */
 .estimator-page .grid-input {
   height: 32px;
   min-height: 32px;
+  padding: .25rem .5rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: .375rem;
+  background-color: var(--bs-body-bg);
 }
 
 /* 2) Qty column wide enough for '9999' + spinner (skip if you used the inline width) */
@@ -144,20 +169,43 @@ body {
 /* =====================================================
    adjustments.html (SCOPED to .adjustments-page)
    ===================================================== */
-.adjustments-page table {
+/* Adjustments: Bootstrap-native look */
+.adjustments-page .table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 30px;
+  margin-bottom: 1.25rem;
+  border-collapse: separate;
+  border-spacing: 0;
 }
-.adjustments-page th,
-.adjustments-page td {
-  border: 1px solid #999;
-  padding: 8px 12px;
-  text-align: left;
+
+/* Soften borders & compact rhythm */
+.adjustments-page .table > :not(caption) > * > * {
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: .5rem .75rem;
 }
-.adjustments-page th {
-  background-color: #ddeeff;
+
+/* Head styling */
+.adjustments-page thead th {
+  background-color: var(--bs-gray-100);
+  font-weight: 600;
 }
+
+/* Summary rows already have classes; keep them readable without heavy backgrounds */
+.adjustments-page .row-summary > * {
+  background: transparent;
+  font-weight: 500;
+}
+.adjustments-page .row-total > * {
+  background: transparent;
+  font-weight: 600;
+}
+
+/* Subtle hover */
+.adjustments-page tbody tr:hover {
+  background-color: rgba(var(--bs-primary-rgb), .03);
+}
+
+/* Right align helper remains */
+.adjustments-page .right { text-align: right; }
 
 .adjustments-page .section-title:not(.workflow-nav) {
   background-color: #0073e6;
@@ -241,20 +289,44 @@ body {
   margin: 0 0 30px 0;
   padding: 10px;
 }
-.dje-page table {
+/* DJE grid: Bootstrap-native look */
+.dje-page .table.dje-grid {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 30px;
+  margin-bottom: 1.25rem;
+  border-collapse: separate;
+  border-spacing: 0;
 }
-.dje-page th,
-.dje-page td {
-  border: 1px solid #999;
-  padding: 8px 12px;
-  text-align: left;
+
+/* Soften borders & compact rhythm */
+.dje-page .dje-grid > :not(caption) > * > * {
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: .5rem .75rem;
 }
-.dje-page th {
-  background-color: #ddeeff;
+
+/* Head styling */
+.dje-page .dje-grid thead th {
+  background-color: var(--bs-gray-100);
+  font-weight: 600;
 }
+
+/* Subtle hover */
+.dje-page .dje-grid tbody tr:hover {
+  background-color: rgba(var(--bs-primary-rgb), .03);
+}
+
+/* Control sizing to feel native */
+.dje-page .grid-input {
+  height: 32px;
+  min-height: 32px;
+  padding: .25rem .5rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: .375rem;
+  background-color: var(--bs-body-bg);
+}
+
+/* Helpers preserved */
+.dje-page .right { text-align: right; }
+.dje-page .center { text-align: center; }
 
 .dje-page .section-title:not(.workflow-nav) {
   background-color: #0073e6;
@@ -338,20 +410,32 @@ body {
   padding: 10px;
 }
 
-/* Base table rules for Summary page */
+/* Summary tables: app-like without touching markup */
 .summary-page table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 30px;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 1.25rem;
 }
-.summary-page th,
-.summary-page td {
-  border: 1px solid #999;
-  padding: 8px 12px;
-  text-align: left;
+
+/* Light borders & compact rhythm */
+.summary-page table > :not(caption) > * > * {
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: .5rem .75rem;
 }
+
+/* Headers */
 .summary-page th {
-  background-color: #ddeeff;
+  background-color: var(--bs-gray-100);
+  font-weight: 600;
+}
+
+/* Subtle zebra striping & hover (CSS-only, keeps markup unchanged) */
+.summary-page tbody tr:nth-child(even) {
+  background-color: rgba(var(--bs-secondary-rgb), .03);
+}
+.summary-page tbody tr:hover {
+  background-color: rgba(var(--bs-primary-rgb), .03);
 }
 
 /* Utility classes already present in markup */
@@ -901,3 +985,7 @@ header.border-bottom + .card {
     font-size: 1rem;
   }
 }
+
+/* Icon utilities (shared) */
+.icon { display: inline-block; vertical-align: text-bottom; }
+.btn .icon { margin-right: .25rem; }

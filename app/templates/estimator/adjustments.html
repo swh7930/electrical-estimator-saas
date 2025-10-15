@@ -11,62 +11,66 @@
   {% set current_step = 'adjustments' %}
   {% include "_includes/workflow_nav.html" %}
 
-  <table id="laborAdjustmentsTable">
-    <thead>
-      <tr>
-        <th>Labor-Unit Adjustment</th>
-        <th>Adj %</th>
-        <th>Hrs</th>
-      </tr>
-      <tr class="row-summary">
-        <td>Estimated Labor Hours</td>
-        <td></td>
-        <td id="est_lbr_hrs" class="right">0.00</td>
-      </tr>
-    </thead>
-    <tbody id="laborAdjustmentsBody"></tbody>
-    <tfoot>
-      <tr class="row-summary">
-        <td>Labor-Unit Adjustment Hours</td>
-        <td></td>
-        <td class="right" id="adjustmentHours">0.00</td>
-      </tr>
-      <tr class="row-total">
-        <td>Total Hours w/ Adjustment Hours</td>
-        <td></td>
-        <td class="right" id="totalAdjustedHours">0.00</td>
-      </tr>
-    </tfoot>
-  </table>
+  <div class="table-responsive">
+    <table id="laborAdjustmentsTable" class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Labor-Unit Adjustment</th>
+          <th>Adj %</th>
+          <th>Hrs</th>
+        </tr>
+        <tr class="row-summary">
+          <td>Estimated Labor Hours</td>
+          <td></td>
+          <td id="est_lbr_hrs" class="right">0.00</td>
+        </tr>
+      </thead>
+      <tbody id="laborAdjustmentsBody"></tbody>
+      <tfoot>
+        <tr class="row-summary">
+          <td>Labor-Unit Adjustment Hours</td>
+          <td></td>
+          <td class="right" id="adjustmentHours">0.00</td>
+        </tr>
+        <tr class="row-total">
+          <td>Total Hours w/ Adjustment Hours</td>
+          <td></td>
+          <td class="right" id="totalAdjustedHours">0.00</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
 
   <!-- Section 2: Additional Labor -->
-  <table id="additionalLaborTable">
-    <thead>
-      <tr>
-        <th>Additional Labor</th>
-        <th>Adj %</th>
-        <th>Hrs</th>
-      </tr>
-      <tr class="row-summary">
-        <td>Total Hours w/ Adjustments</td>
-        <td></td>
-        <td id="total_adjusted_base" class="right">0.00</td>
-      </tr>
-    </thead>
-    <tbody id="additionalLaborBody"></tbody>
-    <tfoot>
-      <tr class="row-summary">
-        <td>Additional Labor Hours</td>
-        <td></td>
-        <td class="right" id="additionalLaborTotal">0.00</td>
-      </tr>
-      <tr class="row-total">
-        <td>Total Hours w/ Additional Labor</td>
-        <td></td>
-        <td class="right" id="totalWithAdditionalLabor">21.70</td>
-      </tr>
-    </tfoot>
-  </table>
+  <div class="table-responsive">
+    <table id="additionalLaborTable" class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Additional Labor</th>
+          <th>Adj %</th>
+          <th>Hrs</th>
+        </tr>
+        <tr class="row-summary">
+          <td>Total Hours w/ Adjustments</td>
+          <td></td>
+          <td id="total_adjusted_base" class="right">0.00</td>
+        </tr>
+      </thead>
+      <tbody id="additionalLaborBody"></tbody>
+      <tfoot>
+        <tr class="row-summary">
+          <td>Additional Labor Hours</td>
+          <td></td>
+          <td class="right" id="additionalLaborTotal">0.00</td>
+        </tr>
+        <tr class="row-total">
+          <td>Total Hours w/ Additional Labor</td>
+          <td></td>
+          <td class="right" id="totalWithAdditionalLabor">21.70</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
 
 </div>
 {% endblock %}

@@ -50,7 +50,11 @@
 
   <!-- Right: reset button -->
   <div class="wf-right">
-    <button id="{{ reset_id }}" type="button" class="btn btn-sm btn-primary">Reset</button>
+    <button id="{{ reset_id }}" type="button" class="btn btn-sm btn-primary">
+      {% include "_includes/icons/reset.svg" %}
+      <span>Reset</span>
+    </button>
+
   </div>
 </div>
 <div class="workflow-nav-spacer" aria-hidden="true"></div>
