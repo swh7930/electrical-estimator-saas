@@ -69,6 +69,20 @@
                   >Summary</a
                 >
               </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link{% if request.path.startswith('/instructions') %} active{% endif %}"
+                  href="{{ url_for('main.instructions') }}"
+                  >Instructions</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link{% if request.path.startswith('/whats-new') %} active{% endif %}"
+                  href="{{ url_for('main.whats_new') }}"
+                  >What's New</a
+                >
+              </li>
             </li>
           </ul>
         </div>

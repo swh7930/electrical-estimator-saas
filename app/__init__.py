@@ -30,7 +30,7 @@ def create_app():
     def load_user(user_id):
         return None
 
-        # Blueprints (explicit, consistent prefixes)
+    # Blueprints (explicit, consistent prefixes)
     from .blueprints.dashboard import bp as dashboard_bp
     from .blueprints.auth import bp as auth_bp
     from .blueprints.admin import bp as admin_bp

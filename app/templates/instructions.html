@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}Instructions{% endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+<div id="instructions-grid" class="row g-4">
+
+  <!-- Page Header -->
+  <div class="col-12">
+    <header class="d-flex align-items-center justify-content-between border-bottom py-3 mb-3">
+      <div>
+        <h1 class="h3 mb-1">Instructions</h1>
+        <div class="text-muted">How to use the Electrical Estimator — from first launch to polished proposal. (Design-only)</div>
+      </div>
+      <div class="text-muted small">Design-only</div>
+    </header>
+  </div>
+
+  <!-- Quick Start / TOC -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Quick Start</h2>
+        <ol class="mb-0">
+          <li>Go to <strong>Libraries</strong> → <strong>Materials / DJE / Customers</strong> and confirm your data.</li>
+          <li>Open <strong>Admin → Settings</strong> and set company info and estimator defaults.</li>
+          <li>Create a new estimate in <strong>Estimator</strong>.</li>
+          <li>Review numbers on the <strong>Summary</strong> page, adjust as needed.</li>
+          <li>Export or copy values to your proposal (proposal builder coming soon).</li>
+        </ol>
+        <hr class="my-3">
+        <div class="row g-2">
+          <div class="col-6 col-md-3"><a href="#workflow" class="btn btn-outline-secondary w-100">Workflow</a></div>
+          <div class="col-6 col-md-3"><a href="#libraries" class="btn btn-outline-secondary w-100">Libraries</a></div>
+          <div class="col-6 col-md-3"><a href="#estimator" class="btn btn-outline-secondary w-100">Estimator</a></div>
+          <div class="col-6 col-md-3"><a href="#summary" class="btn btn-outline-secondary w-100">Summary</a></div>
+          <div class="col-6 col-md-3"><a href="#customers" class="btn btn-outline-secondary w-100">Customers</a></div>
+          <div class="col-6 col-md-3"><a href="#settings" class="btn btn-outline-secondary w-100">Settings</a></div>
+          <div class="col-6 col-md-3"><a href="#saving" class="btn btn-outline-secondary w-100">Save / Load</a></div>
+          <div class="col-6 col-md-3"><a href="#exporting" class="btn btn-outline-secondary w-100">Exporting</a></div>
+          <div class="col-6 col-md-3"><a href="#tips" class="btn btn-outline-secondary w-100">Tips</a></div>
+          <div class="col-6 col-md-3"><a href="#troubleshooting" class="btn btn-outline-secondary w-100">Troubleshooting</a></div>
+          <div class="col-6 col-md-3"><a href="#glossary" class="btn btn-outline-secondary w-100">Glossary</a></div>
+          <div class="col-6 col-md-3"><a href="#whats-next" class="btn btn-outline-secondary w-100">What’s Next</a></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Workflow -->
+  <div class="col-12" id="workflow">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Recommended Workflow</h2>
+        <ol class="mb-0">
+          <li>Verify global settings in <em>Admin → Settings</em> (labor rate, misc %, tax, overhead, margin).</li>
+          <li>Confirm materials/DJE data in <em>Libraries</em>.</li>
+          <li>Start an estimate in <em>Estimator</em> (notes, materials, quantities, labor adj.).</li>
+          <li>Use <em>Summary</em> to check totals, OH &amp; Profit, and taxes.</li>
+          <li>Save → Export → Build proposal (proposal builder forthcoming).</li>
+        </ol>
+      </div>
+    </section>
+  </div>
+
+  <!-- Libraries -->
+  <div class="col-12" id="libraries">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Libraries (Materials / DJE / Customers)</h2>
+        <ul class="mb-0">
+          <li><strong>Materials:</strong> Read-only catalog used by Estimator rows (type, description, unit, cost ea, labor unit).</li>
+          <li><strong>DJE (Direct Job Expense):</strong> Non-material expenses (permits, rentals, etc.).</li>
+          <li><strong>Customers:</strong> Maintain client records for quick proposal autofill later.</li>
+        </ul>
+        <div class="text-muted small mt-2">Note: Data editing screens are design-complete stubs until wiring is enabled.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Estimator -->
+  <div class="col-12" id="estimator">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Estimator</h2>
+        <ul class="mb-3">
+          <li><strong>Rows:</strong> Notes (free text), Material Type (from DB), Description (from DB), Qty, Labor Adj (×0.25 → ×2), Cost ea, Labor Unit, etc.</li>
+          <li><strong>Auto-grow:</strong> New row appears when you start typing in Notes or choose a Material Type.</li>
+          <li><strong>Calculated:</strong> Material Ext = Qty × Cost ea; Labor Hrs = Qty × Labor Unit.</li>
+          <li><strong>Totals:</strong> Mat Total and Total Hrs update live in the header area.</li>
+        </ul>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="bg-light rounded p-3 h-100">
+              <div class="fw-semibold mb-1">Tips</div>
+              <ul class="mb-0">
+                <li>Use <em>Labor Adj</em> to reflect difficulty (tight spaces, height, etc.).</li>
+                <li>Keep notes granular — each line should represent a unit-priced scope item.</li>
+                <li>Prefer DB-backed items to keep pricing stable across estimates.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="bg-light rounded p-3 h-100">
+              <div class="fw-semibold mb-1">Keyboard</div>
+              <ul class="mb-0">
+                <li><kbd>Tab</kbd> to move cells; <kbd>Shift</kbd> + <kbd>Tab</kbd> to go back.</li>
+                <li><kbd>Enter</kbd> in Notes adds a new row (when supported).</li>
+                <li><kbd>Esc</kbd> to cancel edits (when supported).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Summary -->
+  <div class="col-12" id="summary">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Summary</h2>
+        <ul class="mb-3">
+          <li><strong>Labor Rate:</strong> Pulls default from <em>Settings</em> (targets <code>#laborRateInput</code>).</li>
+          <li><strong>Percentages:</strong> Misc, Tools (small/large), Waste/Theft, Sales Tax, Overhead, Margin (targets their Summary IDs/names you standardized).</li>
+          <li><strong>OH &amp; Profit:</strong> Applied after materials &amp; labor; verify tiers if you adjust margins.</li>
+          <li><strong>Taxes:</strong> Sales Tax % applies to taxable items as configured.</li>
+        </ul>
+        <div class="text-muted small">When wiring is enabled, Settings will prefill Summary controls and persist choices.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Customers -->
+  <div class="col-12" id="customers">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Customers</h2>
+        <p class="mb-2">Use Customers to store client details that will feed proposals and job records.</p>
+        <ul class="mb-0">
+          <li>Inline add for quick entries (design-only).</li>
+          <li>Table shows Name, Company, Email, Phone (design-only).</li>
+          <li>Modal shells for view/edit (design-only).</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- Settings -->
+  <div class="col-12" id="settings">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Settings</h2>
+        <p class="mb-2">Configure company identity (for proposals) and estimator defaults (labor rate, overhead, margin, taxes, etc.).</p>
+        <ul class="mb-0">
+          <li>Company &amp; contact info → Proposal autofill later.</li>
+          <li>Estimator defaults → Summary autofill later.</li>
+          <li>App behavior → rounding, materials taxable, currency.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- Saving / Loading -->
+  <div class="col-12" id="saving">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Saving &amp; Loading (Upcoming)</h2>
+        <ul class="mb-0">
+          <li><strong>Save:</strong> Persist estimate state for later edits.</li>
+          <li><strong>Load:</strong> Re-open existing estimates.</li>
+          <li><strong>Versioning:</strong> Duplicate estimates to branch alternates.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- Exporting -->
+  <div class="col-12" id="exporting">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Exporting (Upcoming)</h2>
+        <ul class="mb-0">
+          <li><strong>CSV / XLSX:</strong> Materials list, labor hours, cost breakdowns.</li>
+          <li><strong>Proposal:</strong> Branded cover, scope, inclusions/exclusions, price.</li>
+          <li><strong>Integration targets:</strong> Bluebeam/markup-ready sheets (future).</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tips -->
+  <div class="col-12" id="tips">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Tips</h2>
+        <ul class="mb-0">
+          <li>Keep assemblies/components clean — reuse over retype.</li>
+          <li>Favor DB-backed items over ad-hoc lines for consistent pricing.</li>
+          <li>Review Summary after major scope changes; adjust OH/Margin accordingly.</li>
+          <li>Use Notes to justify adjustments (height, access, night work, etc.).</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- Troubleshooting -->
+  <div class="col-12" id="troubleshooting">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Troubleshooting</h2>
+        <ul class="mb-0">
+          <li><strong>Dropdowns empty:</strong> Verify Materials/DJE tables are seeded and routes are reachable.</li>
+          <li><strong>Totals not updating:</strong> Check browser console for JS errors; confirm element IDs match templates.</li>
+          <li><strong>Styles off:</strong> Ensure only <code>site.css</code> is active; avoid re-adding removed CSS blocks.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- Glossary -->
+  <div class="col-12" id="glossary">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Glossary</h2>
+        <dl class="mb-0">
+          <dt>Labor Unit</dt>
+          <dd>Estimated hours to install one unit of the material or task.</dd>
+          <dt>Overhead (OH)</dt>
+          <dd>Business costs not tied to a specific job (office, insurance, trucks).</dd>
+          <dt>Margin</dt>
+          <dd>Target profit percentage applied after OH and direct costs.</dd>
+          <dt>DJE</dt>
+          <dd>Direct Job Expense: non-material job costs (permits, rentals, fees).</dd>
+        </dl>
+      </div>
+    </section>
+  </div>
+
+  <!-- What's Next -->
+  <div class="col-12" id="whats-next">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">What’s Next</h2>
+        <ul class="mb-0">
+          <li>Proposal builder wired to Settings and Customers.</li>
+          <li>Save/Load with versioning and compare.</li>
+          <li>Export packs (CSV/XLSX/PDF templates).</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+</div>
+{% endblock %}
