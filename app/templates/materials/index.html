@@ -3,10 +3,10 @@
 {% block container_class %}container-xxl{% endblock %}
 
 {% block content %}
-<div class="row g-4">
+<div id="materials-grid" class="row g-4">
   <!-- Header -->
   <div class="col-12">
-    <header class="d-flex align-items-center justify-content-between border-bottom py-3">
+    <header class="d-flex align-items-center justify-content-between border-bottom py-3 mb-3">
       <div>
         <h1 class="h3 mb-1">Material List</h1>
         <div class="text-muted">Browse, add, and edit materials. Inline “Add” bar is at the top.</div>
@@ -59,7 +59,7 @@
   <div class="col-12">
     <div class="card">
       <div class="table-responsive">
-        <table class="table align-middle mb-0">
+        <table class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
               <th>Category</th>
