@@ -41,34 +41,6 @@
                 >Home</a
               >
             </li>
-            <li class="nav-item">
-              <a
-                class="nav-link{% if request.path.startswith('/estimator') %} active{% endif %}"
-                href="/estimator"
-                >Estimator</a
-              >
-            </li>
-            <li class="nav-item">
-                <a
-                  class="nav-link{% if request.path.startswith('/estimator/adjustments') %} active{% endif %}"
-                  href="{{ url_for('estimator.estimator_adjustments') }}"
-                  >Adjustments</a
-                >
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link{% if request.path.startswith('/estimator/dje') %} active{% endif %}"
-                  href="{{ url_for('estimator.estimator_dje') }}"
-                  >DJE</a
-                >
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link{% if request.path.startswith('/estimator/summary') %} active{% endif %}"
-                  href="{{ url_for('estimator.estimator_summary') }}"
-                  >Summary</a
-                >
-              </li>
               <li class="nav-item">
                 <a
                   class="nav-link{% if request.path.startswith('/instructions') %} active{% endif %}"

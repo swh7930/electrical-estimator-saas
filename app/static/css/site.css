@@ -2,20 +2,27 @@
 
 /* reduce container max-width on huge screens just a touch */
 @media (min-width: 1400px) {
-  .container { max-width: 1140px; }
+  .container {
+    max-width: 1140px;
+  }
 }
 
 /* Keep page content below the fixed Bootstrap navbar */
-body { padding-top: 56px; } /* adjust to your navbar height if needed */
+body {
+  padding-top: 56px;
+} /* adjust to your navbar height if needed */
 
 /* =====================================================
    templates/Misc Styles(moved from inline <style>)
    ===================================================== */
 
 /* Data-entry pages: inputs/selects fill their cells */
-.estimator-page input, .estimator-page select,
-.dje-page input,       .dje-page select,
-.adjustments-page input, .adjustments-page select {
+.estimator-page input,
+.estimator-page select,
+.dje-page input,
+.dje-page select,
+.adjustments-page input,
+.adjustments-page select {
   width: 100%;
   box-sizing: border-box;
 }
@@ -23,28 +30,59 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 /* =====================================================
    estimator.html (SCOPED to .estimator-page)
    ===================================================== */
-.estimator-page nav { margin-bottom: 20px; }
+.estimator-page nav {
+  margin-bottom: 20px;
+}
 
-.estimator-page table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-.estimator-page th, .estimator-page td { border: 1px solid #999; padding: 8px 12px; text-align: left; }
-.estimator-page th { background-color: #ddeeff; }
+.estimator-page table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+.estimator-page th,
+.estimator-page td {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  text-align: left;
+}
+.estimator-page th {
+  background-color: #ddeeff;
+}
 
-.estimator-page .section-title { background-color: #0073e6; color: white; font-weight: bold; padding: 10px; }
-.estimator-page .right { text-align: right; }
-.estimator-page .center { text-align: center; }
+.estimator-page .section-title:not(.workflow-nav) {
+  background-color: #0073e6;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+}
+.estimator-page .right {
+  text-align: right;
+}
+.estimator-page .center {
+  text-align: center;
+}
 
 .estimator-page .totals-row th {
-  background-color: white; border: none; font-weight: normal; vertical-align: top;
+  background-color: white;
+  border: none;
+  font-weight: normal;
+  vertical-align: top;
 }
 
 /* Header H2 inline flex styles */
-.estimator-page .section-title.flex-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin: 0 0 30px 0; padding: 10px;
+.estimator-page .section-title.flex-header:not(.workflow-nav) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 30px 0;
+  padding: 10px;
 }
 
 /* 1) Uniform control height for inputs/selects in this grid */
-.estimator-page .grid-input { height: 32px; min-height: 32px; }
+.estimator-page .grid-input {
+  height: 32px;
+  min-height: 32px;
+}
 
 /* 2) Qty column wide enough for '9999' + spinner (skip if you used the inline width) */
 .estimator-page table.estimator-grid thead tr th:nth-child(4),
@@ -55,49 +93,93 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 /* Totals headers (Mat Total / Total Hrs): fixed layout from first paint */
 .estimator-page table.estimator-grid thead tr.totals-row th:nth-child(7),
 .estimator-page table.estimator-grid thead tr.totals-row th:nth-child(9) {
-  vertical-align: bottom;   /* anchor at the bottom of the header row */
-  white-space: nowrap;      /* prevent label/value wrapping */
+  vertical-align: bottom; /* anchor at the bottom of the header row */
+  white-space: nowrap; /* prevent label/value wrapping */
 }
 .estimator-page .totals-cell {
-   display: flex;
-  flex-direction: column;   /* label on top, value below */
+  display: flex;
+  flex-direction: column; /* label on top, value below */
   justify-content: flex-end;
-  align-items: flex-end;     /* right edge */
+  align-items: flex-end; /* right edge */
   gap: 4px;
-  min-height: 72px;          /* consistent height so they don’t “pop” later */
+  min-height: 72px; /* consistent height so they don’t “pop” later */
 }
 
 /* Column widths for the estimator grid (totals row + header row) */
-.estimator-page table.estimator-grid thead tr th:nth-child(1)  { width: 20%; }
-.estimator-page table.estimator-grid thead tr th:nth-child(2)  { width: 8%;  }
-.estimator-page table.estimator-grid thead tr th:nth-child(3)  { width: 26%; }
-.estimator-page table.estimator-grid thead tr th:nth-child(4)  { width: 6%;  }
-.estimator-page table.estimator-grid thead tr th:nth-child(5)  { width: 4%;  }
-.estimator-page table.estimator-grid thead tr th:nth-child(6)  { width: 8%;  }
-.estimator-page table.estimator-grid thead tr th:nth-child(7)  { width: 8%;  }
-.estimator-page table.estimator-grid thead tr th:nth-child(8)  { width: 8%;  }
-.estimator-page table.estimator-grid thead tr th:nth-child(9)  { width: 8%;  }
-.estimator-page table.estimator-grid thead tr th:nth-child(10) { width: 4%;  }
+.estimator-page table.estimator-grid thead tr th:nth-child(1) {
+  width: 20%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(2) {
+  width: 8%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(3) {
+  width: 26%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(4) {
+  width: 6%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(5) {
+  width: 4%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(6) {
+  width: 8%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(7) {
+  width: 8%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(8) {
+  width: 8%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(9) {
+  width: 8%;
+}
+.estimator-page table.estimator-grid thead tr th:nth-child(10) {
+  width: 4%;
+}
 
 /* Right alignment on specific totals headers (Mat Total, Total Hrs) */
 .estimator-page table.estimator-grid thead tr.totals-row th:nth-child(7),
-.estimator-page table.estimator-grid thead tr.totals-row th:nth-child(9) { text-align: right; }
-
+.estimator-page table.estimator-grid thead tr.totals-row th:nth-child(9) {
+  text-align: right;
+}
 
 /* =====================================================
    adjustments.html (SCOPED to .adjustments-page)
    ===================================================== */
-.adjustments-page table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-.adjustments-page th, .adjustments-page td { border: 1px solid #999; padding: 8px 12px; text-align: left; }
-.adjustments-page th { background-color: #ddeeff; }
+.adjustments-page table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+.adjustments-page th,
+.adjustments-page td {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  text-align: left;
+}
+.adjustments-page th {
+  background-color: #ddeeff;
+}
 
-.adjustments-page .section-title { background-color: #0073e6; color: white; font-weight: bold; padding: 10px; }
-.adjustments-page .step-label { font-weight: bold; background-color: #f2f2f2; }
-.adjustments-page .right { text-align: right; }
-.adjustments-page .center { text-align: center; }
+.adjustments-page .section-title:not(.workflow-nav) {
+  background-color: #0073e6;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+}
+.adjustments-page .step-label {
+  font-weight: bold;
+  background-color: #f2f2f2;
+}
+.adjustments-page .right {
+  text-align: right;
+}
+.adjustments-page .center {
+  text-align: center;
+}
 
 /* Adjustments header: same flex header pattern */
-.adjustments-page .section-title.flex-header {
+.adjustments-page .section-title.flex-:not(.workflow-nav) {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -107,18 +189,30 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 
 /* Column widths (applies to the whole table: thead/tbody/tfoot) */
 .adjustments-page #laborAdjustmentsTable th:nth-child(1),
-.adjustments-page #laborAdjustmentsTable td:nth-child(1) { width: 60%; }
+.adjustments-page #laborAdjustmentsTable td:nth-child(1) {
+  width: 60%;
+}
 .adjustments-page #laborAdjustmentsTable th:nth-child(2),
-.adjustments-page #laborAdjustmentsTable td:nth-child(2) { width: 20%; }
+.adjustments-page #laborAdjustmentsTable td:nth-child(2) {
+  width: 20%;
+}
 .adjustments-page #laborAdjustmentsTable th:nth-child(3),
-.adjustments-page #laborAdjustmentsTable td:nth-child(3) { width: 20%; }
+.adjustments-page #laborAdjustmentsTable td:nth-child(3) {
+  width: 20%;
+}
 
 .adjustments-page #additionalLaborTable th:nth-child(1),
-.adjustments-page #additionalLaborTable td:nth-child(1) { width: 60%; }
+.adjustments-page #additionalLaborTable td:nth-child(1) {
+  width: 60%;
+}
 .adjustments-page #additionalLaborTable th:nth-child(2),
-.adjustments-page #additionalLaborTable td:nth-child(2) { width: 20%; }
+.adjustments-page #additionalLaborTable td:nth-child(2) {
+  width: 20%;
+}
 .adjustments-page #additionalLaborTable th:nth-child(3),
-.adjustments-page #additionalLaborTable td:nth-child(3) { width: 20%; }
+.adjustments-page #additionalLaborTable td:nth-child(3) {
+  width: 20%;
+}
 
 /* Summary/total row styles (replaces inline bg/bold) */
 .adjustments-page table thead tr.row-summary,
@@ -134,60 +228,111 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 }
 
 /* Optional: unify control height if rows inject inputs/selects */
-.adjustments-page .grid-input { height: 32px; min-height: 32px; }
-
+.adjustments-page .grid-input {
+  height: 32px;
+  min-height: 32px;
+}
 
 /* =====================================================
    dje.html (SCOPED to .dje-page)
    ===================================================== */
-.dje-page .section-title.flex-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin: 0 0 30px 0; padding: 10px;
+.dje-page .section-title.flex-header:not(.workflow-nav) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 30px 0;
+  padding: 10px;
 }
-.dje-page table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-.dje-page th, .dje-page td { border: 1px solid #999; padding: 8px 12px; text-align: left; }
-.dje-page th { background-color: #ddeeff; }
+.dje-page table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+.dje-page th,
+.dje-page td {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  text-align: left;
+}
+.dje-page th {
+  background-color: #ddeeff;
+}
 
-.dje-page .section-title { background-color: #0073e6; color: white; font-weight: bold; padding: 10px; }
-.dje-page .right { text-align: right; }
-.dje-page .center { text-align: center; }
+.dje-page .section-title:not(.workflow-nav) {
+  background-color: #0073e6;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+}
+.dje-page .right {
+  text-align: right;
+}
+.dje-page .center {
+  text-align: center;
+}
 
 .dje-page .totals-row th {
-  background-color: white; border: none; font-weight: normal; vertical-align: top;
+  background-color: white;
+  border: none;
+  font-weight: normal;
+  vertical-align: top;
 }
 
 /* DJE: make all form controls with .grid-input a consistent height */
-.dje-page .grid-input { height: 32px; min-height: 32px; }
+.dje-page .grid-input {
+  height: 32px;
+  min-height: 32px;
+}
 
 /* DJE grid: column widths (was inline on <th>) */
-.dje-page table thead tr th:nth-child(1) { width: 20%; } /* Notes */
-.dje-page table thead tr th:nth-child(2) { width: 12%; } /* Category */
-.dje-page table thead tr th:nth-child(3) { width: 12%; } /* Subcategory */
-.dje-page table thead tr th:nth-child(4) { width: 18%; } /* Description */
-.dje-page table thead tr th:nth-child(5) { width: 6%;  } /* Qty */
-.dje-page table thead tr th:nth-child(6) { width: 6%;  } /* Multi */
-.dje-page table thead tr th:nth-child(7) { width: 8%;  } /* Cost */
-.dje-page table thead tr th:nth-child(8) { width: 12%; } /* Ext */
+.dje-page table thead tr th:nth-child(1) {
+  width: 20%;
+} /* Notes */
+.dje-page table thead tr th:nth-child(2) {
+  width: 12%;
+} /* Category */
+.dje-page table thead tr th:nth-child(3) {
+  width: 12%;
+} /* Subcategory */
+.dje-page table thead tr th:nth-child(4) {
+  width: 18%;
+} /* Description */
+.dje-page table thead tr th:nth-child(5) {
+  width: 6%;
+} /* Qty */
+.dje-page table thead tr th:nth-child(6) {
+  width: 6%;
+} /* Multi */
+.dje-page table thead tr th:nth-child(7) {
+  width: 8%;
+} /* Cost */
+.dje-page table thead tr th:nth-child(8) {
+  width: 12%;
+} /* Ext */
 
 /* Totals row: keep the total value right-aligned (moved from inline) */
-.dje-page table thead tr.totals-row th:nth-child(8) { text-align: right; }
+.dje-page table thead tr.totals-row th:nth-child(8) {
+  text-align: right;
+}
 
 /* Uniform control height (same approach as Estimator) */
-.dje-page .grid-input { height: 32px; min-height: 32px; }
-
+.dje-page .grid-input {
+  height: 32px;
+  min-height: 32px;
+}
 
 /* =====================================================
    summary.html (scoped to .summary-page)
    ===================================================== */
 
 /* Summary header bar — ensure the blue wins */
-.summary-page .section-title {
+.summary-page .section-title:not(.workflow-nav) {
   background-color: #0073e6;
   color: #fff;
 }
 
 /* Header bar */
-.summary-page .section-title.flex-header {
+.summary-page .section-title.flex-header:not(.workflow-nav) {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -212,88 +357,211 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 }
 
 /* Utility classes already present in markup */
-.summary-page .step-label { font-weight: bold; background-color: #f2f2f2; }
-.summary-page .right      { text-align: right; }
-.summary-page .center     { text-align: center; }
-.summary-page .bold       { font-weight: bold; }
+.summary-page .step-label {
+  font-weight: bold;
+  background-color: #f2f2f2;
+}
+.summary-page .right {
+  text-align: right;
+}
+.summary-page .center {
+  text-align: center;
+}
+.summary-page .bold {
+  font-weight: bold;
+}
 
 /* Table-specific margin tweaks to match original inline styles */
-.summary-page table:nth-of-type(1) { margin-bottom: 0; }          /* Step A table */
-.summary-page table:nth-of-type(2) { margin-top: 0; margin-bottom: 0; } /* Labor Rate row */
-.summary-page table:nth-of-type(3) { margin-top: 0; }             /* Step B table */
-.summary-page table:nth-of-type(4) { margin-top: 30px; }          /* Step C Material */
-.summary-page table:nth-of-type(5) { margin-bottom: 0; }          /* Step D & E */
-.summary-page table:nth-of-type(6) { margin-bottom: 0; }          /* Step F */
+.summary-page table:nth-of-type(1) {
+  margin-bottom: 0;
+} /* Step A table */
+.summary-page table:nth-of-type(2) {
+  margin-top: 0;
+  margin-bottom: 0;
+} /* Labor Rate row */
+.summary-page table:nth-of-type(3) {
+  margin-top: 0;
+} /* Step B table */
+.summary-page table:nth-of-type(4) {
+  margin-top: 30px;
+} /* Step C Material */
+.summary-page table:nth-of-type(5) {
+  margin-bottom: 0;
+} /* Step D & E */
+.summary-page table:nth-of-type(6) {
+  margin-bottom: 0;
+} /* Step F */
 /*.summary-page table:nth-of-type(7) { /* default margins */ /* }      /* Step G */
-.summary-page table:nth-of-type(8) { margin-top: 30px; }          /* Sales Price Summary */
+.summary-page table:nth-of-type(8) {
+  margin-top: 30px;
+} /* Sales Price Summary */
 
 /* Column widths & cell alignment per table (match original inline widths) */
 
 /* #1 Step A — 3 columns: 20% / 60% / 20% */
-.summary-page table:nth-of-type(1) th { text-align: center; }
-.summary-page table:nth-of-type(1) td.step-label {
-  text-align: center; vertical-align: middle; width: 20%;
+.summary-page table:nth-of-type(1) th {
+  text-align: center;
 }
-.summary-page table:nth-of-type(1) tr > td:nth-child(2) { width: 60%; }
-.summary-page table:nth-of-type(1) tr > td:nth-child(3) { width: 20%; }
+.summary-page table:nth-of-type(1) td.step-label {
+  text-align: center;
+  vertical-align: middle;
+  width: 20%;
+}
+.summary-page table:nth-of-type(1) tr > td:nth-child(2) {
+  width: 60%;
+}
+.summary-page table:nth-of-type(1) tr > td:nth-child(3) {
+  width: 20%;
+}
 
 /* #2 Labor Rate row — 4 columns: 20% / 48% / 12% / 20% */
-.summary-page table:nth-of-type(2) tr > td:nth-child(1) { background-color: #f2f2f2; width: 20%; }
-.summary-page table:nth-of-type(2) tr > td:nth-child(2) { width: 48%; }
-.summary-page table:nth-of-type(2) tr > td:nth-child(3) { width: 12%; text-align: right; }
-.summary-page table:nth-of-type(2) tr > td:nth-child(4) { width: 20%; }
-.summary-page #laborRateInput { width: 80px; text-align: left; }
+.summary-page table:nth-of-type(2) tr > td:nth-child(1) {
+  background-color: #f2f2f2;
+  width: 20%;
+}
+.summary-page table:nth-of-type(2) tr > td:nth-child(2) {
+  width: 48%;
+}
+.summary-page table:nth-of-type(2) tr > td:nth-child(3) {
+  width: 12%;
+  text-align: right;
+}
+.summary-page table:nth-of-type(2) tr > td:nth-child(4) {
+  width: 20%;
+}
+.summary-page #laborRateInput {
+  width: 80px;
+  text-align: left;
+}
 
 /* #3 Step B — 3 columns: 20% / 60% / 20% (centered heading row) */
-.summary-page table:nth-of-type(3) th { text-align: center; }
-.summary-page table:nth-of-type(3) tr > td:nth-child(1) { width: 20%; text-align: center; }
-.summary-page table:nth-of-type(3) tr > td:nth-child(2) { width: 60%; text-align: center; }
-.summary-page table:nth-of-type(3) tr > td:nth-child(3) { width: 20%; text-align: right; }
+.summary-page table:nth-of-type(3) th {
+  text-align: center;
+}
+.summary-page table:nth-of-type(3) tr > td:nth-child(1) {
+  width: 20%;
+  text-align: center;
+}
+.summary-page table:nth-of-type(3) tr > td:nth-child(2) {
+  width: 60%;
+  text-align: center;
+}
+.summary-page table:nth-of-type(3) tr > td:nth-child(3) {
+  width: 20%;
+  text-align: right;
+}
 
 /* #4 Step C Material Cost Summary */
-.summary-page table:nth-of-type(4) th { text-align: center; }
+.summary-page table:nth-of-type(4) th {
+  text-align: center;
+}
 /* First column is the Step C label (rowspan) */
 .summary-page table:nth-of-type(4) td.step-label {
-  text-align: center; vertical-align: middle; width: 20%;
+  text-align: center;
+  vertical-align: middle;
+  width: 20%;
 }
 /* Second/third/fourth columns: 48% / 12% / 20% in the first row;
    subsequent rows keep the same 3-col pattern to the right */
-.summary-page table:nth-of-type(4) tr > td:nth-child(2) { width: 48%; }
-.summary-page table:nth-of-type(4) tr > td:nth-child(3) { width: 12%; }
-.summary-page table:nth-of-type(4) tr > td:nth-child(4) { width: 20%; }
+.summary-page table:nth-of-type(4) tr > td:nth-child(2) {
+  width: 48%;
+}
+.summary-page table:nth-of-type(4) tr > td:nth-child(3) {
+  width: 12%;
+}
+.summary-page table:nth-of-type(4) tr > td:nth-child(4) {
+  width: 20%;
+}
 
 /* #5 Step D & E (Break-Even Cost) — 3 columns with padding and background on first col */
-.summary-page table:nth-of-type(5) th { text-align: center; }
-.summary-page table:nth-of-type(5) tr > td:nth-child(1) {
-  width: 20%; text-align: center; background-color: #eee; padding: 8px;
+.summary-page table:nth-of-type(5) th {
+  text-align: center;
 }
-.summary-page table:nth-of-type(5) tr > td:nth-child(2) { width: 60%; padding: 8px; }
-.summary-page table:nth-of-type(5) tr > td:nth-child(3) { width: 20%; text-align: right; padding: 8px; }
+.summary-page table:nth-of-type(5) tr > td:nth-child(1) {
+  width: 20%;
+  text-align: center;
+  background-color: #eee;
+  padding: 8px;
+}
+.summary-page table:nth-of-type(5) tr > td:nth-child(2) {
+  width: 60%;
+  padding: 8px;
+}
+.summary-page table:nth-of-type(5) tr > td:nth-child(3) {
+  width: 20%;
+  text-align: right;
+  padding: 8px;
+}
 
 /* #6 Step F — 4 columns: 20% / 35% / 25% / 20% with padding */
 .summary-page table:nth-of-type(6) tr > td:nth-child(1) {
-  width: 20%; text-align: center; background-color: #eee; padding: 8px;
+  width: 20%;
+  text-align: center;
+  background-color: #eee;
+  padding: 8px;
 }
-.summary-page table:nth-of-type(6) tr > td:nth-child(2) { width: 35%; padding: 8px; }
-.summary-page table:nth-of-type(6) tr > td:nth-child(3) { width: 25%; padding: 8px; }
-.summary-page table:nth-of-type(6) tr > td:nth-child(4) { width: 20%; text-align: right; padding: 8px; }
-.summary-page #overheadPercentSelect { width: 80px; text-align: left; }
+.summary-page table:nth-of-type(6) tr > td:nth-child(2) {
+  width: 35%;
+  padding: 8px;
+}
+.summary-page table:nth-of-type(6) tr > td:nth-child(3) {
+  width: 25%;
+  padding: 8px;
+}
+.summary-page table:nth-of-type(6) tr > td:nth-child(4) {
+  width: 20%;
+  text-align: right;
+  padding: 8px;
+}
+.summary-page #overheadPercentSelect {
+  width: 80px;
+  text-align: left;
+}
 
 /* #7 Step G — 3 columns: 20% / 60% / 20% with padding */
 .summary-page table:nth-of-type(7) tr > td:nth-child(1) {
-  width: 20%; text-align: center; background-color: #eee; padding: 8px;
+  width: 20%;
+  text-align: center;
+  background-color: #eee;
+  padding: 8px;
 }
-.summary-page table:nth-of-type(7) tr > td:nth-child(2) { width: 60%; padding: 8px; }
-.summary-page table:nth-of-type(7) tr > td:nth-child(3) { width: 20%; text-align: right; padding: 8px; }
+.summary-page table:nth-of-type(7) tr > td:nth-child(2) {
+  width: 60%;
+  padding: 8px;
+}
+.summary-page table:nth-of-type(7) tr > td:nth-child(3) {
+  width: 20%;
+  text-align: right;
+  padding: 8px;
+}
 
 /* #8 Sales Price Summary — 5 columns: 20% / 30% / 15% / 15% / 20% */
-.summary-page table:nth-of-type(8) th { text-align: center; }
-.summary-page table:nth-of-type(8) tr > td:nth-child(1) { width: 20%; text-align: center; }
-.summary-page table:nth-of-type(8) tr > td:nth-child(2) { width: 30%; }
-.summary-page table:nth-of-type(8) tr > td:nth-child(3) { width: 15%; text-align: right; }
-.summary-page table:nth-of-type(8) tr > td:nth-child(4) { width: 15%; text-align: right; }
-.summary-page table:nth-of-type(8) tr > td:nth-child(5) { width: 20%; text-align: right; }
-.summary-page #marginSelect { width: 80px; text-align: left; }
+.summary-page table:nth-of-type(8) th {
+  text-align: center;
+}
+.summary-page table:nth-of-type(8) tr > td:nth-child(1) {
+  width: 20%;
+  text-align: center;
+}
+.summary-page table:nth-of-type(8) tr > td:nth-child(2) {
+  width: 30%;
+}
+.summary-page table:nth-of-type(8) tr > td:nth-child(3) {
+  width: 15%;
+  text-align: right;
+}
+.summary-page table:nth-of-type(8) tr > td:nth-child(4) {
+  width: 15%;
+  text-align: right;
+}
+.summary-page table:nth-of-type(8) tr > td:nth-child(5) {
+  width: 20%;
+  text-align: right;
+}
+.summary-page #marginSelect {
+  width: 80px;
+  text-align: left;
+}
 
 /* #9 Labor Hour Breakdown — keep defaults; headers centered already via <th> base */
 
@@ -302,8 +570,10 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 .summary-page select[name="small_tools_percent"],
 .summary-page select[name="large_tools_percent"],
 .summary-page select[name="waste_theft_percent"],
-.summary-page select[name="sales_tax_percent"] { width: 80px; text-align: left; }
-
+.summary-page select[name="sales_tax_percent"] {
+  width: 80px;
+  text-align: left;
+}
 
 /* =====================================================
    templates/admin/*(moved from inline <style>)
@@ -335,50 +605,91 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 /* =====================================================
    admin/assemblies_index.html (SCOPED)
    ===================================================== */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(1) { width: 6%;  } /* ID */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(2) { width: 34%; } /* Name */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(3) { width: 15%; } /* Category */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(4) { width: 15%; } /* Subcategory */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(5) { width: 8%;  } /* Featured */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(6) { width: 10%; } /* Active */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(7) { width: 12%; } /* Updated */
-.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(8) { width: 10%; } /* Actions */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(1) {
+  width: 6%;
+} /* ID */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(2) {
+  width: 34%;
+} /* Name */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(3) {
+  width: 15%;
+} /* Category */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(4) {
+  width: 15%;
+} /* Subcategory */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(5) {
+  width: 8%;
+} /* Featured */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(6) {
+  width: 10%;
+} /* Active */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(7) {
+  width: 12%;
+} /* Updated */
+.admin-page .assemblies-index-page .assemblies-table thead th:nth-child(8) {
+  width: 10%;
+} /* Actions */
 
 /* =====================================================
    Admin (shared) — dialog styling for all admin pages
    ===================================================== */
-.admin-page dialog { border: 0; border-radius: .5rem; padding: 0; }
-.admin-page dialog::backdrop { background: rgba(0,0,0,.35); }
+.admin-page dialog {
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0;
+}
+.admin-page dialog::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
 .admin-page dialog header,
-.admin-page dialog footer { padding: .75rem 1rem; background: #f8f9fa; }
+.admin-page dialog footer {
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+}
 .admin-page dialog footer {
   border-top: 1px solid #e9ecef;
-  display: flex; gap: .5rem; justify-content: flex-end;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
-.admin-page dialog main { padding: 1rem; }
+.admin-page dialog main {
+  padding: 1rem;
+}
 
 /* Sidebar list polish (Option B) */
 .home-sidebar-page .list-group-item {
   border: 0;
-  padding: .75rem 1rem;
-  display: flex; align-items: center; gap: .5rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .home-sidebar-page .list-group-item-action:hover {
   background: #f8f9fa;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
 }
 .home-sidebar-page .list-group-item.text-uppercase {
-  font-size: .72rem; letter-spacing: .06em; color: #6c757d !important; opacity: .9;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #6c757d !important;
+  opacity: 0.9;
 }
 
 /* Sticky sidebar card */
-.sticky-top { position: sticky; }
+.sticky-top {
+  position: sticky;
+}
 
 /* Section titles */
-.section-title { font-weight: 700; font-size: 1.35rem; }
+.section-title {
+  font-weight: 700;
+  font-size: 1.35rem;
+}
 
 /* --- Sticky layout helpers (desktop) --- */
-:root { --nav-h: 56px; } /* adjust if your top navbar is taller */
+:root {
+  --nav-h: 56px;
+} /* adjust if your top navbar is taller */
 
 /* ===== Home (workspace) — sticky header + sticky sidebar ===== */
 
@@ -386,7 +697,7 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 @media (min-width: 992px) {
   .sticky-sidebar {
     position: sticky;
-    top: 68px;                 /* leaves space under your top navbar */
+    top: 68px; /* leaves space under your top navbar */
     max-height: calc(100vh - 80px);
     overflow: auto;
   }
@@ -395,29 +706,51 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 /* Sidebar polish */
 .home-sidebar-page .list-group-item {
   border: 0;
-  padding: .75rem 1rem;
-  display: flex; align-items: center; gap: .5rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .home-sidebar-page .list-group-item-action:hover {
   background: #f8f9fa;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
 }
 .home-sidebar-page .list-group-item.text-uppercase {
-  font-size: .72rem; letter-spacing: .06em; color: #6c757d !important; opacity: .9;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #6c757d !important;
+  opacity: 0.9;
 }
 
 /* Metrics snapshot cards */
-.stat-card .stat-label { font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; }
-.stat-card .stat-value { font-size: 2rem; font-weight: 700; line-height: 1.1; }
-.stat-card .stat-sub   { font-size: .85rem; }
+.stat-card .stat-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.stat-card .stat-sub {
+  font-size: 0.85rem;
+}
 
 /* Space harmony under sticky header */
 .home-header.sticky + .card,
-.home-header.sticky + .row { margin-top: .75rem; }
+.home-header.sticky + .row {
+  margin-top: 0.75rem;
+}
 
 /* Centered home header spacing */
-.home-header.sticky h1 { font-weight: 700; }
-.home-header.sticky { padding-top: .75rem; padding-bottom: .75rem; }
+.home-header.sticky h1 {
+  font-weight: 700;
+}
+.home-header.sticky {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
 
 /* --- Home header typography polish --- */
 .home-header h1 {
@@ -431,13 +764,142 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 }
 
 /* Table numeric alignment helpers (optional) */
-.table td.text-end, .table th.text-end { white-space: nowrap; }
+.table td.text-end,
+.table th.text-end {
+  white-space: nowrap;
+}
 
-/* =====================================================
-   Libraries/Assemblies list alignment helpers
-   ===================================================== */
-.card > .table { margin-bottom: 0; }
-header.border-bottom + .card { margin-top: 1rem; } /* keep rhythm under section headers */
+/* Libraries/Assemblies list alignment helpers */
+.card > .table {
+  margin-bottom: 0;
+}
+header.border-bottom + .card {
+  margin-top: 1rem;
+} /* keep rhythm under section headers */
 
 /* When Assemblies table is wrapped in a card */
-.card > .assemblies-table { margin-bottom: 0; } /* removes extra bottom gap */
+.card > .assemblies-table {
+  margin-bottom: 0;
+} /* removes extra bottom gap */
+
+/* === Estimator Workflow Nav (single source of truth) === */
+:root {
+  --wf-top: 72px; /* distance below main header */
+  --wf-max: 1320px; /* container-xxl width */
+  --wf-side-gap: 1rem; /* gutters at small widths */
+}
+
+/* neutralize any inherited section-title spacing */
+.section-title.flex-header.workflow-nav {
+  margin: 0;
+  padding: 0.625rem 0.75rem 0.375rem;
+}
+
+/* fixed, centered bar */
+.workflow-nav.wf-fixed {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: var(--wf-top);
+  z-index: 1030;
+  width: min(var(--wf-max), calc(100% - 2 * var(--wf-side-gap)));
+  background: var(--bs-body-bg, #fff);
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  border-radius: 0.25rem;
+}
+
+/* reserve space so content doesn't jump */
+.workflow-nav-spacer {
+  height: 64px;
+}
+
+/* three-zone layout */
+.workflow-nav {
+  display: flex;
+  align-items: center;
+}
+.workflow-nav .wf-left,
+.workflow-nav .wf-right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+.workflow-nav .wf-center {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative; top: 10px;
+}
+
+/* title */
+.workflow-nav .wf-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--bs-body-color, #212529);
+  line-height: 1.2;
+}
+
+/* crumbs */
+.workflow-nav .wf-crumbs {
+  display: flex;
+  align-items: center;
+}
+.workflow-nav .breadcrumb {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  --bs-breadcrumb-divider: "›";
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+.workflow-nav .breadcrumb li {
+  display: inline-flex;
+  align-items: baseline;
+}
+.workflow-nav .breadcrumb a {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--bs-primary, #0d6efd);
+}
+.workflow-nav .breadcrumb a:hover,
+.workflow-nav .breadcrumb a:focus {
+  text-decoration: underline;
+}
+
+/* active chip */
+.workflow-nav [aria-current="page"] {
+  color: var(--bs-body-color, #212529);
+  background: var(--bs-primary-bg-subtle, rgba(13, 110, 253, 0.15));
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* reset button rhythm */
+.workflow-nav .btn {
+  line-height: 1.25;
+}
+
+/* small tweaks */
+@media (max-width: 576px) {
+  :root {
+    --wf-side-gap: 0.5rem;
+  }
+  .workflow-nav .wf-title {
+    font-size: 1rem;
+  }
+  .workflow-nav .breadcrumb {
+    font-size: 1rem;
+  }
+}
