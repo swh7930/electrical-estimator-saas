@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}What's New{% endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+<div id="whats-new-grid" class="row g-4">
+
+  <!-- Page Header -->
+  <div class="col-12">
+    <header class="d-flex align-items-center justify-content-between border-bottom py-3 mb-3">
+      <div>
+        <h1 class="h3 mb-1">What's New</h1>
+        <div class="text-muted">Latest updates, improvements, and upcoming features. (Design-only)</div>
+      </div>
+      <div class="text-muted small">Design-only</div>
+    </header>
+  </div>
+
+  <!-- Intro -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <p class="mb-0">
+          Here you'll find product updates, feature launches, fixes, and other news for
+          <strong>Electrical Estimator SaaS</strong>. Entries are organized chronologically, newest first.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Example Release Log -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Version 0.9.3 · October 2025</h2>
+        <ul class="mb-3">
+          <li><strong>✅ UI Standardization:</strong> All index pages (Materials, DJE, Customers, Assemblies) now share consistent spacing, headers, and table classes.</li>
+          <li><strong>🧭 Navigation:</strong> Added “Instructions” and “FAQs” to main nav with proper active-state logic.</li>
+          <li><strong>⚙️ Admin Settings:</strong> New design-complete page for company info, estimator defaults, and app behavior.</li>
+          <li><strong>💅 CSS Cleanup:</strong> Removed unused blocks (q-a, hero, sticky-top); kept page-scoped rules only.</li>
+        </ul>
+        <div class="text-muted small">Release scope: UI polish · structure alignment · pre-production prep</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Version 0.9.2 · September 2025</h2>
+        <ul class="mb-3">
+          <li><strong>🏗 Migration:</strong> Completed move from legacy electrical-estimator to electrical-estimator-saas skeleton (App Factory + Blueprint architecture).</li>
+          <li><strong>🧩 Libraries:</strong> Materials and DJE routes working with PostgreSQL via SQLAlchemy models.</li>
+          <li><strong>🧮 Estimator Core:</strong> Dynamic table with live totals (Materials and Labor columns).</li>
+          <li><strong>🧰 Setup & Migrations:</strong> Alembic chain stabilized · .env template standardized · pgAdmin connection verified.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Version 0.9.1 · August 2025</h2>
+        <ul class="mb-3">
+          <li><strong>🚀 Initial Launch:</strong> Base Flask SaaS skeleton established with App Factory pattern, .env support, and admin blueprint.</li>
+          <li><strong>🧱 UI Framework:</strong> Introduced Bootstrap 5 layout + shared base.html + page blocks.</li>
+          <li><strong>🗂 Repo Structure:</strong> Clean folders (app/blueprints, models, services, templates, static).</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- Upcoming Features -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Coming Soon · Roadmap Highlights</h2>
+        <ul class="mb-3">
+          <li><strong>💼 Proposal Builder:</strong> Branded output tied to Admin Settings and Customers.</li>
+          <li><strong>💾 Save / Load:</strong> Estimate persistence with versioning and revision history.</li>
+          <li><strong>📊 Export Options:</strong> CSV, XLSX, and PDF report packs.</li>
+          <li><strong>🔐 Accounts:</strong> Authentication and role-based access controls.</li>
+        </ul>
+        <div class="text-muted small">Feature timelines are subject to change as testing completes.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Newsletter / Updates Sign-Up (stub) -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Stay Updated</h2>
+        <p class="mb-3">Subscribe to release notes and feature updates when available.</p>
+        <form class="row g-3" id="newsSignupForm">
+          <div class="col-md-6">
+            <label for="newsEmail" class="form-label">Email</label>
+            <input id="newsEmail" type="email" class="form-control" placeholder="you@company.com">
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <button type="button" class="btn btn-primary w-100" disabled>Subscribe (coming soon)</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+</div>
+{% endblock %}

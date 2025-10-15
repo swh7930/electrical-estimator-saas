@@ -7,7 +7,7 @@ def index():
 
 @bp.get("/new")
 def new():
-    return render_template("estimates/new.html")  # stub for later
+    return render_template("estimates/new_standard.html")
 
 @bp.get("/fast")
 def fast():

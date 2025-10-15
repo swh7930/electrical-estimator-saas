@@ -59,31 +59,30 @@ content %}
 
         <a
           class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="/settings"
+          href="{{ url_for('admin.settings') }}"
         >
           <span>⚙️</span> <span>Settings</span>
         </a>
 
         <a
           class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="/help/instructions"
+          href="{{ url_for('main.instructions') }}"
         >
           <span>📘</span> <span>Instructions</span>
         </a>
 
         <a
           class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="/help/faqs"
+          href="{{ url_for('main.faqs') }}"
         >
           <span>❓</span> <span>FAQs</span>
         </a>
 
         <a
           class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="#"
-          onclick="window.open('https://electriciansmentor.com/', '_blank')"
+          href="{{ url_for('main.whats_new') }}"
         >
-          <span>📰</span> <span>Blog & Guides</span>
+          <span>📰</span> <span>What's New</span>
         </a>
       </div>
     </div>
@@ -204,7 +203,7 @@ content %}
         class="card-header d-flex align-items-center justify-content-between"
       >
         <strong>What’s New</strong>
-        <a class="link-secondary small" href="/account/changelog">View all</a>
+        <a class="link-secondary small" href="{{ url_for('main.whats_new') }}">View all</a>
       </div>
       <div class="list-group list-group-flush">
         <div class="list-group-item">
@@ -251,10 +250,10 @@ content %}
       <div class="modal-body">
         <p class="text-muted">Choose how you want to begin:</p>
         <div class="d-grid gap-3">
-          <a class="btn btn-primary btn-lg" href="/estimates/new"
+          <a class="btn btn-primary btn-lg" href="{{ url_for('estimates.new') }}"
             >Standard Estimate</a
           >
-          <a class="btn btn-outline-primary btn-lg" href="/estimates/fast"
+          <a class="btn btn-outline-primary btn-lg" href="/estimator"
             >Fast Estimate</a
           >
         </div>

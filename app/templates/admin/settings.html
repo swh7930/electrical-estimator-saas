@@ -1,0 +1,229 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block admin_content %}
+<div id="admin-settings-grid" class="row g-4">
+
+  <!-- Page Header -->
+  <div class="col-12">
+    <header class="d-flex align-items-center justify-content-between border-bottom py-3 mb-3">
+      <div>
+        <h1 class="h3 mb-1">Settings</h1>
+        <div class="text-muted">App-wide preferences, proposal identity, and estimator defaults (design-only).</div>
+      </div>
+      <div class="text-muted small">Design-only</div>
+    </header>
+  </div>
+
+  <!-- Organization / Proposal Identity -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Organization</h2>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="orgCompanyName" class="form-label">Company Name</label>
+            <input id="orgCompanyName" type="text" class="form-control" placeholder="Awesome Company">
+          </div>
+          <div class="col-md-6">
+            <label for="orgLegalName" class="form-label">Legal Name (optional)</label>
+            <input id="orgLegalName" type="text" class="form-control" placeholder="Awesome Company, LLC">
+          </div>
+
+          <div class="col-md-4">
+            <label for="orgContactName" class="form-label">Primary Contact</label>
+            <input id="orgContactName" type="text" class="form-control" placeholder="Contact name">
+          </div>
+          <div class="col-md-4">
+            <label for="orgEmail" class="form-label">Email</label>
+            <input id="orgEmail" type="email" class="form-control" placeholder="you@company.com">
+          </div>
+          <div class="col-md-4">
+            <label for="orgPhone" class="form-label">Phone</label>
+            <input id="orgPhone" type="tel" class="form-control" placeholder="(555) 555-5555">
+          </div>
+
+          <div class="col-md-8">
+            <label for="orgAddress1" class="form-label">Address</label>
+            <input id="orgAddress1" type="text" class="form-control" placeholder="123 Main St">
+          </div>
+          <div class="col-md-4">
+            <label for="orgAddress2" class="form-label">Suite / Unit (optional)</label>
+            <input id="orgAddress2" type="text" class="form-control" placeholder="Suite 200">
+          </div>
+
+          <div class="col-md-4">
+            <label for="orgCity" class="form-label">City</label>
+            <input id="orgCity" type="text" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label for="orgState" class="form-label">State</label>
+            <input id="orgState" type="text" class="form-control" maxlength="2" placeholder="OK">
+          </div>
+          <div class="col-md-4">
+            <label for="orgZip" class="form-label">ZIP</label>
+            <input id="orgZip" type="text" class="form-control" inputmode="numeric" placeholder="73000">
+          </div>
+
+          <div class="col-md-6">
+            <label for="orgWebsite" class="form-label">Website (optional)</label>
+            <input id="orgWebsite" type="url" class="form-control" placeholder="https://example.com">
+          </div>
+          <div class="col-md-6">
+            <label for="orgLicense" class="form-label">License / Registration (optional)</label>
+            <input id="orgLicense" type="text" class="form-control" placeholder="OK Elec. #123456">
+          </div>
+
+          <div class="col-12">
+            <label for="proposalFooter" class="form-label">Proposal Footer / Terms (optional)</label>
+            <textarea id="proposalFooter" class="form-control" rows="3" placeholder="Payment terms, warranty, etc."></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Estimator Defaults (wired later to Summary via data-target) -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Estimator Defaults</h2>
+
+        <div class="row g-3">
+          <!-- Labor Rate -->
+          <div class="col-md-4">
+            <label for="settingLaborRate" class="form-label">Labor Rate ($/hr)</label>
+            <input id="settingLaborRate" type="number" class="form-control" min="0" step="1"
+                   placeholder="85"
+                   data-target="#laborRateInput">
+            <div class="form-text">Targets Summary: <code>#laborRateInput</code></div>
+          </div>
+
+          <!-- Misc Material % -->
+          <div class="col-md-4">
+            <label for="settingMiscPercent" class="form-label">Misc Material %</label>
+            <select id="settingMiscPercent" class="form-select"
+                    data-target-name="misc_percent">
+              {% for i in range(0, 31) %}
+                <option value="{{ i }}" {% if i==10 %}selected{% endif %}>{{ i }}%</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Targets Summary select[name="misc_percent"] (default 10%).</div>
+          </div>
+
+          <!-- Small Tools % -->
+          <div class="col-md-4">
+            <label for="settingSmallToolsPercent" class="form-label">Small Tools %</label>
+            <select id="settingSmallToolsPercent" class="form-select"
+                    data-target-name="small_tools_percent">
+              {% for i in range(0, 21) %}
+                <option value="{{ i }}" {% if i==5 %}selected{% endif %}>{{ i }}%</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Targets Summary select[name="small_tools_percent"] (default 5%).</div>
+          </div>
+
+          <!-- Large Tools % -->
+          <div class="col-md-4">
+            <label for="settingLargeToolsPercent" class="form-label">Large Tools %</label>
+            <select id="settingLargeToolsPercent" class="form-select"
+                    data-target-name="large_tools_percent">
+              {% for i in range(0, 21) %}
+                <option value="{{ i }}" {% if i==3 %}selected{% endif %}>{{ i }}%</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Targets Summary select[name="large_tools_percent"] (default 3%).</div>
+          </div>
+
+          <!-- Waste & Theft % -->
+          <div class="col-md-4">
+            <label for="settingWasteTheftPercent" class="form-label">Waste &amp; Theft %</label>
+            <select id="settingWasteTheftPercent" class="form-select"
+                    data-target-name="waste_theft_percent">
+              {% for i in range(0, 31) %}
+                <option value="{{ i }}" {% if i==10 %}selected{% endif %}>{{ i }}%</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Targets Summary select[name="waste_theft_percent"] (default 10%).</div>
+          </div>
+
+          <!-- Sales Tax % -->
+          <div class="col-md-4">
+            <label for="settingSalesTaxPercent" class="form-label">Sales Tax %</label>
+            <select id="settingSalesTaxPercent" class="form-select"
+                    data-target-name="sales_tax_percent">
+              {% for i in range(0, 21) %}
+                <option value="{{ i }}" {% if i==8 %}selected{% endif %}>{{ i }}%</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Targets Summary select[name="sales_tax_percent"] (default 8%).</div>
+          </div>
+
+          <!-- Overhead % (Summary has #overheadPercentSelect) -->
+          <div class="col-md-4">
+            <label for="settingOverheadPercent" class="form-label">Overhead %</label>
+            <select id="settingOverheadPercent" class="form-select"
+                    data-target="#overheadPercentSelect">
+              {% for i in [10,15,20,25,30,35,40,45,50] %}
+                <option value="{{ i }}" {% if i==30 %}selected{% endif %}>{{ i }}%</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Targets Summary: <code>#overheadPercentSelect</code> (default 30%).</div>
+          </div>
+
+          <!-- Profit Margin % (Summary has #marginSelect) -->
+          <div class="col-md-4">
+            <label for="settingProfitMarginPercent" class="form-label">Profit Margin %</label>
+            <select id="settingProfitMarginPercent" class="form-select"
+                    data-target="#marginSelect">
+              {% for i in range(1, 26) %}
+                <option value="{{ i }}" {% if i==10 %}selected{% endif %}>{{ i }}%</option>
+              {% endfor %}
+              <option value="30">30%</option>
+              <option value="40">40%</option>
+              <option value="50">50%</option>
+            </select>
+            <div class="form-text">Targets Summary: <code>#marginSelect</code> (default 10%).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Optional: App Behavior -->
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">App Behavior</h2>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="settingRounding" class="form-label">Rounding</label>
+            <select id="settingRounding" class="form-select" data-key="rounding">
+              <option value="0.25">Nearest .25 hr</option>
+              <option value="0.5">Nearest .5 hr</option>
+              <option value="0">No rounding</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="settingMaterialsTaxable" class="form-label">Materials Taxable</label>
+            <select id="settingMaterialsTaxable" class="form-select" data-key="materials_taxable">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="settingCurrency" class="form-label">Currency</label>
+            <select id="settingCurrency" class="form-select" data-key="currency">
+              <option value="USD" selected>USD</option>
+              <option value="CAD">CAD</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</div>
+{% endblock %}
