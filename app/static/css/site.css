@@ -357,47 +357,6 @@ body { padding-top: 56px; } /* adjust to your navbar height if needed */
 }
 .admin-page dialog main { padding: 1rem; }
 
-/* ===== Home mockups polish (non-breaking) ===== */
-
-/* Responsive card grid */
-.qa-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-/* Action cards */
-.qa-card {
-  display: block;
-  padding: 1rem 1.125rem;
-  background: #fff;
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: .75rem;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04);
-  transition: transform .06s ease, box-shadow .12s ease, border-color .12s ease;
-}
-.qa-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
-  border-color: rgba(0,0,0,.12);
-}
-.qa-card .qa-icon { font-size: 1.25rem; line-height: 1; margin-bottom: .25rem; }
-.qa-card .qa-title { font-weight: 600; }
-.qa-card .qa-sub { font-size: .9rem; color: #6c757d; }
-
-/* Prominent card */
-.qa-card--primary {
-  border-color: rgba(13,110,253,.25);
-  background: linear-gradient(180deg, #ffffff, #f7fbff);
-}
-
-/* Hero tweaks */
-.hero { margin-top: 2rem; }
-.hero-title { font-size: clamp(1.75rem, 3vw, 3rem); font-weight: 700; }
-.hero-subtitle { color: #6c757d; }
-
 /* Sidebar list polish (Option B) */
 .home-sidebar-page .list-group-item {
   border: 0;
