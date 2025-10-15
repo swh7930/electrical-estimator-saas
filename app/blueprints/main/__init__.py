@@ -8,3 +8,4 @@ from . import routes
 from . import instructions 
 from . import faqs
 from . import whats_new
+from . import legal
