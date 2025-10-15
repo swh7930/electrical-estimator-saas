@@ -14,58 +14,58 @@
     </header>
 
     <!-- Inline Add (visual-only; mirrors Materials/DJE pattern) -->
-    <section class="card p-3 mb-3">
+    <section id="customers-inline-add" class="card p-3 mb-3">
       <form class="row g-3 align-items-end" onsubmit="return false;">
         <div class="col-12 col-lg-4">
-          <label class="form-label">Customer Name</label>
-          <input type="text" class="form-control" placeholder="e.g., ACME Construction">
+          <label class="form-label" for="cust-add-name">Customer Name</label>
+          <input id="cust-add-name" type="text" class="form-control" placeholder="e.g., ACME Construction">
         </div>
         <div class="col-12 col-lg-4">
-          <label class="form-label">Primary Contact</label>
-          <input type="text" class="form-control" placeholder="e.g., Jane Doe">
+          <label class="form-label" for="cust-add-contact">Primary Contact</label>
+          <input id="cust-add-contact" type="text" class="form-control" placeholder="e.g., Jane Doe">
         </div>
         <div class="col-12 col-lg-4">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" placeholder="name@company.com">
+          <label class="form-label" for="cust-add-email">Email</label>
+          <input id="cust-add-email" type="email" class="form-control" placeholder="name@company.com">
         </div>
 
         <div class="col-12 col-lg-4">
-          <label class="form-label">Phone</label>
-          <input type="tel" class="form-control" placeholder="(555) 123-4567">
+          <label class="form-label" for="cust-add-phone">Phone</label>
+          <input id="cust-add-phone" type="tel" class="form-control" placeholder="(555) 123-4567">
         </div>
         <div class="col-12 col-lg-8">
-          <label class="form-label">Address</label>
-          <input type="text" class="form-control" placeholder="Street, City, State ZIP">
+          <label class="form-label" for="cust-add-address">Address</label>
+          <input id="cust-add-address" type="text" class="form-control" placeholder="Street, City, State ZIP">
         </div>
 
         <div class="col-12 d-flex gap-2">
-          <button type="button" class="btn btn-primary">Add</button>
-          <button type="button" class="btn btn-outline-secondary">Reset</button>
+          <button id="cust-add-submit" type="button" class="btn btn-primary">Add</button>
+          <button id="cust-add-reset" type="button" class="btn btn-outline-secondary">Reset</button>
         </div>
       </form>
     </section>
 
     <!-- Filters (card-wrapped to match Libraries rhythm) -->
-    <section class="card p-3 mb-3">
+    <section id="customers-filters" class="card p-3 mb-3">
       <form method="get" action="" class="row g-3 align-items-end">
         <div class="col-12 col-md-4">
-          <label class="form-label">Search</label>
-          <input type="text" name="q" class="form-control" placeholder="Name, contact, email…">
+          <label class="form-label" for="cust-filter-q">Search</label>
+          <input id="cust-filter-q" type="text" name="q" class="form-control" placeholder="Name, contact, email…">
         </div>
         <div class="col-12 col-md-4">
-          <label class="form-label">City</label>
-          <input type="text" name="city" class="form-control" placeholder="Filter by city">
+          <label class="form-label" for="cust-filter-city">City</label>
+          <input id="cust-filter-city" type="text" name="city" class="form-control" placeholder="Filter by city">
         </div>
         <div class="col-12 col-md-4 d-flex gap-2">
           <button class="btn btn-outline-primary mt-auto" type="submit">Apply</button>
-          <a class="btn btn-outline-secondary mt-auto" href="{{ url_for('libraries.customers') }}">Reset</a>
+          <a id="cust-filter-reset" class="btn btn-outline-secondary mt-auto" href="{{ url_for('libraries.customers') }}">Reset</a>
         </div>
       </form>
     </section>
 
     <!-- Table (card-wrapped; same density as Materials/DJE) -->
     <section class="card">
-      <table class="table table-sm table-hover align-middle mb-0">
+      <table id="customers-table" class="table table-sm table-hover align-middle mb-0">
         <thead>
           <tr>
             <th scope="col">Customer</th>
@@ -105,34 +105,34 @@
     </section>
 
     <!-- Modals (visual-only stubs) -->
-    <div class="modal fade" id="mdlEditCustomer" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="mdlEditCustomer" tabindex="-1" aria-labelledby="mdlEditCustomerLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Edit Customer</h5>
+            <h5 id="mdlEditCustomerLabel" class="modal-title">Edit Customer</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <form class="row g-3">
               <div class="col-12 col-lg-6">
-                <label class="form-label">Customer Name</label>
-                <input type="text" class="form-control" value="ACME Construction">
+                <label class="form-label" for="cust-modal-name">Customer Name</label>
+                <input id="cust-modal-name" type="text" class="form-control" value="ACME Construction">
               </div>
               <div class="col-12 col-lg-6">
-                <label class="form-label">Primary Contact</label>
-                <input type="text" class="form-control" value="Jane Doe">
+                <label class="form-label" for="cust-modal-contact">Primary Contact</label>
+                <input id="cust-modal-contact" type="text" class="form-control" value="Jane Doe">
               </div>
               <div class="col-12 col-lg-6">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" value="jane@acme.example">
+                <label class="form-label" for="cust-modal-email">Email</label>
+                <input id="cust-modal-email" type="email" class="form-control" value="jane@acme.example">
               </div>
               <div class="col-12 col-lg-6">
-                <label class="form-label">Phone</label>
-                <input type="tel" class="form-control" value="(555) 123-4567">
+                <label class="form-label" for="cust-modal-phone">Phone</label>
+                <input id="cust-modal-phone" type="tel" class="form-control" value="(555) 123-4567">
               </div>
               <div class="col-12">
-                <label class="form-label">Address</label>
-                <input type="text" class="form-control" value="123 Main St, Tulsa, OK 74101">
+                <label class="form-label" for="cust-modal-address">Address</label>
+                <input id="cust-modal-address" type="text" class="form-control" value="123 Main St, Tulsa, OK 74101">
               </div>
             </form>
           </div>
@@ -144,11 +144,11 @@
       </div>
     </div>
 
-    <div class="modal fade" id="mdlDeleteCustomer" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="mdlDeleteCustomer" tabindex="-1" aria-labelledby="mdlDeleteCustomerLabel" aria-hidden="true">
       <div class="modal-dialog modal-sm">
         <div class="modal-content">
           <div class="modal-header">
-            <h6 class="modal-title">Delete Customer</h6>
+            <h6 id="mdlDeleteCustomerLabel" class="modal-title">Delete Customer</h6>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
