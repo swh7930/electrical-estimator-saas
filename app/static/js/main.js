@@ -28,3 +28,32 @@
     return _fetch(input, init);
   };
 })();
+
+// --- Workflow header: Save button (shared across Estimator pages) ---
+document.addEventListener('DOMContentLoaded', function () {
+  var saveBtn = document.getElementById('workflowSaveBtn');
+  if (!saveBtn) return;
+
+  function getMode() {
+    try {
+      var meta = (window.estimateData && window.estimateData.meta) || {};
+      return meta.mode || 'fast';
+    } catch (e) {
+      return 'fast';
+    }
+  }
+
+  saveBtn.addEventListener('click', function () {
+    if (getMode() === 'standard') {
+      try {
+        // Use your existing helper; estimator grid is already persisted by its own script
+        if (typeof window.saveEstimateData === 'function') window.saveEstimateData();
+      } catch (e) {
+        // keep console clean
+      }
+    } else {
+      // Fast flow → capture metadata first
+      window.location.href = '/estimates/new';
+    }
+  }, { passive: true });
+});

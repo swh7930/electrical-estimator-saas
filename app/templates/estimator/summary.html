@@ -89,7 +89,7 @@
           <td>Small Tools</td>
           <td>
             <select name="small_tools_percent">
-              {% for i in misc_range %}
+              {% for i in small_tools_range %}
                 <option value="{{ i }}" {% if i==5 %}selected{% endif %}>{{ i }}%</option>
               {% endfor %}
             </select>

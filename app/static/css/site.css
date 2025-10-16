@@ -1016,3 +1016,18 @@ header.border-bottom + .card {
   padding-bottom: .25rem;
   border-bottom: 1px solid var(--bs-border-color);
 }
+
+/* Materials index: scrollable table body w/ sticky header */
+.table-scroll {
+  max-height: 60vh;           /* adjust to taste (e.g., 70vh) */
+  overflow: auto;
+}
+
+/* Keep header visible while scrolling */
+.table-scroll table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;                 /* stay above rows */
+  background: var(--bs-body-bg, #fff);
+}
+
