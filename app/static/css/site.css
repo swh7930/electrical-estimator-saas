@@ -762,12 +762,6 @@ body {
   position: sticky;
 }
 
-/* Section titles */
-.section-title {
-  font-weight: 700;
-  font-size: 1.35rem;
-}
-
 /* --- Sticky layout helpers (desktop) --- */
 :root {
   --nav-h: 56px;
@@ -989,3 +983,36 @@ header.border-bottom + .card {
 /* Icon utilities (shared) */
 .icon { display: inline-block; vertical-align: text-bottom; }
 .btn .icon { margin-right: .25rem; }
+
+/* ===== Section titles & vertical rhythm (workflow pages) ===== */
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* leaves room if you ever add a small tagline or inline total */
+  gap: .5rem;
+  margin: 0 0 .75rem 0; /* tight, app-like */
+  font-size: 1.125rem;  /* ~18px */
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.section-title .subtitle {
+  font-weight: 500;
+  opacity: .7;
+  font-size: .95em;
+}
+
+.section-spacer-sm { margin-top: .5rem; }
+.section-spacer-md { margin-top: 1rem; }
+.section-spacer-lg { margin-top: 1.5rem; }
+
+/* Consistent top separation from workflow bar to first card */
+.workflow-to-card-gap {
+  margin-top: 1rem;
+}
+
+/* Optional subtle underline (use when a section needs separation without another card) */
+.section-underline {
+  padding-bottom: .25rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
