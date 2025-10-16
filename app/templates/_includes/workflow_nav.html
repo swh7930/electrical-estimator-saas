@@ -48,14 +48,25 @@
     </nav>
   </div>
 
-  <!-- Right: reset button -->
-  <div class="wf-right">
+   <!-- Right: manage + save + reset -->
+  <div class="wf-right d-flex align-items-center gap-2">
+    {% if current_step == 'estimator' %}
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('libraries.materials') }}">Manage Materials</a>
+    {% elif current_step == 'dje' %}
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('libraries.dje') }}">Manage DJE Items</a>
+    {% endif %}
+
+    <button id="workflowSaveBtn" type="button" class="btn btn-sm btn-success">
+      {% include "_includes/icons/save.svg" %}
+      <span>Save</span>
+    </button>
+
     <button id="{{ reset_id }}" type="button" class="btn btn-sm btn-primary">
       {% include "_includes/icons/reset.svg" %}
       <span>Reset</span>
     </button>
-
   </div>
+
 </div>
 <div class="workflow-nav-spacer" aria-hidden="true"></div>
 

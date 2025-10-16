@@ -1,15 +1,15 @@
-{% extends "base.html" %}
-{% block title %}Materials · Electrical Estimator{% endblock %}
-{% block container_class %}container-xxl{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Materials · Electrical Estimator{%
+endblock %} {% block container_class %}container-xxl{% endblock %} {% block
+content %}
 <div id="materials-grid" class="row g-4">
   <!-- Header -->
   <div class="col-12">
     <header class="text-center border-bottom py-3 mb-3">
       <div>
         <h1 class="h3 mb-1">Material List</h1>
-        <div class="text-muted">Browse, add, and edit materials. Inline “Add” bar is at the top.</div>
+        <div class="text-muted">
+          Browse, add, and edit materials. Inline “Add” bar is at the top.
+        </div>
       </div>
     </header>
   </div>
@@ -18,37 +18,210 @@
   <div class="col-12">
     <form class="card p-3">
       <div class="row g-3 align-items-end">
+        <!-- Material Type (Category) -->
         <div class="col-12 col-lg-3">
-          <label class="form-label">Category</label>
-          <select class="form-select">
+          <label class="form-label" for="materialType"
+            >Category <span class="text-danger">*</span></label
+          >
+          <select
+            id="materialType"
+            name="material_type"
+            class="form-select"
+            required
+            aria-required="true"
+          >
             <option value="">Select…</option>
-            <option>Conduit</option>
-            <option>Wire</option>
-            <option>Devices</option>
-            <option>Panels</option>
+            {% if mat_types %}
+              {% for t in mat_types %}
+                <option value="{{ t }}" {% if type_filter and type_filter == t %}selected{% endif %}>{{ t }}</option>
+              {% endfor %}
+            {% endif %}
           </select>
         </div>
-        <div class="col-12 col-lg-4">
-          <label class="form-label">Description</label>
-          <input type="text" class="form-control" placeholder="e.g., 3/4&quot; EMT, 10' stick">
-        </div>
-        <div class="col-6 col-lg-1">
-          <label class="form-label">Unit</label>
-          <input type="text" class="form-control" placeholder="ea / ft / stick">
-        </div>
-        <div class="col-6 col-lg-2">
-          <label class="form-label">Cost ea</label>
-          <input type="number" step="0.01" class="form-control" placeholder="0.00">
-        </div>
-        <div class="col-6 col-lg-2">
-          <label class="form-label">Unit Labor</label>
-          <input type="number" step="0.01" class="form-control" placeholder="0.00">
+
+        <!-- Description -->
+        <div class="col-12 col-lg-5">
+          <label class="form-label" for="mat_desc"
+            >Description <span class="text-danger">*</span></label
+          >
+          <input
+            id="mat_desc"
+            name="item_description"
+            type="text"
+            class="form-control"
+            placeholder='e.g., 3/4" EMT'
+            required
+            aria-required="true"
+          />
         </div>
 
+        <!-- SKU -->
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="mat_sku">SKU</label>
+          <input
+            id="mat_sku"
+            name="sku"
+            type="text"
+            class="form-control"
+            placeholder="SKU"
+          />
+        </div>
+
+        <!-- Manufacturer -->
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="mat_mfr">Manufacturer</label>
+          <input
+            id="mat_mfr"
+            name="manufacturer"
+            type="text"
+            class="form-control"
+            placeholder="e.g., Crouse-Hinds"
+          />
+        </div>
+
+        <!-- Vendor -->
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="mat_vendor">Vendor</label>
+          <input
+            id="mat_vendor"
+            name="vendor"
+            type="text"
+            class="form-control"
+            placeholder="e.g., Graybar"
+          />
+        </div>
+
+        <!-- Price (numeric, 4dp) -->
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="mat_price"
+            >Price <span class="text-danger">*</span></label
+          >
+          <input
+            id="mat_price"
+            name="price"
+            type="number"
+            step="0.01"
+            class="form-control"
+            placeholder="$0.00"
+            required
+            aria-required="true"
+            inputmode="decimal"
+          />
+        </div>
+
+        <!-- Labor Unit (hrs per unit, 4dp) -->
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="mat_labor"
+            >Labor Unit (hrs) <span class="text-danger">*</span></label
+          >
+          <input
+            id="mat_labor"
+            name="labor_unit"
+            type="number"
+            step="0.01"
+            min="0"
+            class="form-control"
+            placeholder="0.00"
+            required
+            aria-required="true"
+            inputmode="decimal"
+          />
+        </div>
+
+        <!-- Unit Quantity Size -->
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="mat_uqs"
+            >Unit Qty Size <span class="text-danger">*</span></label
+          >
+          <select
+            id="mat_uqs"
+            name="unit_quantity_size"
+            class="form-select"
+            required
+            aria-required="true"
+          >
+            <option value="">Select…</option>
+            <option value="1">1</option>
+            <option value="100">100</option>
+            <option value="1000">1000</option>
+          </select>
+        </div>
+
+        <!-- Material Cost Code -->
+        <div class="col-12 col-lg-3">
+          <label class="form-label" for="mat_mcc">Material Cost Code</label>
+          <input
+            id="mat_mcc"
+            name="material_cost_code"
+            type="text"
+            class="form-control"
+            placeholder="e.g., MAT-001"
+          />
+        </div>
+
+        <!-- Material Cost Code Desc -->
+        <div class="col-12 col-lg-3">
+          <label class="form-label" for="mat_mccd">Mat Cost Code Desc</label>
+          <input
+            id="mat_mccd"
+            name="mat_cost_code_desc"
+            type="text"
+            class="form-control"
+            placeholder="Description of material code"
+          />
+        </div>
+
+        <!-- Labor Cost Code -->
+        <div class="col-12 col-lg-3">
+          <label class="form-label" for="mat_lcc">Labor Cost Code</label>
+          <input
+            id="mat_lcc"
+            name="labor_cost_code"
+            type="text"
+            class="form-control"
+            placeholder="e.g., LAB-001"
+          />
+        </div>
+
+        <!-- Labor Cost Code Desc -->
+        <div class="col-12 col-lg-3">
+          <label class="form-label" for="mat_lccd">Labor Cost Code Desc</label>
+          <input
+            id="mat_lccd"
+            name="labor_cost_code_desc"
+            type="text"
+            class="form-control"
+            placeholder="Description of labor code"
+          />
+        </div>
+
+        <!-- Is Active -->
+        <div class="col-12 col-lg-2">
+          <div class="form-check mt-4">
+            <input
+              id="mat_active"
+              name="is_active"
+              class="form-check-input"
+              type="checkbox"
+              checked
+            />
+            <label class="form-check-label" for="mat_active">Active</label>
+          </div>
+        </div>
+
+        <!-- Actions -->
         <div class="col-12 d-flex gap-2">
-          <button type="button" class="btn btn-primary">Add</button>
-          <button type="button" class="btn btn-outline-secondary">Add &amp; continue</button>
-          <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#materialAdvancedModal">More fields…</button>
+          <button type="button" class="btn btn-primary" id="materialsAddBtn">
+            Add
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            id="materialsAddContinueBtn"
+          >
+            Add &amp; continue
+          </button>
+          {# removed: “More fields…” link — all fields are visible inline now #}
         </div>
       </div>
     </form>
@@ -57,7 +230,7 @@
   <!-- Table -->
   <div class="col-12">
     <div class="card">
-      <div class="table-responsive">
+      <div class="table-responsive table-scroll">
         <table class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
@@ -70,34 +243,38 @@
             </tr>
           </thead>
           <tbody>
-            <!-- sample rows; replace with real data later -->
-            <tr>
-              <td>Conduit</td>
-              <td>3/4" EMT, 10' stick</td>
-              <td>stick</td>
-              <td class="text-end">$8.25</td>
-              <td class="text-end">0.12</td>
+            {% if materials %} {% for m in materials %}
+            <tr id="mat-{{ m.id }}">
+              <!-- Keep column order to match your THEAD -->
+              <td class="text-nowrap">{{ m.material_type or "" }}</td>
+              <td>{{ m.item_description or "" }}</td>
+              <td class="text-nowrap">
+                {# You don't store a text unit; show the unit rule value for now
+                #} {{ m.unit_quantity_size if m.unit_quantity_size is not none
+                else "" }}
+              </td>
+              <td class="text-end">
+                {% set p = m.price or 0 %} ${{ "%.2f"|format(p) }}
+              </td>
+              <td class="text-end">{{ "%.2f"|format(m.labor_unit or 0) }}</td>
               <td class="text-end">
                 <div class="btn-group">
-                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#materialEditModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+                  <button class="btn btn-sm btn-outline-secondary" disabled>
+                    Edit
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" disabled>
+                    Delete
+                  </button>
                 </div>
               </td>
             </tr>
+            {% endfor %} {% else %}
             <tr>
-              <td>Wire</td>
-              <td>THHN Cu #12, per ft</td>
-              <td>ft</td>
-              <td class="text-end">$0.18</td>
-              <td class="text-end">0.01</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#materialEditModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
-                </div>
+              <td colspan="6" class="text-center text-muted py-4">
+                No materials found.
               </td>
             </tr>
-            <!-- /sample rows -->
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -106,90 +283,89 @@
 </div>
 
 <!-- Modals (visual only) -->
-<div class="modal fade" id="materialAdvancedModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Add Material — Advanced</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <!-- placeholder advanced fields -->
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Vendor / SKU</label>
-            <input type="text" class="form-control" placeholder="Optional">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Notes</label>
-            <input type="text" class="form-control" placeholder="Optional">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Min Qty</label>
-            <input type="number" class="form-control" placeholder="0">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Taxable</label>
-            <select class="form-select"><option>Yes</option><option>No</option></select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Active</label>
-            <select class="form-select"><option>Yes</option><option>No</option></select>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        <button class="btn btn-primary" disabled>Save (stub)</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="materialEditModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Edit Material</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Material</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
       <div class="modal-body">
         <div class="mb-3">
           <label class="form-label">Description</label>
-          <input type="text" class="form-control" value="3/4&quot; EMT, 10' stick">
+          <input
+            type="text"
+            class="form-control"
+            value="3/4&quot; EMT, 10' stick"
+          />
         </div>
         <div class="row g-3">
           <div class="col-6">
             <label class="form-label">Unit</label>
-            <input type="text" class="form-control" value="stick">
+            <input type="text" class="form-control" value="stick" />
           </div>
           <div class="col-6">
             <label class="form-label">Cost ea</label>
-            <input type="number" step="0.01" class="form-control" value="8.25">
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              value="8.25"
+            />
           </div>
           <div class="col-12">
             <label class="form-label">Unit Labor</label>
-            <input type="number" step="0.01" class="form-control" value="0.12">
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              value="0.12"
+            />
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
         <button class="btn btn-primary" disabled>Save changes (stub)</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+<div
+  class="modal fade"
+  id="confirmDeleteModal"
+  tabindex="-1"
+  aria-hidden="true"
+>
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Delete Material</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Material</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
       <div class="modal-body">
         This will remove the material. Visual-only stub.
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
         <button class="btn btn-danger" disabled>Delete (stub)</button>
       </div>
     </div>
   </div>
 </div>
+{% endblock %} {% block scripts %} {{ super() }}
+<script src="{{ url_for('static', filename='js/materials_index.js') }}"></script>
 {% endblock %}
