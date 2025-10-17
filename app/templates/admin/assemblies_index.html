@@ -4,13 +4,13 @@
 
 {% block admin_content %}
 <div id="assemblies-grid" class="row g-4">
-
   <div class="col-12">
+
     <div class="assemblies-index-page">
       <header class="text-center border-bottom py-3 mb-3">
         <div>
           <h1 class="h3 mb-1">Assemblies</h1>
-          <div class="text-muted">Browse, add, and edit assemblies. Inline “Add” bar is at the top.</div>
+          <div class="text-muted">Browse, add, and edit assemblies.</div>
         </div>
       </header>
 
@@ -72,7 +72,6 @@
           <!-- Row 3: Buttons (LEFT) + Active -->
           <div class="col-12 col-lg d-flex gap-2">
             <button type="submit" class="btn btn-primary" name="_action" value="add">Add</button>
-            <button type="submit" class="btn btn-outline-primary" name="_stay" value="1">Add &amp; Continue</button>
             <button type="reset" class="btn btn-outline-secondary" id="asmResetBtn">Reset</button>
           </div>
 
@@ -85,44 +84,87 @@
         </form>
       </section>
 
-      <div class="table-responsive table-scroll">
-        <section class="card">
-          <table class="table table-sm table-hover align-middle mb-0 assemblies-table">
-            <thead class="table-light">
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Subcategory</th>
-                <th>Featured</th>
-                <th>Active</th>
-                <th>Updated</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for a in assemblies %}
-              <tr>
-                <td>{{ a.id }}</td>
-                <td>{{ a.name }}</td>
-                <td>{{ a.category or "" }}</td>
-                <td>{{ a.subcategory or "" }}</td>
-                <td>{{ "yes" if a.is_featured else "" }}</td>
-                <td>{{ "yes" if a.is_active else "no" }}</td>
-                <td>{{ a.updated_at }}</td>
-                <td>
-                  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.edit_assembly', assembly_id=a.id) }}">Edit</a>
-                </td>
-              </tr>
-              {% else %}
-              <tr>
-                <td colspan="8" class="text-muted">No assemblies match your filters.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </section>
+
+      <div class="col-12">
+        <div class="card">
+          <div class="table-responsive table-scroll">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Subcategory</th>
+                    <th class="text-center">Featured</th>
+                    <th class="text-center">Active</th>
+                    <th>Updated</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if rows and rows|length > 0 %}
+                    {% for a in rows %}
+                      <tr id="asm-{{ a.id }}">
+                        <td class="text-muted">{{ a.id }}</td>
+                        <td>
+                          <button type="button"
+                                  class="btn btn-link p-0 text-start link-body-emphasis"
+                                  data-action="edit-asm"
+                                  data-asm-id="{{ a.id }}"
+                                  data-name="{{ a.name }}"
+                                  data-category="{{ a.category or '' }}"
+                                  data-subcategory="{{ a.subcategory or '' }}"
+                                  data-code="{{ a.assembly_code or '' }}"
+                                  data-notes="{{ a.notes or '' }}"
+                                  data-featured="{{ 1 if a.is_featured else 0 }}"
+                                  data-active="{{ 1 if a.is_active else 0 }}"
+                                  title="Edit">
+                            {{ a.name }}
+                          </button>
+                        </td>
+                        <td class="text-nowrap">{{ a.category or "" }}</td>
+                        <td class="text-nowrap">{{ a.subcategory or "" }}</td>
+                        <td class="text-center">{{ "✓" if a.is_featured else "—" }}</td>
+                        <td class="text-center">{{ "✓" if a.is_active else "—" }}</td>
+                        <td class="text-nowrap">
+                          {{ a.updated_at.strftime("%Y-%m-%d %H:%M") if a.updated_at else "" }}
+                        </td>
+                        <td class="text-end">
+                          <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-secondary"
+                              data-action="edit-asm"
+                              data-asm-id="{{ a.id }}"
+                              data-name="{{ a.name }}"
+                              data-category="{{ a.category or '' }}"
+                              data-subcategory="{{ a.subcategory or '' }}"
+                              data-code="{{ a.assembly_code or '' }}"
+                              data-notes="{{ a.notes or '' }}"
+                              data-featured="{{ 1 if a.is_featured else 0 }}"
+                              data-active="{{ 1 if a.is_active else 0 }}"
+                              title="Edit">Edit</button>
+                            <button
+                              class="btn btn-sm btn-outline-danger"
+                              data-action="delete-asm"
+                              data-asm-id="{{ a.id }}"
+                              data-asm-name="{{ a.name or 'this assembly' }}"
+                              data-delete-url="{{ url_for('admin.delete_assembly', assembly_id=a.id) }}"
+                              title="Delete">Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="8" class="text-center text-muted py-4">No assemblies found.</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+          </div>
+        </div>
       </div>
+      
+      
 
       <!-- New Category/Subcategory Modal (Assemblies) -->
       <div class="modal fade" id="asmNewCatalogModal" tabindex="-1" aria-labelledby="asmNewCatalogTitle"
@@ -149,6 +191,177 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Assembly Modal -->
+    <div class="modal fade" id="deleteAsmModal" tabindex="-1" aria-labelledby="deleteAsmTitle"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteAsmTitle">Delete Assembly</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to delete: <strong id="deleteAsmName"></strong>?
+            <div id="deleteAsmError" class="text-danger small mt-2 d-none"></div>
+          </div>
+          <div class="modal-footer">
+            <form id="asmDeleteForm" method="post" action="">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-danger" id="confirmDeleteAsmBtn">Delete</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Assembly Modal -->
+    <div class="modal fade" id="editAsmModal" tabindex="-1" aria-labelledby="editAsmTitle"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <!-- header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="editAsmTitle">Edit Assembly</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <!-- body -->
+          <div class="modal-body">
+            <div id="editAsmErrors" class="text-danger small mb-2 d-none"></div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" id="editAsmTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="asm-details-tab" data-bs-toggle="tab" data-bs-target="#asmDetailsTab" type="button" role="tab">
+                  Details
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="asm-components-tab" data-bs-toggle="tab" data-bs-target="#asmComponentsTab" type="button" role="tab">
+                  Components
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content">
+              <!-- Details -->
+              <div class="tab-pane fade show active" id="asmDetailsTab" role="tabpanel">
+                <div class="row g-2">
+                  <div class="col-md-3">
+                    <label class="form-label" for="editAsmCategory">Category</label>
+                    <input id="editAsmCategory" type="text" class="form-control" readonly>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="editAsmSubcategory">Subcategory</label>
+                    <input id="editAsmSubcategory" type="text" class="form-control" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="editAsmName">Assembly Name <span class="text-danger">*</span></label>
+                    <input id="editAsmName" type="text" class="form-control" autocomplete="off">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label" for="editAsmCode">Assembly Code</label>
+                    <input id="editAsmCode" type="text" class="form-control" autocomplete="off">
+                  </div>
+                  <div class="col-md-8">
+                    <label class="form-label" for="editAsmNotes">Notes</label>
+                    <input id="editAsmNotes" type="text" class="form-control" autocomplete="off">
+                  </div>
+                  <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="editAsmFeatured">
+                      <label class="form-check-label" for="editAsmFeatured">Featured</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="editAsmActive">
+                      <label class="form-check-label" for="editAsmActive">Active</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Components -->
+              <div class="tab-pane fade" id="asmComponentsTab" role="tabpanel">
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-6">
+                    <label class="form-label" for="compMaterial">Material</label>
+                    <select id="compMaterial" class="form-select" size="12" aria-label="Materials (scroll)">
+                      <option value="">Select…</option>
+                      {% for m in materials %}
+                        <option value="{{ m[0] }}">{{ m[1] }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="compQty">Qty per assembly</label>
+                    <input id="compQty" type="number" class="form-control text-end" inputmode="numeric" step="1" min="1" placeholder="e.g., 1">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="compSort">Sort order (optional)</label>
+                    <input id="compSort" type="number" class="form-control text-end" inputmode="numeric" step="1" min="1" placeholder="auto">
+                  </div>
+                  <div class="col-12 d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary" id="addCompBtn">Add component</button>
+                  </div>
+                </div>
+
+                <!-- Existing components (loads from JSON) -->
+                <div class="table-responsive table-scroll mt-3">
+                  <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>Material</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Sort</th>
+                        <th class="text-center">Active</th>
+                        <th class="text-end">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="compExistingBody">
+                      <tr>
+                        <td colspan="5" class="text-center text-muted py-3">Loading…</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Staged components (create mode only) -->
+                <div class="table-responsive table-scroll mt-3">
+                  <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>Material</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Sort</th>
+                        <th class="text-end">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="compStagedBody">
+                      <!-- JS will render staged components here -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div> <!-- /modal-body -->
+
+          <!-- footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveAsmEditBtn" data-asm-id="">Save changes</button>
+          </div>
+        </div> <!-- /modal-content -->
+      </div>
+    </div>
+  
+
+
+
+
   </div>
 </div>
 
