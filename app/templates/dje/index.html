@@ -15,46 +15,46 @@
   </div>
 
   <!-- Inline Add Bar -->
-  <div class="col-12">
-    <form class="card p-3">
-      <div class="row g-3 align-items-end">
-        <div class="col-12 col-lg-3">
-          <label class="form-label">Category</label>
-          <select class="form-select">
-            <option value="">Select…</option>
-            <option>Rough-In</option>
-            <option>Device</option>
-            <option>Gear</option>
-            <option>Lighting</option>
-          </select>
-        </div>
-        <div class="col-12 col-lg-3">
-          <label class="form-label">Subcategory</label>
-          <select class="form-select">
-            <option value="">Select…</option>
-            <option>Raceway</option>
-            <option>Wire Pull</option>
-            <option>Trim</option>
-            <option>Fixtures</option>
-          </select>
-        </div>
-        <div class="col-12 col-lg-4">
-          <label class="form-label">Description</label>
-          <input type="text" class="form-control" placeholder="e.g., Install duplex receptacle, standard height">
-        </div>
-        <div class="col-6 col-lg-2">
-          <label class="form-label">Base Hours</label>
-          <input type="number" step="0.01" class="form-control" placeholder="0.00">
-        </div>
+  <section class="card p-3 mb-3" id="dje-inline-add">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <label for="djeCategory" class="form-label">Category</label>
+        <input type="text" class="form-control" id="djeCategory" autocomplete="off">
+      </div>
+      <div class="col-md-2">
+        <label for="djeSubcategory" class="form-label">Subcategory</label>
+        <input type="text" class="form-control" id="djeSubcategory" autocomplete="off">
+      </div>
+      <div class="col-md-4">
+        <label for="djeDesc" class="form-label">Description</label>
+        <input type="text" class="form-control" id="djeDesc" autocomplete="off">
+      </div>
+      <div class="col-md-2">
+        <label for="unitCost" class="form-label">Unit Cost</label>
+        <input type="number" class="form-control text-end" id="unitCost" inputmode="decimal" step="0.01" min="0">
+      </div>
+      <div class="col-md-2">
+        <label for="costCode" class="form-label">Cost Code</label>
+        <input type="text" class="form-control" id="costCode" autocomplete="off">
+      </div>
 
-        <div class="col-12 d-flex gap-2">
-          <button type="button" class="btn btn-primary">Add</button>
-          <button type="button" class="btn btn-outline-secondary">Add &amp; continue</button>
-          <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#djeAdvancedModal">More fields…</button>
+      <div class="col-md-2">
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" id="isActive" checked>
+          <label class="form-check-label" for="isActive">Active</label>
         </div>
       </div>
-    </form>
-  </div>
+
+      <div class="col-md">
+        <div class="d-flex gap-2 justify-content-end">
+          <button id="djeAddBtn" class="btn btn-primary">Add</button>
+          <button id="djeAddContinueBtn" class="btn btn-outline-primary">Add &amp; Continue</button>
+          <button id="djeResetBtn" class="btn btn-outline-secondary">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div id="addDjeErrors" class="text-danger small mt-2 d-none"></div>
+  </section>
 
   <!-- Table -->
   <div class="col-12">
@@ -200,4 +200,8 @@
     </div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/dje_index.js') }}"></script>
 {% endblock %}
