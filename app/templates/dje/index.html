@@ -100,7 +100,7 @@
                 <td class="text-nowrap">{{ i.category or "" }}</td>
                 <td class="text-nowrap">{{ i.subcategory or "" }}</td>
                 <td>{{ i.description or "" }}</td>
-                <td class="text-end">{{ "%.2f"|format(i.default_unit_cost or 0) }}</td>
+                <td class="text-end">{{ "{:,.2f}".format(i.default_unit_cost or 0) }}</td>
                 <td class="text-end">
                   <div class="btn-group">
                     <button
@@ -119,6 +119,9 @@
                       class="btn btn-sm btn-outline-danger"
                       data-action="delete-dje"
                       data-dje-id="{{ i.id }}"
+                      data-category="{{ i.category or '' }}"
+                      data-subcategory="{{ i.subcategory or '' }}"
+                      data-desc="{{ i.description or '' }}"
                       title="Delete"
                     >Delete</button>
                   </div>
@@ -244,6 +247,75 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" id="djeNewCatalogConfirmBtn">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit DJE Item Modal -->
+<div class="modal fade" id="editDjeModal" tabindex="-1" aria-labelledby="editDjeTitle"
+     aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editDjeTitle">Edit DJE Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="editDjeErrors" class="text-danger small mb-2 d-none"></div>
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label for="editDjeCategory" class="form-label">Category</label>
+            <input type="text" class="form-control" id="editDjeCategory" readonly>
+          </div>
+          <div class="col-md-3">
+            <label for="editDjeSubcategory" class="form-label">Subcategory</label>
+            <input type="text" class="form-control" id="editDjeSubcategory" readonly>
+          </div>
+          <div class="col-md-6">
+            <label for="editDjeDesc" class="form-label">Description</label>
+            <input type="text" class="form-control" id="editDjeDesc" autocomplete="off">
+          </div>
+          <div class="col-md-3">
+            <label for="editDjeUnitCost" class="form-label">Unit Cost</label>
+            <input type="number" class="form-control text-end" id="editDjeUnitCost" inputmode="decimal" step="0.01" min="0">
+          </div>
+          <div class="col-md-3">
+            <label for="editDjeCostCode" class="form-label">Cost Code</label>
+            <input type="text" class="form-control" id="editDjeCostCode" autocomplete="off">
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="editDjeIsActive">
+              <label class="form-check-label" for="editDjeIsActive">Active</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveDjeEditBtn" data-dje-id="">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete DJE Item Modal -->
+<div class="modal fade" id="deleteDjeModal" tabindex="-1" aria-labelledby="deleteDjeTitle"
+     aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteDjeTitle">Delete DJE Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete: <strong id="deleteDjeName"></strong>?
+        <div id="deleteDjeError" class="text-danger small mt-2 d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteDjeBtn" data-dje-id="">Delete</button>
       </div>
     </div>
   </div>
