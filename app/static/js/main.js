@@ -57,3 +57,36 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }, { passive: true });
 });
+
+// Global: Treat Enter like Tab inside forms (but not on buttons or textareas)
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+
+  const t = e.target;
+  if (!t || !(t instanceof HTMLElement)) return;
+  const tag = t.tagName;
+
+  // Allow normal behavior on buttons and textareas
+  if (tag === "BUTTON" || tag === "TEXTAREA") return;
+
+  // If inside a form (or a container that opts in via data-enter-as-tab), move focus
+  const scope = t.closest("[data-enter-as-tab]") || t.closest("form");
+  if (!scope) return;
+
+  // Don't submit the form on Enter; advance focus instead
+  e.preventDefault();
+
+  // Focusable controls, excluding disabled/readonly/hidden
+  const focusables = Array.from(scope.querySelectorAll(
+    'input:not([type="hidden"]):not([disabled]):not([readonly]),' +
+    'select:not([disabled]), textarea:not([disabled]):not([readonly]),' +
+    '[tabindex]:not([tabindex="-1"])'
+  ));
+
+  const idx = focusables.indexOf(t);
+  const next = focusables[(idx + 1) % focusables.length];
+  if (next) {
+    next.focus();
+    if (typeof next.select === "function") next.select();
+  }
+});
