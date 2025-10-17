@@ -19,23 +19,46 @@
     <div class="row g-2 align-items-end">
       <div class="col-md-2">
         <label for="djeCategory" class="form-label">Category</label>
-        <input type="text" class="form-control" id="djeCategory" autocomplete="off">
+        <select id="djeCategory" class="form-select" required aria-required="true">
+          <option value="">Select…</option>
+          {% for c in dje_categories %}
+            <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+          <option value="__new__">+ New category…</option>
+        </select>
       </div>
+
       <div class="col-md-2">
         <label for="djeSubcategory" class="form-label">Subcategory</label>
-        <input type="text" class="form-control" id="djeSubcategory" autocomplete="off">
+        <select id="djeSubcategory" class="form-select" required aria-required="true" disabled>
+          <option value="">Select…</option>
+          {% for cat, subs in dje_subcats_map.items() %}
+            {% for s in subs %}
+              <option value="{{ s }}" data-cat="{{ cat }}">{{ s }}</option>
+            {% endfor %}
+          {% endfor %}
+          <option value="__new__">+ New subcategory…</option>
+        </select>
       </div>
+
       <div class="col-md-4">
         <label for="djeDesc" class="form-label">Description</label>
-        <input type="text" class="form-control" id="djeDesc" autocomplete="off">
+        <input type="text" class="form-control" id="djeDesc"
+              autocomplete="off" placeholder="e.g., Rough-in permit fee"
+              required aria-required="true">
       </div>
+
       <div class="col-md-2">
         <label for="unitCost" class="form-label">Unit Cost</label>
-        <input type="number" class="form-control text-end" id="unitCost" inputmode="decimal" step="0.01" min="0">
+        <input type="number" class="form-control text-end" id="unitCost"
+              inputmode="decimal" step="0.01" min="0"
+              placeholder="e.g., $125.00" required aria-required="true">
       </div>
+
       <div class="col-md-2">
         <label for="costCode" class="form-label">Cost Code</label>
-        <input type="text" class="form-control" id="costCode" autocomplete="off">
+        <input type="text" class="form-control" id="costCode"
+              autocomplete="off" placeholder="optional">
       </div>
 
       <div class="col-md-2">
@@ -66,7 +89,7 @@
               <th>Category</th>
               <th>Subcategory</th>
               <th>Description</th>
-              <th class="text-end">Base Hours</th>
+              <th class="text-end">Cost</th>
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -172,7 +195,7 @@
             <input type="text" class="form-control" value="Trim">
           </div>
           <div class="col-12">
-            <label class="form-label">Base Hours</label>
+            <label class="form-label">Cost</label>
             <input type="number" step="0.01" class="form-control" value="0.35">
           </div>
         </div>
