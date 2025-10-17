@@ -165,7 +165,6 @@ def materials_update(material_id: int):
 
 @bp.get("/dje")
 def dje():
-    # Simple, consistent listing (same style as Materials)
     items = (
         DjeItem.query
         .order_by(
@@ -175,7 +174,50 @@ def dje():
         )
         .all()
     )
-    return render_template("dje/index.html", items=items)
+
+    # Catalogs for Inline Add suggestions
+     # DISTINCT first (subquery), then ORDER BY LOWER(...) on the outer query (DB-side)
+    cat_subq = (
+        db.session.query(DjeItem.category.label("category"))
+        .filter(DjeItem.category.isnot(None))
+        .distinct()
+        .subquery()
+    )
+    cat_rows = (
+        db.session.query(cat_subq.c.category)
+        .order_by(func.lower(cat_subq.c.category).asc())
+        .all()
+    )
+    categories = [r[0] for r in cat_rows if r[0]]
+
+    pair_subq = (
+        db.session.query(
+            DjeItem.category.label("category"),
+            DjeItem.subcategory.label("subcategory"),
+        )
+        .filter(DjeItem.category.isnot(None), DjeItem.subcategory.isnot(None))
+        .distinct()
+        .subquery()
+    )
+    sub_pairs = (
+        db.session.query(pair_subq.c.category, pair_subq.c.subcategory)
+        .order_by(
+            func.lower(pair_subq.c.category).asc(),
+            func.lower(pair_subq.c.subcategory).asc(),
+        )
+        .all()
+    )
+
+    dje_subcats_map = {}
+    for cat, sub in sub_pairs:
+        dje_subcats_map.setdefault(cat, []).append(sub)
+
+    return render_template(
+        "dje/index.html",
+        items=items,
+        dje_categories=categories,
+        dje_subcats_map=dje_subcats_map,
+    )
 
 @bp.post("/dje")
 def create_dje():
@@ -191,6 +233,8 @@ def create_dje():
 
     if not category:
         errors.append("Category is required.")
+    if not subcategory:
+        errors.append("Subcategory is required.")
     if not description:
         errors.append("Description is required.")
     try:
@@ -198,8 +242,8 @@ def create_dje():
     except (TypeError, ValueError):
         errors.append("Unit Cost must be a valid number.")
 
-    if errors:
-        return jsonify({"message": "Validation error", "errors": errors}), 400
+        if errors:
+            return jsonify({"message": "Validation error", "errors": errors}), 400
 
     item = DjeItem(
         category=category,
