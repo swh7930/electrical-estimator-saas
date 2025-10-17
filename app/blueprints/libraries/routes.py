@@ -177,6 +177,65 @@ def dje():
     )
     return render_template("dje/index.html", items=items)
 
+@bp.post("/dje")
+def create_dje():
+    data = request.get_json(silent=True) or {}
+    errors = []
+
+    category = (data.get("category") or "").strip()
+    subcategory = (data.get("subcategory") or "").strip()
+    description = (data.get("description") or "").strip()
+    cost_raw = data.get("default_unit_cost")
+    cost_code = (data.get("cost_code") or "").strip()
+    is_active = bool(data.get("is_active", True))
+
+    if not category:
+        errors.append("Category is required.")
+    if not description:
+        errors.append("Description is required.")
+    try:
+        unit_cost = round(float(cost_raw), 2)
+    except (TypeError, ValueError):
+        errors.append("Unit Cost must be a valid number.")
+
+    if errors:
+        return jsonify({"message": "Validation error", "errors": errors}), 400
+
+    item = DjeItem(
+        category=category,
+        subcategory=subcategory or None,
+        description=description,
+        default_unit_cost=unit_cost,
+        cost_code=cost_code or None,
+        is_active=is_active,
+    )
+    try:
+        db.session.add(item)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({
+            "message": "Duplicate DJE item.",
+            "errors": ["A DJE item with these details already exists."]
+        }), 409
+
+    return jsonify({
+        "message": "Created",
+        "item": {
+            "id": item.id,
+            "category": item.category,
+            "subcategory": item.subcategory,
+            "description": item.description,
+            "default_unit_cost": float(item.default_unit_cost or 0),
+            "cost_code": item.cost_code,
+            "is_active": item.is_active,
+        }
+    }), 201
+
+
+
+
+
 @bp.get("/customers")
 def customers():
     return render_template("customers/index.html")
