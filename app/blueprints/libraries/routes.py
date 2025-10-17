@@ -1,6 +1,7 @@
 from flask import render_template, request, jsonify
 from sqlalchemy import func
 from app.models.material import Material
+from app.models.dje_item import DjeItem
 from app.extensions import db
 from . import bp
 from sqlalchemy.exc import IntegrityError
@@ -162,11 +163,19 @@ def materials_update(material_id: int):
 
     return jsonify(ok=True), 200
 
-# Stubs now so sidebar won’t 404 when we wire them later
 @bp.get("/dje")
 def dje():
-    return render_template("dje/index.html")
-
+    # Simple, consistent listing (same style as Materials)
+    items = (
+        DjeItem.query
+        .order_by(
+            func.lower(DjeItem.category).asc(),
+            func.lower(DjeItem.subcategory).asc(),
+            func.lower(DjeItem.description).asc(),
+        )
+        .all()
+    )
+    return render_template("dje/index.html", items=items)
 
 @bp.get("/customers")
 def customers():

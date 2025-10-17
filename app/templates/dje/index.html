@@ -71,44 +71,42 @@
             </tr>
           </thead>
           <tbody>
-            <!-- sample rows; replace with real data later -->
-            <tr>
-              <td>Device</td>
-              <td>Trim</td>
-              <td>Install duplex receptacle (spec grade)</td>
-              <td class="text-end">0.35</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#djeEditModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Rough-In</td>
-              <td>Raceway</td>
-              <td>Install 3/4" EMT per 10' stick (avg)</td>
-              <td class="text-end">0.28</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#djeEditModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Lighting</td>
-              <td>Fixtures</td>
-              <td>Install 2x4 LED troffer (grid ceiling)</td>
-              <td class="text-end">0.75</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#djeEditModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
-                </div>
-              </td>
-            </tr>
-            <!-- /sample rows -->
+            {% if items %}
+              {% for i in items %}
+              <tr id="dje-{{ i.id }}">
+                <td class="text-nowrap">{{ i.category or "" }}</td>
+                <td class="text-nowrap">{{ i.subcategory or "" }}</td>
+                <td>{{ i.description or "" }}</td>
+                <td class="text-end">{{ "%.2f"|format(i.default_unit_cost or 0) }}</td>
+                <td class="text-end">
+                  <div class="btn-group">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      data-action="edit-dje"
+                      data-dje-id="{{ i.id }}"
+                      data-category="{{ i.category or '' }}"
+                      data-subcategory="{{ i.subcategory or '' }}"
+                      data-desc="{{ i.description or '' }}"
+                      data-cost="{{ i.default_unit_cost or '' }}"
+                      data-cost_code="{{ i.cost_code or '' }}"
+                      data-active="{{ 1 if (i.is_active or False) else 0 }}"
+                      title="Edit"
+                    >Edit</button>
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      data-action="delete-dje"
+                      data-dje-id="{{ i.id }}"
+                      title="Delete"
+                    >Delete</button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">No DJE items found.</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
