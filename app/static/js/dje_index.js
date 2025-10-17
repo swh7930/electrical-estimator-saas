@@ -13,6 +13,66 @@
   const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   const NEW_SENTINEL = '__new__';
 
+  // Modal elements
+  const modalEl = $('djeNewCatalogModal');
+  const modalTitle = $('djeNewCatalogTitle');
+  const modalLabel = $('djeNewCatalogLabel');
+  const modalInput = $('djeNewCatalogInput');
+  const modalHelp = $('djeNewCatalogHelp');
+  const modalError = $('djeNewCatalogError');
+  const modalConfirmBtn = $('djeNewCatalogConfirmBtn');
+
+  let modalMode = null;          // 'category' | 'subcategory'
+  let modalCatContext = null;    // category name when adding subcategory
+  let modalInstance = null;
+
+  if (window.bootstrap && modalEl) {
+    modalInstance = new bootstrap.Modal(modalEl);
+    modalEl.addEventListener('shown.bs.modal', () => { modalInput?.focus(); });
+    modalEl.addEventListener('hidden.bs.modal', () => {
+      // If user canceled mid-flow, reset selects appropriately
+      if (modalMode === 'category' && catSel?.value === NEW_SENTINEL) {
+        catSel.value = '';
+        resetSubSelect(true);
+      }
+      if (modalMode === 'subcategory' && subSel?.value === NEW_SENTINEL) {
+        subSel.value = '';
+      }
+      modalMode = null;
+      modalCatContext = null;
+      clearModal();
+    });
+  }
+
+  function setModal(mode, catName) {
+    modalMode = mode;
+    modalCatContext = catName || null;
+    clearModal();
+
+    if (mode === 'category') {
+      modalTitle.textContent = 'Add New Category';
+      modalLabel.textContent = 'Category name';
+      modalInput.placeholder = 'e.g., Permits';
+      modalHelp.textContent = 'This will create a new category in the DJE library.';
+    } else {
+      modalTitle.textContent = 'Add New Subcategory';
+      modalLabel.textContent = 'Subcategory name';
+      modalInput.placeholder = 'e.g., City permit';
+      modalHelp.textContent = `Under “${catName}”.`;
+    }
+  }
+
+  function clearModal() {
+    modalInput.value = '';
+    modalError.classList.add('d-none');
+    modalError.textContent = '';
+  }
+
+  function showModalError(msg) {
+    modalError.textContent = msg || 'Invalid value.';
+    modalError.classList.remove('d-none');
+  }
+
   function showErrors(msgs) {
     if (!errorsEl) return;
     const arr = Array.isArray(msgs) ? msgs : [String(msgs || 'Unknown error')];
@@ -48,51 +108,78 @@
     const catLc = (catVal || '').toLowerCase();
     for (const o of allSubOpts) {
       if (o.cat.toLowerCase() === catLc) {
-        // insert before "+ New…" sentinel (last option)
-        subSel.add(new Option(o.v, o.v), subSel.options.length - 1);
+        subSel.add(new Option(o.v, o.v), subSel.options.length - 1); // before sentinel
       }
     }
   }
 
   function onCategoryChanged() {
     const v = catSel.value;
-    if (!v) {
-      resetSubSelect(true);
-      return;
-    }
+    if (!v) { resetSubSelect(true); return; }
+
     if (v === NEW_SENTINEL) {
-      const name = (window.prompt('Enter new category name:') || '').trim();
-      if (!name) { catSel.value = ''; resetSubSelect(true); return; }
-      if (!window.confirm(`You're creating a new Category "${name}". Continue?`)) {
-        catSel.value = ''; resetSubSelect(true); return;
-      }
-      // Append new category option just before the sentinel if present
-      const idx = Array.from(catSel.options).findIndex(o => o.value === NEW_SENTINEL);
-      catSel.add(new Option(name, name), idx > -1 ? idx : null);
-      catSel.value = name;
+      setModal('category');
+      modalInstance?.show();
+      return;
     }
     populateSubOptions(catSel.value);
   }
 
   function onSubcategoryChanged() {
-    if (subSel.value !== NEW_SENTINEL) return;
+    const v = subSel.value;
+    if (v !== NEW_SENTINEL) return;
 
     const cat = catSel.value;
     if (!cat) { subSel.value = ''; return; }
 
-    const name = (window.prompt(`Enter new subcategory for "${cat}":`) || '').trim();
-    if (!name) { subSel.value = ''; return; }
-    if (!window.confirm(`You're creating a new Subcategory "${name}" under "${cat}". Continue?`)) {
-      subSel.value = ''; return;
-    }
+    setModal('subcategory', cat);
+    modalInstance?.show();
+  }
 
-    // Update in-memory list so future category changes include it
+  function addNewCategory(name) {
+    // Duplicate check (case-insensitive)
+    const exists = Array.from(catSel.options)
+      .some(o => o.value && o.value !== NEW_SENTINEL && o.value.toLowerCase() === name.toLowerCase());
+    if (exists) { showModalError('That category already exists.'); return false; }
+
+    const idx = Array.from(catSel.options).findIndex(o => o.value === NEW_SENTINEL);
+    catSel.add(new Option(name, name), idx > -1 ? idx : null);
+    catSel.value = name;
+    populateSubOptions(name);
+    return true;
+  }
+
+  function addNewSubcategory(cat, name) {
+    // Duplicate check limited to selected category (case-insensitive)
+    const exists = allSubOpts.some(o => o.cat.toLowerCase() === cat.toLowerCase() && o.v.toLowerCase() === name.toLowerCase());
+    if (exists) { showModalError('That subcategory already exists for this category.'); return false; }
+
+    // Update in-memory list so future filters include it
     allSubOpts.push({ v: name, cat });
 
     // Insert into visible select (before sentinel) and select it
     subSel.add(new Option(name, name), subSel.options.length - 1);
     subSel.value = name;
+    return true;
   }
+
+  modalConfirmBtn?.addEventListener('click', () => {
+    const name = (modalInput?.value || '').trim();
+    if (!name) { showModalError('Name is required.'); return; }
+
+    let ok = false;
+    if (modalMode === 'category') ok = addNewCategory(name);
+    else if (modalMode === 'subcategory') ok = addNewSubcategory(modalCatContext, name);
+
+    if (ok) modalInstance?.hide();
+  });
+
+  modalInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      modalConfirmBtn?.click();
+    }
+  });
 
   async function createItem(redirectAfter = true) {
     clearErrors();
@@ -174,6 +261,7 @@
     unitCostEl.value = clamp2(unitCostEl.value);
   });
 
-  // Init: disable and show only sentinels (options read above already)
+  // Init
   resetSubSelect(true);
 })();
+
