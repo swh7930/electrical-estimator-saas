@@ -91,11 +91,9 @@
               <table class="table table-sm table-hover align-middle mb-0">
                 <thead>
                   <tr>
-                    <th>ID</th>
                     <th>Name</th>
                     <th>Category</th>
                     <th>Subcategory</th>
-                    <th class="text-center">Featured</th>
                     <th class="text-center">Active</th>
                     <th>Updated</th>
                     <th class="text-end">Actions</th>
@@ -105,7 +103,6 @@
                   {% if rows and rows|length > 0 %}
                     {% for a in rows %}
                       <tr id="asm-{{ a.id }}">
-                        <td class="text-muted">{{ a.id }}</td>
                         <td>
                           <button type="button"
                                   class="btn btn-link p-0 text-start link-body-emphasis"
@@ -124,7 +121,6 @@
                         </td>
                         <td class="text-nowrap">{{ a.category or "" }}</td>
                         <td class="text-nowrap">{{ a.subcategory or "" }}</td>
-                        <td class="text-center">{{ "✓" if a.is_featured else "—" }}</td>
                         <td class="text-center">{{ "✓" if a.is_active else "—" }}</td>
                         <td class="text-nowrap">
                           {{ a.updated_at.strftime("%Y-%m-%d %H:%M") if a.updated_at else "" }}
@@ -132,30 +128,30 @@
                         <td class="text-end">
                           <div class="btn-group">
                             <button class="btn btn-sm btn-outline-secondary"
-                              data-action="edit-asm"
-                              data-asm-id="{{ a.id }}"
-                              data-name="{{ a.name }}"
-                              data-category="{{ a.category or '' }}"
-                              data-subcategory="{{ a.subcategory or '' }}"
-                              data-code="{{ a.assembly_code or '' }}"
-                              data-notes="{{ a.notes or '' }}"
-                              data-featured="{{ 1 if a.is_featured else 0 }}"
-                              data-active="{{ 1 if a.is_active else 0 }}"
-                              title="Edit">Edit</button>
-                            <button
-                              class="btn btn-sm btn-outline-danger"
-                              data-action="delete-asm"
-                              data-asm-id="{{ a.id }}"
-                              data-asm-name="{{ a.name or 'this assembly' }}"
-                              data-delete-url="{{ url_for('admin.delete_assembly', assembly_id=a.id) }}"
-                              title="Delete">Delete</button>
+                                    data-action="edit-asm"
+                                    data-asm-id="{{ a.id }}"
+                                    data-name="{{ a.name }}"
+                                    data-category="{{ a.category or '' }}"
+                                    data-subcategory="{{ a.subcategory or '' }}"
+                                    data-code="{{ a.assembly_code or '' }}"
+                                    data-notes="{{ a.notes or '' }}"
+                                    data-featured="{{ 1 if a.is_featured else 0 }}"
+                                    data-active="{{ 1 if a.is_active else 0 }}"
+                                    title="Edit">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger"
+                                    data-action="delete-asm"
+                                    data-asm-id="{{ a.id }}"
+                                    data-asm-name="{{ a.name or 'this assembly' }}"
+                                    data-delete-url="{{ url_for('admin.delete_assembly', assembly_id=a.id) }}"
+                                    title="Delete">Delete</button>
                           </div>
                         </td>
                       </tr>
+
                     {% endfor %}
                   {% else %}
                     <tr>
-                      <td colspan="8" class="text-center text-muted py-4">No assemblies found.</td>
+                      <td colspan="6" class="text-center text-muted py-4">No assemblies found.</td>
                     </tr>
                   {% endif %}
                 </tbody>
