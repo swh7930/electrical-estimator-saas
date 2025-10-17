@@ -99,6 +99,18 @@ def list_assemblies():
         )
         .all()
     )
+    
+    # Back-link handoff (query-param handshake)
+    rt = (request.args.get("rt") or "").strip()
+    back_label = None
+    back_href = None
+
+    if rt == "home":
+        back_label = "Back to Home"
+        back_href = url_for("main.home")
+    elif rt.startswith("estimator"):
+        back_label = "Back to Estimate"
+        # we prefer history.back() for persistence; href is optional fallback
 
     return render_template(
         "admin/assemblies_index.html",
@@ -107,6 +119,9 @@ def list_assemblies():
         asm_subcats_map=asm_subcats_map,
         materials=materials,
         mat_types=mat_types,
+         back_label=back_label,
+        back_href=back_href,
+        rt=rt,
     )
 
 @bp.get("/assemblies/new")
