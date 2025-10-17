@@ -14,6 +14,19 @@
         </div>
       </header>
 
+      {% if back_label %}
+        <div class="mb-2">
+          <a href="{{ back_href or '#' }}"
+            id="asmBackLink"
+            class="btn btn-link p-0"
+            data-action="asm-back"
+            data-rt="{{ rt }}"
+            data-href="{{ back_href or '' }}">
+            &larr; {{ back_label }}
+          </a>
+        </div>
+      {% endif %}
+
       <!-- Inline Add (real form, matches Materials/DJE patterns) -->
       <section class="card p-3 mb-3" id="asm-inline-add">   
         <form class="row g-2 align-items-end" method="post" action="{{ url_for('admin.create_assembly') }}">

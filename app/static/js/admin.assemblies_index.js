@@ -627,3 +627,34 @@
   });
 })();
 
+// -- Back link (query-param handshake) --
+(() => {
+  const backEl = document.getElementById('asmBackLink');
+  if (!backEl) return;
+
+  backEl.addEventListener('click', (e) => {
+    e.preventDefault();
+    const rt = backEl.dataset.rt || '';
+    const href = backEl.dataset.href || '';
+
+    // If user arrived from Estimator, try to go back in history first to preserve state.
+    if (rt.startsWith('estimator')) {
+      // Only use history if we really have a referring page.
+      if (document.referrer && (document.referrer.includes('/estimator') || document.referrer.includes('/estimates'))) {
+        history.back();
+        return;
+      }
+      // Fallback: if a href is provided, use it; otherwise do nothing.
+      if (href) {
+        window.location.assign(href);
+      }
+      return;
+    }
+
+    // Home path (or anything with a direct href)
+    if (href) {
+      window.location.assign(href);
+    }
+  });
+})();
+
