@@ -1,5 +1,5 @@
 # app/blueprints/admin/assemblies.py
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
@@ -99,7 +99,7 @@ def create_assembly():
         )
         db.session.commit()
         flash("Assembly created.", "success")
-        return redirect(url_for("admin.edit_assembly", assembly_id=asm.id, open="add"))
+        return redirect(url_for("admin.list_assemblies"))
     except ServiceError as e:
         db.session.rollback()
         flash(str(e), "error")
@@ -110,8 +110,51 @@ def create_assembly():
         return redirect(url_for("admin.new_assembly"))
 
 
-@bp.get("/assemblies/<int:assembly_id>/edit")
+@bp.route("/assemblies/<int:assembly_id>/edit", methods=["GET", "PUT"])
 def edit_assembly(assembly_id: int):
+    if request.method == "PUT":
+        a = db.session.get(Assembly, assembly_id)
+        if not a:
+            return jsonify({"message": "Not found"}), 404
+
+        data = request.get_json(silent=True) or {}
+        errors = []
+
+        name = (data.get("name") or "").strip()
+        assembly_code = (data.get("assembly_code") or "").strip()
+        notes = (data.get("notes") or "").strip()
+        is_featured = bool(data.get("is_featured", False))
+        is_active = bool(data.get("is_active", True))
+
+        if not name:
+            errors.append("Assembly Name is required.")
+
+        if errors:
+            return jsonify({"message": "Validation error", "errors": errors}), 400
+
+        a.name = name
+        a.assembly_code = assembly_code or None
+        a.notes = notes or None
+        a.is_featured = is_featured
+        a.is_active = is_active
+
+        db.session.commit()
+
+        return jsonify({
+            "message": "Updated",
+            "item": {
+                "id": a.id,
+                "name": a.name,
+                "category": a.category,
+                "subcategory": a.subcategory,
+                "assembly_code": a.assembly_code,
+                "notes": a.notes,
+                "is_featured": a.is_featured,
+                "is_active": a.is_active,
+            }
+        }), 200
+
+    # --- GET branch (unchanged) ---
     assembly = db.session.get(Assembly, assembly_id)
     if not assembly:
         flash("Assembly not found.", "error")
@@ -141,7 +184,6 @@ def edit_assembly(assembly_id: int):
         open_flag=open_flag,
         show_all=(show == "all"),
     )
-
 
 @bp.post("/assemblies/<int:assembly_id>/components")
 def add_component(assembly_id: int):
@@ -178,7 +220,7 @@ def add_component(assembly_id: int):
     if errs:
         for m in errs:
             flash(m, "error")
-        return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id))
+        return redirect(url_for("admin.list_assemblies"))
 
     try:
         svc_add_component(
@@ -197,7 +239,7 @@ def add_component(assembly_id: int):
         db.session.rollback()
         flash("Database error adding component.", "error")
 
-    return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id))
+    return redirect(url_for("admin.list_assemblies"))
 
 
 @bp.post("/assemblies/<int:assembly_id>/delete")
@@ -215,11 +257,11 @@ def delete_assembly(assembly_id: int):
     except ServiceError as e:
         db.session.rollback()
         flash(str(e), "error")
-        return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id))
+        return redirect(url_for("admin.list_assemblies"))
     except SQLAlchemyError:
         db.session.rollback()
         flash("Database error while deleting.", "error")
-        return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id))
+        return redirect(url_for("admin.list_assemblies"))
 
 
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/deactivate")
@@ -227,7 +269,7 @@ def deactivate_component(assembly_id: int, component_id: int):
     comp = db.session.get(AssemblyComponent, component_id)
     if not comp or comp.assembly_id != assembly_id:
         flash("Component not found.", "error")
-        return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id))
+        return redirect(url_for("admin.list_assemblies"))
     try:
         svc_set_component_active(db.session, component_id=component_id, active=False)
         db.session.commit()
@@ -239,7 +281,7 @@ def deactivate_component(assembly_id: int, component_id: int):
         db.session.rollback()
         flash("Database error updating component.", "error")
     show = request.args.get("show") or ""
-    return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id, show=show))
+    return redirect(url_for("admin.list_assemblies", assembly_id=assembly_id, show=show))
 
 
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/activate")
@@ -247,7 +289,7 @@ def activate_component(assembly_id: int, component_id: int):
     comp = db.session.get(AssemblyComponent, component_id)
     if not comp or comp.assembly_id != assembly_id:
         flash("Component not found.", "error")
-        return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id))
+        return redirect(url_for("admin.list_assemblies", assembly_id=assembly_id))
     try:
         svc_set_component_active(db.session, component_id=component_id, active=True)
         db.session.commit()
@@ -259,5 +301,5 @@ def activate_component(assembly_id: int, component_id: int):
         db.session.rollback()
         flash("Database error updating component.", "error")
     show = request.args.get("show") or ""
-    return redirect(url_for("admin.edit_assembly", assembly_id=assembly_id, show=show))
+    return redirect(url_for("admin.list_assemblies", assembly_id=assembly_id, show=show))
 
