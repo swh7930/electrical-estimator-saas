@@ -1,6 +1,7 @@
 # app/blueprints/admin/assemblies.py
 from flask import render_template, request, redirect, url_for, flash
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from . import bp  # the single admin blueprint
 
@@ -25,58 +26,58 @@ from app.services.assemblies import (
 
 @bp.get("/assemblies")
 def list_assemblies():
-    category = (request.args.get("category") or "").strip() or None
-    subcat = (request.args.get("subcategory") or "").strip() or None
-    featured = (request.args.get("featured") or "").strip().lower()
-
-    page = svc_list_assemblies(
-        db.session,
-        active_only=True,
-        category=category,
-        subcategory=subcat,
-        q=(request.args.get("q") or "").strip() or None,
-    )
-    rows = page.items
-
-    categories = (
-        db.session.query(Assembly.category)
-        .filter(
-            Assembly.is_active.is_(True),
-            Assembly.category.isnot(None),
-            Assembly.category != "",
-        )
-        .distinct()
-        .order_by(Assembly.category.asc())
+    # Rows for the table
+    rows = (
+        Assembly.query
+        .order_by(func.lower(Assembly.name).asc())
         .all()
     )
-    subcategories = (
-        db.session.query(Assembly.subcategory)
-        .filter(
-            Assembly.is_active.is_(True),
-            Assembly.subcategory.isnot(None),
-            Assembly.subcategory != "",
-        )
+
+    # Build categories (DISTINCT first, then ORDER BY lower(...) in outer query)
+    cat_subq = (
+        db.session.query(Assembly.category.label("category"))
+        .filter(Assembly.category.isnot(None), Assembly.category != "")
         .distinct()
-        .order_by(Assembly.subcategory.asc())
+        .subquery()
+    )
+    cat_rows = (
+        db.session.query(cat_subq.c.category)
+        .order_by(func.lower(cat_subq.c.category).asc())
         .all()
     )
-    categories = [c[0] for c in categories]
-    subcategories = [s[0] for s in subcategories]
+    categories = [r[0] for r in cat_rows if r[0]]
 
-    if featured in ("yes", "no"):
-        want = (featured == "yes")
-        rows = [r for r in rows if bool(r.is_featured) is want]
+    # Build { category: [sub1, sub2, ...] } map for the Inline Add Subcategory <select>
+    pair_subq = (
+        db.session.query(
+            Assembly.category.label("category"),
+            Assembly.subcategory.label("subcategory"),
+        )
+        .filter(
+            Assembly.category.isnot(None), Assembly.category != "",
+            Assembly.subcategory.isnot(None), Assembly.subcategory != "",
+        )
+        .distinct()
+        .subquery()
+    )
+    pair_rows = (
+        db.session.query(pair_subq.c.category, pair_subq.c.subcategory)
+        .order_by(
+            func.lower(pair_subq.c.category).asc(),
+            func.lower(pair_subq.c.subcategory).asc(),
+        )
+        .all()
+    )
+    asm_subcats_map = {}
+    for cat, sub in pair_rows:
+        asm_subcats_map.setdefault(cat, []).append(sub)
 
     return render_template(
         "admin/assemblies_index.html",
-        assemblies=rows,
+        rows=rows,
         categories=categories,
-        subcategories=subcategories,
-        sel_category=category or "",
-        sel_subcategory=subcat or "",
-        sel_featured=featured,
+        asm_subcats_map=asm_subcats_map,
     )
-
 
 @bp.get("/assemblies/new")
 def new_assembly():
