@@ -221,7 +221,14 @@ content %}
           >
             Add &amp; continue
           </button>
-          {# removed: “More fields…” link — all fields are visible inline now #}
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            id="materialsResetBtn"
+            title="Clear the inline add form"
+          >
+            Reset
+          </button>
         </div>
       </div>
     </form>
@@ -254,15 +261,38 @@ content %}
                 else "" }}
               </td>
               <td class="text-end">
-                {% set p = m.price or 0 %} ${{ "%.2f"|format(p) }}
+                {% set p = m.price or 0 %} ${{ "{:,.2f}".format(p) }}
               </td>
               <td class="text-end">{{ "%.2f"|format(m.labor_unit or 0) }}</td>
               <td class="text-end">
                 <div class="btn-group">
-                  <button class="btn btn-sm btn-outline-secondary" disabled>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    data-action="edit-material"
+                    data-material-id="{{ m.id }}"
+                    data-type="{{ m.material_type or '' }}"
+                    data-desc="{{ m.item_description or '' }}"
+                    data-sku="{{ m.sku or '' }}"
+                    data-mfr="{{ m.manufacturer or '' }}"
+                    data-vendor="{{ m.vendor or '' }}"
+                    data-price="{{ m.price or '' }}"
+                    data-labor="{{ m.labor_unit or '' }}"
+                    data-uqs="{{ m.unit_quantity_size or '' }}"
+                    data-mcc="{{ m.material_cost_code or '' }}"
+                    data-mccd="{{ m.mat_cost_code_desc or '' }}"
+                    data-lcc="{{ m.labor_cost_code or '' }}"
+                    data-lccd="{{ m.labor_cost_code_desc or '' }}"
+                    data-active="{{ 1 if (m.is_active or False) else 0 }}"
+                    title="Edit"
+                  >
                     Edit
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" disabled>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    data-action="delete-material"
+                    data-material-id="{{ m.id }}"
+                    title="Delete"
+                  >
                     Delete
                   </button>
                 </div>
@@ -295,44 +325,85 @@ content %}
         ></button>
       </div>
       <div class="modal-body">
+        <!-- Category (locked / read-only) -->
         <div class="mb-3">
-          <label class="form-label">Description</label>
-          <input
-            type="text"
-            class="form-control"
-            value="3/4&quot; EMT, 10' stick"
-          />
+          <label class="form-label" for="edit_materialType">Category</label>
+          <input type="text" class="form-control" id="edit_materialType" readonly>
         </div>
-        <div class="row g-3">
+
+        <!-- Description -->
+        <div class="mb-3">
+          <label class="form-label" for="edit_desc">Description</label>
+          <input type="text" class="form-control" id="edit_desc">
+        </div>
+
+        <!-- SKU / Manufacturer / Vendor -->
+        <div class="row g-3 mb-3">
+          <div class="col-4">
+            <label class="form-label" for="edit_sku">SKU</label>
+            <input type="text" class="form-control" id="edit_sku">
+          </div>
+          <div class="col-4">
+            <label class="form-label" for="edit_mfr">Manufacturer</label>
+            <input type="text" class="form-control" id="edit_mfr">
+          </div>
+          <div class="col-4">
+            <label class="form-label" for="edit_vendor">Vendor</label>
+            <input type="text" class="form-control" id="edit_vendor">
+          </div>
+        </div>
+
+        <!-- Price / Labor / Unit Qty Size -->
+        <div class="row g-3 mb-3">
+          <div class="col-4">
+            <label class="form-label" for="edit_price">Cost ea</label>
+            <input type="number" step="0.01" class="form-control" id="edit_price">
+          </div>
+          <div class="col-4">
+            <label class="form-label" for="edit_labor">Unit Labor (hrs)</label>
+            <input type="number" step="0.01" class="form-control" id="edit_labor">
+          </div>
+          <div class="col-4">
+            <label class="form-label" for="edit_uqs">Unit Qty Size</label>
+            <select class="form-select" id="edit_uqs">
+              <option value="">Select…</option>
+              <option value="1">1</option>
+              <option value="100">100</option>
+              <option value="1000">1000</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Cost codes -->
+        <div class="row g-3 mb-3">
           <div class="col-6">
-            <label class="form-label">Unit</label>
-            <input type="text" class="form-control" value="stick" />
+            <label class="form-label" for="edit_mcc">Material Cost Code</label>
+            <input type="text" class="form-control" id="edit_mcc">
           </div>
           <div class="col-6">
-            <label class="form-label">Cost ea</label>
-            <input
-              type="number"
-              step="0.01"
-              class="form-control"
-              value="8.25"
-            />
+            <label class="form-label" for="edit_mccd">Mat Cost Code Desc</label>
+            <input type="text" class="form-control" id="edit_mccd">
           </div>
-          <div class="col-12">
-            <label class="form-label">Unit Labor</label>
-            <input
-              type="number"
-              step="0.01"
-              class="form-control"
-              value="0.12"
-            />
+          <div class="col-6">
+            <label class="form-label" for="edit_lcc">Labor Cost Code</label>
+            <input type="text" class="form-control" id="edit_lcc">
           </div>
+          <div class="col-6">
+            <label class="form-label" for="edit_lccd">Labor Cost Code Desc</label>
+            <input type="text" class="form-control" id="edit_lccd">
+          </div>
+        </div>
+
+        <!-- Active -->
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="edit_active">
+          <label class="form-check-label" for="edit_active">Active</label>
         </div>
       </div>
+
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          Close
-        </button>
-        <button class="btn btn-primary" disabled>Save changes (stub)</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" id="materialEditSaveBtn">Save changes</button>
       </div>
     </div>
   </div>
@@ -361,7 +432,7 @@ content %}
         <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
           Cancel
         </button>
-        <button class="btn btn-danger" disabled>Delete (stub)</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
       </div>
     </div>
   </div>

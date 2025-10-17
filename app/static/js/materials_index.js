@@ -1,4 +1,3 @@
-// app/static/js/materials.index.js
 (function () {
   function val(id) { const el = document.getElementById(id); return el ? el.value : ""; }
   function checked(id) { const el = document.getElementById(id); return !!(el && el.checked); }
@@ -105,8 +104,175 @@
   document.addEventListener("DOMContentLoaded", function () {
     const addBtn = document.getElementById("materialsAddBtn");
     const addContBtn = document.getElementById("materialsAddContinueBtn");
+    const resetBtn = document.getElementById("materialsResetBtn");
     if (addBtn) addBtn.addEventListener("click", () => onAdd(false), { passive: true });
     if (addContBtn) addContBtn.addEventListener("click", () => onAdd(true), { passive: true });
+    if (resetBtn) resetBtn.addEventListener("click", () => resetForm(false), { passive: true });
   });
+
+  // --- Delete flow (open modal, confirm, DELETE, remove row) ---
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest('[data-action="delete-material"]');
+    if (!btn) return;
+
+    const id = btn.getAttribute("data-material-id");
+    const modalEl = document.getElementById("confirmDeleteModal");
+    const confirmBtn = modalEl.querySelector("#confirmDeleteBtn");
+    confirmBtn.dataset.materialId = id;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+  });
+
+  document.addEventListener("click", async (e) => {
+    const confirmBtn = e.target.closest("#confirmDeleteBtn");
+    if (!confirmBtn) return;
+
+    const id = confirmBtn.dataset.materialId;
+    if (!id) return;
+
+    confirmBtn.disabled = true;
+    try {
+      const res = await fetch(`/libraries/materials/${id}`, { method: "DELETE" });
+      if (res.status !== 204) {
+        let msg = "Failed to delete material.";
+        try {
+          const j = await res.json();
+          msg = (j && (j.message || j.error)) || (j && j.errors && (j.errors.__all__ || Object.values(j.errors)[0])) || msg;
+        } catch (_) {}
+        throw new Error(msg);
+      }
+
+      // Remove the row
+      const row = document.getElementById(`mat-${id}`);
+      if (row) row.remove();
+
+      // Hide modal
+      const modalEl = document.getElementById("confirmDeleteModal");
+      bootstrap.Modal.getInstance(modalEl)?.hide();
+    } catch (err) {
+      alert(err.message || "Failed to delete material.");
+    } finally {
+      confirmBtn.disabled = false;
+    }
+  });
+
+  // --- Edit flow (open modal, prefill, save via PUT) ---
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest('[data-action="edit-material"]');
+    if (!btn) return;
+
+    const id = btn.getAttribute("data-material-id");
+    const modalEl = document.getElementById("materialEditModal");
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    // Prefill — use modal IDs (edit_*)
+    setVal("edit_materialType", btn.dataset.type || "");
+    setVal("edit_desc", btn.dataset.desc || "");
+    setVal("edit_sku", btn.dataset.sku || "");
+    setVal("edit_mfr", btn.dataset.mfr || "");
+    setVal("edit_vendor", btn.dataset.vendor || "");
+    const _price = btn.dataset.price || "";
+    const _labor = btn.dataset.labor || "";
+    setVal("edit_price", _price === "" ? "" : toTwoDecimals(_price));
+    setVal("edit_labor", _labor === "" ? "" : toTwoDecimals(_labor));
+    setSelect("edit_uqs", btn.dataset.uqs || "");
+    setVal("edit_mcc", btn.dataset.mcc || "");
+    setVal("edit_mccd", btn.dataset.mccd || "");
+    setVal("edit_lcc", btn.dataset.lcc || "");
+    setVal("edit_lccd", btn.dataset.lccd || "");
+    const active = document.getElementById("edit_active");
+    if (active) active.checked = btn.dataset.active === "1";
+
+    // Stash id on Save button
+    const saveBtn = document.getElementById("materialEditSaveBtn");
+    saveBtn.dataset.materialId = id;
+
+    modal.show();
+  });
+
+  document.addEventListener("click", async (e) => {
+    const saveBtn = e.target.closest("#materialEditSaveBtn");
+    if (!saveBtn) return;
+
+    const id = saveBtn.dataset.materialId;
+    if (!id) return;
+
+    // Build payload using backend keys
+    const payload = {
+      item_description: val("edit_desc").trim(),
+      sku: val("edit_sku").trim(),
+      manufacturer: val("edit_mfr").trim(),
+      vendor: val("edit_vendor").trim(),
+      price: parseFloat(val("edit_price")),
+      labor_unit: parseFloat(val("edit_labor")),
+      unit_quantity_size: parseInt(val("edit_uqs"), 10),
+      material_cost_code: val("edit_mcc").trim(),
+      mat_cost_code_desc: val("edit_mccd").trim(),
+      labor_cost_code: val("edit_lcc").trim(),
+      labor_cost_code_desc: val("edit_lccd").trim(),
+      is_active: checked("edit_active"),
+    };
+
+    // Minimal client-side sanity (optional)
+    if (!payload.item_description) return alert("Description is required.");
+    if (![1,100,1000].includes(payload.unit_quantity_size)) return alert("Unit Qty Size must be 1, 100, or 1000.");
+
+    saveBtn.disabled = true;
+    try {
+      const res = await fetch(`/libraries/materials/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg = (err && (err.message || err.error)) || (err && err.errors && (err.errors.__all__ || Object.values(err.errors)[0])) || "Failed to update material.";
+        throw new Error(msg);
+      }
+      // Close modal and do a clean reload (keeps list rendering consistent)
+      bootstrap.Modal.getInstance(document.getElementById("materialEditModal"))?.hide();
+      window.location.href = `/libraries/materials`;
+    } catch (err) {
+      alert(err.message || "Failed to update material.");
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  // --- Numeric formatting helpers (local to this page) ---
+    function toTwoDecimals(n) {
+      const x = parseFloat(n);
+      return Number.isFinite(x) ? x.toFixed(2) : "";
+    }
+    function clampTwoDecimalsInput(el) {
+      // keep at most 2 decimals while typing
+      const m = String(el.value).match(/^(\d+)(?:\.(\d{0,2}))?/);
+      if (m) el.value = m[2] !== undefined ? `${m[1]}.${m[2]}` : m[1];
+    }
+
+    // Inline Add: format on blur
+    document.getElementById("mat_price")?.addEventListener("blur", (e) => {
+      e.target.value = toTwoDecimals(e.target.value);
+    });
+    document.getElementById("mat_labor")?.addEventListener("input", (e) => {
+      clampTwoDecimalsInput(e.target);
+    });
+    document.getElementById("mat_labor")?.addEventListener("blur", (e) => {
+      e.target.value = toTwoDecimals(e.target.value);
+    });
+
+    // Edit modal: format on blur / restrict decimals
+    document.getElementById("edit_price")?.addEventListener("blur", (e) => {
+      e.target.value = toTwoDecimals(e.target.value);
+    });
+    document.getElementById("edit_labor")?.addEventListener("input", (e) => {
+      clampTwoDecimalsInput(e.target);
+    });
+    document.getElementById("edit_labor")?.addEventListener("blur", (e) => {
+      e.target.value = toTwoDecimals(e.target.value);
+    });
+
+
 })();
 

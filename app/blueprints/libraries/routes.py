@@ -123,6 +123,45 @@ def materials_create():
         ), 409
     return jsonify(ok=True, id=m.id), 201
 
+@bp.route("/materials/<int:material_id>", methods=["DELETE"])
+def materials_delete(material_id: int):
+    m = Material.query.get(material_id)
+    if not m:
+        return jsonify(ok=False, errors={"__all__": "Material not found."}), 404
+    db.session.delete(m)
+    db.session.commit()
+    return jsonify(ok=True), 204
+
+@bp.route("/materials/<int:material_id>", methods=["PUT"])
+def materials_update(material_id: int):
+    m = Material.query.get(material_id)
+    if not m:
+        return jsonify(ok=False, errors={"__all__": "Material not found."}), 404
+
+    data = request.get_json(silent=True) or {}
+    # Only updating fields present in the modal
+    m.item_description = (data.get("item_description") or "").strip()
+    m.price = data.get("price")
+    m.labor_unit = data.get("labor_unit")
+    m.unit_quantity_size = data.get("unit_quantity_size")
+
+    # simple validation
+    if not m.item_description:
+        return jsonify(ok=False, errors={"item_description": "Description is required."}), 400
+    if m.unit_quantity_size not in (1, 100, 1000):
+        return jsonify(ok=False, errors={"unit_quantity_size": "Unit Qty Size must be 1, 100, or 1000."}), 400
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify(
+            ok=False,
+            errors={"__all__": "A material with this Category and Description already exists (active)."}
+        ), 409
+
+    return jsonify(ok=True), 200
+
 # Stubs now so sidebar won’t 404 when we wire them later
 @bp.get("/dje")
 def dje():
