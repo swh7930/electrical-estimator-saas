@@ -286,16 +286,34 @@
 
               <!-- Components -->
               <div class="tab-pane fade" id="asmComponentsTab" role="tabpanel">
-                <div class="row g-2 align-items-end">
-                  <div class="col-md-6">
-                    <label class="form-label" for="compMaterial">Material</label>
-                    <select id="compMaterial" class="form-select" size="12" aria-label="Materials (scroll)">
+                <!-- Row 1: selectors -->
+                <div class="row g-2 align-items-start">
+                  <!-- Material Category -->
+                  <div class="col-md-4">
+                    <label class="form-label" for="compMatCategory">Material Category</label>
+                    <select id="compMatCategory" class="form-select">
                       <option value="">Select…</option>
-                      {% for m in materials %}
-                        <option value="{{ m[0] }}">{{ m[1] }}</option>
+                      {% for t in mat_types %}
+                        <option value="{{ t }}">{{ t }}</option>
                       {% endfor %}
                     </select>
                   </div>
+
+                  <!-- Material Description (filtered by category) -->
+                  <div class="col-md-8">
+                    <label class="form-label" for="compMaterial">Description</label>
+                    <select id="compMaterial" class="form-select" size="10" aria-label="Materials (filtered)">
+                      <option value="">Select…</option>
+                      {% for m in materials %}
+                        {# m[0]=id, m[1]=material_type, m[2]=item_description #}
+                        <option value="{{ m[0] }}" data-type="{{ m[1] }}">{{ m[2] }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 2: qty / sort / add -->
+                <div class="row g-2 align-items-end mt-2">
                   <div class="col-md-3">
                     <label class="form-label" for="compQty">Qty per assembly</label>
                     <input id="compQty" type="number" class="form-control text-end" inputmode="numeric" step="1" min="1" placeholder="e.g., 1">
@@ -304,12 +322,13 @@
                     <label class="form-label" for="compSort">Sort order (optional)</label>
                     <input id="compSort" type="number" class="form-control text-end" inputmode="numeric" step="1" min="1" placeholder="auto">
                   </div>
-                  <div class="col-12 d-flex gap-2">
+                  <div class="col-md-6 d-flex gap-2">
                     <button type="button" class="btn btn-outline-primary" id="addCompBtn">Add component</button>
                   </div>
                 </div>
 
-                <!-- Existing components (loads from JSON) -->
+
+                <!-- Single components table (used for both existing + newly added in create mode) -->
                 <div class="table-responsive table-scroll mt-3">
                   <table class="table table-sm table-hover align-middle mb-0">
                     <thead>
@@ -321,27 +340,10 @@
                         <th class="text-end">Actions</th>
                       </tr>
                     </thead>
-                    <tbody id="compExistingBody">
+                    <tbody id="compListBody">
                       <tr>
                         <td colspan="5" class="text-center text-muted py-3">Loading…</td>
                       </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <!-- Staged components (create mode only) -->
-                <div class="table-responsive table-scroll mt-3">
-                  <table class="table table-sm table-hover align-middle mb-0">
-                    <thead>
-                      <tr>
-                        <th>Material</th>
-                        <th class="text-end">Qty</th>
-                        <th class="text-end">Sort</th>
-                        <th class="text-end">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="compStagedBody">
-                      <!-- JS will render staged components here -->
                     </tbody>
                   </table>
                 </div>
