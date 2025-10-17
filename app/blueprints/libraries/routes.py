@@ -276,6 +276,62 @@ def create_dje():
         }
     }), 201
 
+@bp.put("/dje/<int:item_id>")
+def update_dje(item_id):
+    item = DjeItem.query.get_or_404(item_id)
+    data = request.get_json(silent=True) or {}
+    errors = []
+
+    description = (data.get("description") or "").strip()
+    cost_raw = data.get("default_unit_cost")
+    cost_code = (data.get("cost_code") or "").strip()
+    is_active = bool(data.get("is_active", True))
+
+    if not description:
+        errors.append("Description is required.")
+    try:
+        unit_cost = round(float(cost_raw), 2)
+    except (TypeError, ValueError):
+        errors.append("Unit Cost must be a valid number.")
+
+    if errors:
+        return jsonify({"message": "Validation error", "errors": errors}), 400
+
+    # Category/Subcategory locked (match Materials behavior)
+    item.description = description
+    item.default_unit_cost = unit_cost
+    item.cost_code = cost_code or None
+    item.is_active = is_active
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({
+            "message": "Duplicate DJE item.",
+            "errors": ["A DJE item with these details already exists."]
+        }), 409
+
+    return jsonify({
+        "message": "Updated",
+        "item": {
+            "id": item.id,
+            "category": item.category,
+            "subcategory": item.subcategory,
+            "description": item.description,
+            "default_unit_cost": float(item.default_unit_cost or 0),
+            "cost_code": item.cost_code,
+            "is_active": item.is_active,
+        }
+    }), 200
+
+
+@bp.delete("/dje/<int:item_id>")
+def delete_dje(item_id):
+    item = DjeItem.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    return ("", 204)
 
 
 
