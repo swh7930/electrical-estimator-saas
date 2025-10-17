@@ -72,9 +72,31 @@ def list_assemblies():
     for cat, sub in pair_rows:
         asm_subcats_map.setdefault(cat, []).append(sub)
         
+    # Material categories (case-insensitive sorted)
+    mat_type_subq = (
+        db.session.query(Material.material_type.label("type"))
+        .filter(Material.material_type.isnot(None), Material.material_type != "")
+        .distinct()
+        .subquery()
+    )
+    type_rows = (
+        db.session.query(mat_type_subq.c.type)
+        .order_by(func.lower(mat_type_subq.c.type).asc())
+        .all()
+    )
+    mat_types = [r[0] for r in type_rows if r[0]]
+
+    # Materials (id, type, description) — used by the modal Description dropdown
     materials = (
-        db.session.query(Material.id, Material.item_description)
-        .order_by(Material.item_description.asc())
+        db.session.query(
+            Material.id,
+            Material.material_type,          # <-- include type
+            Material.item_description,
+        )
+        .order_by(
+            func.lower(Material.material_type).asc(),
+            func.lower(Material.item_description).asc(),
+        )
         .all()
     )
 
@@ -84,6 +106,7 @@ def list_assemblies():
         categories=categories,
         asm_subcats_map=asm_subcats_map,
         materials=materials,
+        mat_types=mat_types,
     )
 
 @bp.get("/assemblies/new")
@@ -392,19 +415,26 @@ def delete_assembly(assembly_id: int):
         return redirect(url_for("admin.list_assemblies"))
 
     try:
+        # 1) Remove all components for this assembly so hard delete can proceed
+        db.session.query(AssemblyComponent).filter(
+            AssemblyComponent.assembly_id == assembly_id
+        ).delete(synchronize_session=False)
+        db.session.flush()  # ensure rows are gone before assembly delete
+
+        # 2) Now hard delete the assembly (service keeps the rules/side-effects)
         svc_hard_delete_assembly(db.session, assembly_id=assembly_id)
         db.session.commit()
-        flash("Assembly deleted.", "success")
-        return redirect(url_for("admin.list_assemblies"))
+
+        flash("Assembly and its components deleted.", "success")
     except ServiceError as e:
         db.session.rollback()
+        # If the service still blocks (e.g., referenced elsewhere), keep the message.
         flash(str(e), "error")
-        return redirect(url_for("admin.list_assemblies"))
     except SQLAlchemyError:
         db.session.rollback()
         flash("Database error while deleting.", "error")
-        return redirect(url_for("admin.list_assemblies"))
 
+    return redirect(url_for("admin.list_assemblies"))
 
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/deactivate")
 def deactivate_component(assembly_id: int, component_id: int):
