@@ -4,6 +4,54 @@ for (let i = 1; i <= 25; i++) marginToMarkup[i] = +(1 / (1 - i / 100)).toFixed(2
 [30, 40, 50].forEach(i => (marginToMarkup[i] = +(1 / (1 - i / 100)).toFixed(2)));
 marginToMarkup[100] = 200.0;
 
+// === App Settings (Summary) helpers ===
+const EE_SETTINGS_VERSION_KEY = 'ee.settings.version.applied';
+const EE_RESET_FLAG = 'ee.reset.applyFromSettings';
+
+function eeFetchAppSettings() {
+  return fetch('/admin/settings.json').then(r => (r.ok ? r.json() : {}));
+}
+
+function eeApplySettingsToSummary(settings) {
+  const s = settings || {};
+  const p = s.pricing || {};
+  const setSel = (sel, val) => { if (!sel) return; sel.value = String(parseInt(val) || 0); sel.dispatchEvent(new Event('change')); };
+  const byName = (name) => document.querySelector(`select[name='${name}']`);
+
+  // Five adders
+  setSel(byName('misc_percent'),         p.misc_percent);
+  setSel(byName('small_tools_percent'),  p.small_tools_percent);
+  setSel(byName('large_tools_percent'),  p.large_tools_percent);
+  setSel(byName('waste_theft_percent'),  p.waste_theft_percent);
+  setSel(byName('sales_tax_percent'),    p.sales_tax_percent);
+
+  // Profit (margin)
+  setSel(document.querySelector(`select[name='margin_percent']`), p.margin_percent);
+
+  // Overhead (dropdown by id)
+  const over = document.getElementById('overheadPercentSelect');
+  if (over && Number.isFinite(parseInt(p.overhead_percent))) {
+    over.value = String(parseInt(p.overhead_percent));
+    over.dispatchEvent(new Event('change'));
+  }
+
+  // Labor rate
+  const labor = document.getElementById('laborRateInput');
+  if (labor && Number.isFinite(parseFloat(p.labor_rate))) {
+    const rate = parseFloat(p.labor_rate);
+    const fmt = (typeof window.formatUSD === 'function') ? window.formatUSD : (n => `$${(Number(n)||0).toFixed(2)}`);
+    labor.value = fmt(rate);
+    window.estimateData = window.estimateData || {};
+    estimateData.totals = estimateData.totals || {};
+    estimateData.totals.laborRate = rate;
+  }
+
+  // Persist + recalc
+  if (typeof window.saveEstimateData === 'function') saveEstimateData();
+  if (typeof window.updateStepCMaterialSummary === 'function') updateStepCMaterialSummary();
+  if (typeof window.updateSummaryTotals === 'function') updateSummaryTotals();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   // Pull Estimator header totals into Summary placeholders
   renderEstimatorTotalsFromLocalStorage();
@@ -11,26 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadEstimateData(); // Load from localStorage
 
   renderDJEFromStorage();
-
-
-  // ---------- DEFAULTS (materials adders only; no margin/overhead here) ----------
-  const defaultMaterials = {
-    misc_percent: 10,
-    small_tools_percent: 5,
-    large_tools_percent: 3,
-    waste_theft_percent: 10,
-    sales_tax_percent: 8
-  };
-
-  const materials = estimateData.materials || {};
-  const allZero =
-    Object.keys(materials).length > 0 &&
-    Object.values(materials).every((val) => val === 0);
-
-  if (!estimateData.materials || allZero) {
-    estimateData.materials = { ...defaultMaterials };
-    saveEstimateData();
-  }
 
   // Restore dropdowns for adders
   ["misc_percent", "small_tools_percent", "large_tools_percent", "waste_theft_percent", "sales_tax_percent"]
@@ -111,6 +139,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Final initial calc
   updateStepCMaterialSummary();
+
+  // === Apply App Settings on first load or when Settings version changes ===
+  (function hydrateFromAppSettings() {
+    const applied = localStorage.getItem(EE_SETTINGS_VERSION_KEY);
+    const forced = sessionStorage.getItem(EE_RESET_FLAG) === '1';
+
+    eeFetchAppSettings()
+      .then(doc => {
+        const version = String(doc.settings_version || (doc.settings && doc.settings.version) || 1);
+        if (forced || applied !== version) {
+          eeApplySettingsToSummary(doc.settings || {});
+          localStorage.setItem(EE_SETTINGS_VERSION_KEY, version);
+        }
+        if (forced) sessionStorage.removeItem(EE_RESET_FLAG);
+      })
+      .catch(() => { /* no-op; keep current UI */ });
+  })();
+
 });
 
 // ===== helpers =====
@@ -324,47 +370,32 @@ function resetAllFromSummary() {
   location.replace(location.pathname + '?reset=' + Date.now());
 }
 */
-// === wire Reset button + do a hard reset (tiny, self-contained) ===
+
+// === wire Reset button + do a hard reset (use App Settings, not factory defaults) ===
 (function () {
   function eeResetAll() {
-    // canonical zero payloads
-    localStorage.setItem('ee.totals', JSON.stringify({
-      material_cost_price_sheet: 0,
-      labor_hours_pricing_sheet: 0
-    }));
-    localStorage.setItem('estimateData', JSON.stringify({
-      adjustments: [],
-      additionalLabor: [],
-      costs: { dje: 0 },
-      totals: { estimated: 0, adjustments: 0, additional: 0, final: 0, laborRate: 0 },
-      materials: {
-        misc_percent: 10, small_tools_percent: 5, large_tools_percent: 3,
-        waste_theft_percent: 10, sales_tax_percent: 8, overhead_percent: 30,
-        margin_percent: 0
-      }
-    }));
+    // Clear local state
+    try { localStorage.removeItem('ee.totals'); } catch {}
+    try { localStorage.removeItem('estimateData'); } catch {}
+    try { localStorage.removeItem(EE_SETTINGS_VERSION_KEY); } catch {}
+    // Tell next load to apply App Settings explicitly
+    try { sessionStorage.setItem(EE_RESET_FLAG, '1'); } catch {}
+    try { sessionStorage.removeItem('ee.session.booted'); } catch {}
 
-    // ensure this tab starts fresh next load
-    try { sessionStorage.removeItem('ee.session.booted'); } catch { }
-
-    // S3-02a — notify listeners that a global reset is happening (pre-reload)
+    // Optional: broadcast
     if (window.ee && typeof window.ee.fire === 'function') {
       window.ee.fire('ee:resetAll', { source: 'summary' });
     }
 
-    // repaint immediately (same tab never gets a 'storage' event)
+    // Reload; hydration will apply current App Settings
     location.reload();
   }
 
-  // expose globally for safety (works even if markup adds onclick="")
+  // Expose + bind
   window.eeResetAll = eeResetAll;
-
   window.App = window.App || {};
-  if (typeof window.App.resetAll !== 'function') {
-    window.App.resetAll = window.eeResetAll;
-  }
+  if (typeof window.App.resetAll !== 'function') window.App.resetAll = window.eeResetAll;
 
-  // bind safely whether the script loads before or after the button
   function bindResetButton() {
     const btn = document.getElementById('resetAllBtn');
     if (btn) btn.onclick = eeResetAll;
@@ -375,6 +406,7 @@ function resetAllFromSummary() {
     bindResetButton();
   }
 })();
+
 
 // S3-02c — Summary listeners (refresh header cells from storage)
 

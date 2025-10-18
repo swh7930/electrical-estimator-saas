@@ -15,307 +15,309 @@
         </div>
       </div>
     </header>
-  </div>
+  
+    {% if back_label %}
+      <div class="mb-2">
+        <a href="{{ back_href or '#' }}"
+          id="materialsBackLink"
+          class="btn btn-link p-0"
+          data-action="lib-back"
+          data-rt="{{ rt }}"
+          data-href="{{ back_href or '' }}">
+          &larr; {{ back_label }}
+        </a>
+      </div>
+    {% endif %}
 
-  {% if back_label %}
-    <div class="mb-2">
-      <a href="{{ back_href or '#' }}"
-        id="materialsBackLink"
-        class="btn btn-link p-0"
-        data-action="lib-back"
-        data-rt="{{ rt }}"
-        data-href="{{ back_href or '' }}">
-        &larr; {{ back_label }}
-      </a>
-    </div>
-  {% endif %}
+  
 
-  <!-- Inline Add Bar -->
-  <div class="col-12">
-    <form class="card p-3">
-      <div class="row g-3 align-items-end">
-        <!-- Material Type (Category) -->
-        <div class="col-12 col-lg-3">
-          <label class="form-label" for="materialType"
-            >Category <span class="text-danger">*</span></label
-          >
-          <select
-            id="materialType"
-            name="material_type"
-            class="form-select"
-            required
-            aria-required="true"
-          >
-            <option value="">Select…</option>
-            {% if mat_types %}
-              {% for t in mat_types %}
-                <option value="{{ t }}" {% if type_filter and type_filter == t %}selected{% endif %}>{{ t }}</option>
-              {% endfor %}
-            {% endif %}
-          </select>
-        </div>
+    <!-- Inline Add Bar -->
+    <div class="col-12">
+      <form class="card p-3">
+        <div class="row g-3 align-items-end">
+          <!-- Material Type (Category) -->
+          <div class="col-12 col-lg-3">
+            <label class="form-label" for="materialType"
+              >Category <span class="text-danger">*</span></label
+            >
+            <select
+              id="materialType"
+              name="material_type"
+              class="form-select"
+              required
+              aria-required="true"
+            >
+              <option value="">Select…</option>
+              {% if mat_types %}
+                {% for t in mat_types %}
+                  <option value="{{ t }}" {% if type_filter and type_filter == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
 
-        <!-- Description -->
-        <div class="col-12 col-lg-5">
-          <label class="form-label" for="mat_desc"
-            >Description <span class="text-danger">*</span></label
-          >
-          <input
-            id="mat_desc"
-            name="item_description"
-            type="text"
-            class="form-control"
-            placeholder='e.g., 3/4" EMT'
-            required
-            aria-required="true"
-          />
-        </div>
-
-        <!-- SKU -->
-        <div class="col-6 col-lg-2">
-          <label class="form-label" for="mat_sku">SKU</label>
-          <input
-            id="mat_sku"
-            name="sku"
-            type="text"
-            class="form-control"
-            placeholder="SKU"
-          />
-        </div>
-
-        <!-- Manufacturer -->
-        <div class="col-6 col-lg-2">
-          <label class="form-label" for="mat_mfr">Manufacturer</label>
-          <input
-            id="mat_mfr"
-            name="manufacturer"
-            type="text"
-            class="form-control"
-            placeholder="e.g., Crouse-Hinds"
-          />
-        </div>
-
-        <!-- Vendor -->
-        <div class="col-6 col-lg-2">
-          <label class="form-label" for="mat_vendor">Vendor</label>
-          <input
-            id="mat_vendor"
-            name="vendor"
-            type="text"
-            class="form-control"
-            placeholder="e.g., Graybar"
-          />
-        </div>
-
-        <!-- Price (numeric, 4dp) -->
-        <div class="col-6 col-lg-2">
-          <label class="form-label" for="mat_price"
-            >Price <span class="text-danger">*</span></label
-          >
-          <input
-            id="mat_price"
-            name="price"
-            type="number"
-            step="0.01"
-            class="form-control"
-            placeholder="$0.00"
-            required
-            aria-required="true"
-            inputmode="decimal"
-          />
-        </div>
-
-        <!-- Labor Unit (hrs per unit, 4dp) -->
-        <div class="col-6 col-lg-2">
-          <label class="form-label" for="mat_labor"
-            >Labor Unit (hrs) <span class="text-danger">*</span></label
-          >
-          <input
-            id="mat_labor"
-            name="labor_unit"
-            type="number"
-            step="0.01"
-            min="0"
-            class="form-control"
-            placeholder="0.00"
-            required
-            aria-required="true"
-            inputmode="decimal"
-          />
-        </div>
-
-        <!-- Unit Quantity Size -->
-        <div class="col-6 col-lg-2">
-          <label class="form-label" for="mat_uqs"
-            >Unit Qty Size <span class="text-danger">*</span></label
-          >
-          <select
-            id="mat_uqs"
-            name="unit_quantity_size"
-            class="form-select"
-            required
-            aria-required="true"
-          >
-            <option value="">Select…</option>
-            <option value="1">1</option>
-            <option value="100">100</option>
-            <option value="1000">1000</option>
-          </select>
-        </div>
-
-        <!-- Material Cost Code -->
-        <div class="col-12 col-lg-3">
-          <label class="form-label" for="mat_mcc">Material Cost Code</label>
-          <input
-            id="mat_mcc"
-            name="material_cost_code"
-            type="text"
-            class="form-control"
-            placeholder="e.g., MAT-001"
-          />
-        </div>
-
-        <!-- Material Cost Code Desc -->
-        <div class="col-12 col-lg-3">
-          <label class="form-label" for="mat_mccd">Mat Cost Code Desc</label>
-          <input
-            id="mat_mccd"
-            name="mat_cost_code_desc"
-            type="text"
-            class="form-control"
-            placeholder="Description of material code"
-          />
-        </div>
-
-        <!-- Labor Cost Code -->
-        <div class="col-12 col-lg-3">
-          <label class="form-label" for="mat_lcc">Labor Cost Code</label>
-          <input
-            id="mat_lcc"
-            name="labor_cost_code"
-            type="text"
-            class="form-control"
-            placeholder="e.g., LAB-001"
-          />
-        </div>
-
-        <!-- Labor Cost Code Desc -->
-        <div class="col-12 col-lg-3">
-          <label class="form-label" for="mat_lccd">Labor Cost Code Desc</label>
-          <input
-            id="mat_lccd"
-            name="labor_cost_code_desc"
-            type="text"
-            class="form-control"
-            placeholder="Description of labor code"
-          />
-        </div>
-
-        <!-- Is Active -->
-        <div class="col-12 col-lg-2">
-          <div class="form-check mt-4">
+          <!-- Description -->
+          <div class="col-12 col-lg-5">
+            <label class="form-label" for="mat_desc"
+              >Description <span class="text-danger">*</span></label
+            >
             <input
-              id="mat_active"
-              name="is_active"
-              class="form-check-input"
-              type="checkbox"
-              checked
+              id="mat_desc"
+              name="item_description"
+              type="text"
+              class="form-control"
+              placeholder='e.g., 3/4" EMT'
+              required
+              aria-required="true"
             />
-            <label class="form-check-label" for="mat_active">Active</label>
+          </div>
+
+          <!-- SKU -->
+          <div class="col-6 col-lg-2">
+            <label class="form-label" for="mat_sku">SKU</label>
+            <input
+              id="mat_sku"
+              name="sku"
+              type="text"
+              class="form-control"
+              placeholder="SKU"
+            />
+          </div>
+
+          <!-- Manufacturer -->
+          <div class="col-6 col-lg-2">
+            <label class="form-label" for="mat_mfr">Manufacturer</label>
+            <input
+              id="mat_mfr"
+              name="manufacturer"
+              type="text"
+              class="form-control"
+              placeholder="e.g., Crouse-Hinds"
+            />
+          </div>
+
+          <!-- Vendor -->
+          <div class="col-6 col-lg-2">
+            <label class="form-label" for="mat_vendor">Vendor</label>
+            <input
+              id="mat_vendor"
+              name="vendor"
+              type="text"
+              class="form-control"
+              placeholder="e.g., Graybar"
+            />
+          </div>
+
+          <!-- Price (numeric, 4dp) -->
+          <div class="col-6 col-lg-2">
+            <label class="form-label" for="mat_price"
+              >Price <span class="text-danger">*</span></label
+            >
+            <input
+              id="mat_price"
+              name="price"
+              type="number"
+              step="0.01"
+              class="form-control"
+              placeholder="$0.00"
+              required
+              aria-required="true"
+              inputmode="decimal"
+            />
+          </div>
+
+          <!-- Labor Unit (hrs per unit, 4dp) -->
+          <div class="col-6 col-lg-2">
+            <label class="form-label" for="mat_labor"
+              >Labor Unit (hrs) <span class="text-danger">*</span></label
+            >
+            <input
+              id="mat_labor"
+              name="labor_unit"
+              type="number"
+              step="0.01"
+              min="0"
+              class="form-control"
+              placeholder="0.00"
+              required
+              aria-required="true"
+              inputmode="decimal"
+            />
+          </div>
+
+          <!-- Unit Quantity Size -->
+          <div class="col-6 col-lg-2">
+            <label class="form-label" for="mat_uqs"
+              >Unit Qty Size <span class="text-danger">*</span></label
+            >
+            <select
+              id="mat_uqs"
+              name="unit_quantity_size"
+              class="form-select"
+              required
+              aria-required="true"
+            >
+              <option value="">Select…</option>
+              <option value="1">1</option>
+              <option value="100">100</option>
+              <option value="1000">1000</option>
+            </select>
+          </div>
+
+          <!-- Material Cost Code -->
+          <div class="col-12 col-lg-3">
+            <label class="form-label" for="mat_mcc">Material Cost Code</label>
+            <input
+              id="mat_mcc"
+              name="material_cost_code"
+              type="text"
+              class="form-control"
+              placeholder="e.g., MAT-001"
+            />
+          </div>
+
+          <!-- Material Cost Code Desc -->
+          <div class="col-12 col-lg-3">
+            <label class="form-label" for="mat_mccd">Mat Cost Code Desc</label>
+            <input
+              id="mat_mccd"
+              name="mat_cost_code_desc"
+              type="text"
+              class="form-control"
+              placeholder="Description of material code"
+            />
+          </div>
+
+          <!-- Labor Cost Code -->
+          <div class="col-12 col-lg-3">
+            <label class="form-label" for="mat_lcc">Labor Cost Code</label>
+            <input
+              id="mat_lcc"
+              name="labor_cost_code"
+              type="text"
+              class="form-control"
+              placeholder="e.g., LAB-001"
+            />
+          </div>
+
+          <!-- Labor Cost Code Desc -->
+          <div class="col-12 col-lg-3">
+            <label class="form-label" for="mat_lccd">Labor Cost Code Desc</label>
+            <input
+              id="mat_lccd"
+              name="labor_cost_code_desc"
+              type="text"
+              class="form-control"
+              placeholder="Description of labor code"
+            />
+          </div>
+
+          <!-- Is Active -->
+          <div class="col-12 col-lg-2">
+            <div class="form-check mt-4">
+              <input
+                id="mat_active"
+                name="is_active"
+                class="form-check-input"
+                type="checkbox"
+                checked
+              />
+              <label class="form-check-label" for="mat_active">Active</label>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="col-12 d-flex gap-2">
+            <button type="button" class="btn btn-primary" id="materialsAddBtn">
+              Add
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              id="materialsResetBtn"
+              title="Clear the inline add form"
+            >
+              Reset
+            </button>
           </div>
         </div>
+      </form>
+    </div>
 
-        <!-- Actions -->
-        <div class="col-12 d-flex gap-2">
-          <button type="button" class="btn btn-primary" id="materialsAddBtn">
-            Add
-          </button>
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            id="materialsResetBtn"
-            title="Clear the inline add form"
-          >
-            Reset
-          </button>
+    <!-- Table -->
+    <div class="col-12">
+      <div class="card">
+        <div class="table-responsive table-scroll">
+          <table class="table table-sm table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Unit</th>
+                <th class="text-end">Cost ea</th>
+                <th class="text-end">Unit Labor (hrs)</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if materials %} {% for m in materials %}
+              <tr id="mat-{{ m.id }}">
+                <!-- Keep column order to match your THEAD -->
+                <td class="text-nowrap">{{ m.material_type or "" }}</td>
+                <td>{{ m.item_description or "" }}</td>
+                <td class="text-nowrap">
+                  {# You don't store a text unit; show the unit rule value for now
+                  #} {{ m.unit_quantity_size if m.unit_quantity_size is not none
+                  else "" }}
+                </td>
+                <td class="text-end">
+                  {% set p = m.price or 0 %} ${{ "{:,.2f}".format(p) }}
+                </td>
+                <td class="text-end">{{ "%.2f"|format(m.labor_unit or 0) }}</td>
+                <td class="text-end">
+                  <div class="btn-group">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      data-action="edit-material"
+                      data-material-id="{{ m.id }}"
+                      data-type="{{ m.material_type or '' }}"
+                      data-desc="{{ m.item_description or '' }}"
+                      data-sku="{{ m.sku or '' }}"
+                      data-mfr="{{ m.manufacturer or '' }}"
+                      data-vendor="{{ m.vendor or '' }}"
+                      data-price="{{ m.price or '' }}"
+                      data-labor="{{ m.labor_unit or '' }}"
+                      data-uqs="{{ m.unit_quantity_size or '' }}"
+                      data-mcc="{{ m.material_cost_code or '' }}"
+                      data-mccd="{{ m.mat_cost_code_desc or '' }}"
+                      data-lcc="{{ m.labor_cost_code or '' }}"
+                      data-lccd="{{ m.labor_cost_code_desc or '' }}"
+                      data-active="{{ 1 if (m.is_active or False) else 0 }}"
+                      title="Edit"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      data-action="delete-material"
+                      data-material-id="{{ m.id }}"
+                      title="Delete"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %} {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  No materials found.
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
         </div>
-      </div>
-    </form>
-  </div>
-
-  <!-- Table -->
-  <div class="col-12">
-    <div class="card">
-      <div class="table-responsive table-scroll">
-        <table class="table table-sm table-hover align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Category</th>
-              <th>Description</th>
-              <th>Unit</th>
-              <th class="text-end">Cost ea</th>
-              <th class="text-end">Unit Labor (hrs)</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if materials %} {% for m in materials %}
-            <tr id="mat-{{ m.id }}">
-              <!-- Keep column order to match your THEAD -->
-              <td class="text-nowrap">{{ m.material_type or "" }}</td>
-              <td>{{ m.item_description or "" }}</td>
-              <td class="text-nowrap">
-                {# You don't store a text unit; show the unit rule value for now
-                #} {{ m.unit_quantity_size if m.unit_quantity_size is not none
-                else "" }}
-              </td>
-              <td class="text-end">
-                {% set p = m.price or 0 %} ${{ "{:,.2f}".format(p) }}
-              </td>
-              <td class="text-end">{{ "%.2f"|format(m.labor_unit or 0) }}</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <button
-                    class="btn btn-sm btn-outline-secondary"
-                    data-action="edit-material"
-                    data-material-id="{{ m.id }}"
-                    data-type="{{ m.material_type or '' }}"
-                    data-desc="{{ m.item_description or '' }}"
-                    data-sku="{{ m.sku or '' }}"
-                    data-mfr="{{ m.manufacturer or '' }}"
-                    data-vendor="{{ m.vendor or '' }}"
-                    data-price="{{ m.price or '' }}"
-                    data-labor="{{ m.labor_unit or '' }}"
-                    data-uqs="{{ m.unit_quantity_size or '' }}"
-                    data-mcc="{{ m.material_cost_code or '' }}"
-                    data-mccd="{{ m.mat_cost_code_desc or '' }}"
-                    data-lcc="{{ m.labor_cost_code or '' }}"
-                    data-lccd="{{ m.labor_cost_code_desc or '' }}"
-                    data-active="{{ 1 if (m.is_active or False) else 0 }}"
-                    title="Edit"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    class="btn btn-sm btn-outline-danger"
-                    data-action="delete-material"
-                    data-material-id="{{ m.id }}"
-                    title="Delete"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-            {% endfor %} {% else %}
-            <tr>
-              <td colspan="6" class="text-center text-muted py-4">
-                No materials found.
-              </td>
-            </tr>
-            {% endif %}
-          </tbody>
-        </table>
       </div>
     </div>
   </div>

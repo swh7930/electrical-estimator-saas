@@ -12,142 +12,146 @@
         <div class="text-muted">Browse, add, and edit DJE items. Inline “Add” bar is at the top.</div>
       </div>
     </header>
-  </div>
+  
 
-  {% if back_label %}
-    <div class="mb-2">
-      <a href="{{ back_href or '#' }}"
-        id="djeBackLink"
-        class="btn btn-link p-0"
-        data-action="lib-back"
-        data-rt="{{ rt }}"
-        data-href="{{ back_href or '' }}">
-        &larr; {{ back_label }}
-      </a>
-    </div>
-  {% endif %}
-
-  <!-- Inline Add Bar -->
-  <section class="card p-3 mb-3" id="dje-inline-add">
-    <div class="row g-2 align-items-end">
-      <div class="col-md-2">
-        <label for="djeCategory" class="form-label">Category</label>
-        <select id="djeCategory" class="form-select" required aria-required="true">
-          <option value="">Select…</option>
-          {% for c in dje_categories %}
-            <option value="{{ c }}">{{ c }}</option>
-          {% endfor %}
-          <option value="__new__">+ New category…</option>
-        </select>
+    {% if back_label %}
+      <div class="mb-2">
+        <a href="{{ back_href or '#' }}"
+          id="djeBackLink"
+          class="btn btn-link p-0"
+          data-action="lib-back"
+          data-rt="{{ rt }}"
+          data-href="{{ back_href or '' }}">
+          &larr; {{ back_label }}
+        </a>
       </div>
+    {% endif %}
 
-      <div class="col-md-2">
-        <label for="djeSubcategory" class="form-label">Subcategory</label>
-        <select id="djeSubcategory" class="form-select" required aria-required="true" disabled>
-          <option value="">Select…</option>
-          {% for cat, subs in dje_subcats_map.items() %}
-            {% for s in subs %}
-              <option value="{{ s }}" data-cat="{{ cat }}">{{ s }}</option>
+
+
+  
+    <!-- Inline Add Bar -->
+    <section class="card p-3 mb-3" id="dje-inline-add">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-2">
+          <label for="djeCategory" class="form-label">Category</label>
+          <select id="djeCategory" class="form-select" required aria-required="true">
+            <option value="">Select…</option>
+            {% for c in dje_categories %}
+              <option value="{{ c }}">{{ c }}</option>
             {% endfor %}
-          {% endfor %}
-          <option value="__new__">+ New subcategory…</option>
-        </select>
-      </div>
-
-      <div class="col-md-4">
-        <label for="djeDesc" class="form-label">Description</label>
-        <input type="text" class="form-control" id="djeDesc"
-              autocomplete="off" placeholder="e.g., Rough-in permit fee"
-              required aria-required="true">
-      </div>
-
-      <div class="col-md-2">
-        <label for="unitCost" class="form-label">Unit Cost</label>
-        <input type="number" class="form-control text-end" id="unitCost"
-              inputmode="decimal" step="0.01" min="0"
-              placeholder="e.g., $125.00" required aria-required="true">
-      </div>
-
-      <div class="col-md-2">
-        <label for="costCode" class="form-label">Cost Code</label>
-        <input type="text" class="form-control" id="costCode"
-              autocomplete="off" placeholder="optional">
-      </div>
-
-      <div class="col-md">
-        <div class="d-flex gap-2">
-          <button id="djeAddBtn" class="btn btn-primary">Add</button>
-          <button id="djeResetBtn" class="btn btn-outline-secondary">Reset</button>
+            <option value="__new__">+ New category…</option>
+          </select>
         </div>
-      </div>
 
-      <div class="col-md-2 d-flex align-items-center">
-        <div class="form-check mt-2">
-          <input class="form-check-input" type="checkbox" id="isActive" checked>
-          <label class="form-check-label" for="isActive">Active</label>
-        </div>
-      </div>
-
-    </div>
-    <div id="addDjeErrors" class="text-danger small mt-2 d-none"></div>
-  </section>
-
-  <!-- Table -->
-  <div class="col-12">
-    <div class="card">
-      <div class="table-responsive table-scroll">
-        <table class="table table-sm table-hover align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Category</th>
-              <th>Subcategory</th>
-              <th>Description</th>
-              <th class="text-end">Cost</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if items %}
-              {% for i in items %}
-              <tr id="dje-{{ i.id }}">
-                <td class="text-nowrap">{{ i.category or "" }}</td>
-                <td class="text-nowrap">{{ i.subcategory or "" }}</td>
-                <td>{{ i.description or "" }}</td>
-                <td class="text-end">{{ "{:,.2f}".format(i.default_unit_cost or 0) }}</td>
-                <td class="text-end">
-                  <div class="btn-group">
-                    <button
-                      class="btn btn-sm btn-outline-secondary"
-                      data-action="edit-dje"
-                      data-dje-id="{{ i.id }}"
-                      data-category="{{ i.category or '' }}"
-                      data-subcategory="{{ i.subcategory or '' }}"
-                      data-desc="{{ i.description or '' }}"
-                      data-cost="{{ i.default_unit_cost or '' }}"
-                      data-cost_code="{{ i.cost_code or '' }}"
-                      data-active="{{ 1 if (i.is_active or False) else 0 }}"
-                      title="Edit"
-                    >Edit</button>
-                    <button
-                      class="btn btn-sm btn-outline-danger"
-                      data-action="delete-dje"
-                      data-dje-id="{{ i.id }}"
-                      data-category="{{ i.category or '' }}"
-                      data-subcategory="{{ i.subcategory or '' }}"
-                      data-desc="{{ i.description or '' }}"
-                      title="Delete"
-                    >Delete</button>
-                  </div>
-                </td>
-              </tr>
+        <div class="col-md-2">
+          <label for="djeSubcategory" class="form-label">Subcategory</label>
+          <select id="djeSubcategory" class="form-select" required aria-required="true" disabled>
+            <option value="">Select…</option>
+            {% for cat, subs in dje_subcats_map.items() %}
+              {% for s in subs %}
+                <option value="{{ s }}" data-cat="{{ cat }}">{{ s }}</option>
               {% endfor %}
-            {% else %}
+            {% endfor %}
+            <option value="__new__">+ New subcategory…</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label for="djeDesc" class="form-label">Description</label>
+          <input type="text" class="form-control" id="djeDesc"
+                autocomplete="off" placeholder="e.g., Rough-in permit fee"
+                required aria-required="true">
+        </div>
+
+        <div class="col-md-2">
+          <label for="unitCost" class="form-label">Unit Cost</label>
+          <input type="number" class="form-control text-end" id="unitCost"
+                inputmode="decimal" step="0.01" min="0"
+                placeholder="e.g., $125.00" required aria-required="true">
+        </div>
+
+        <div class="col-md-2">
+          <label for="costCode" class="form-label">Cost Code</label>
+          <input type="text" class="form-control" id="costCode"
+                autocomplete="off" placeholder="optional">
+        </div>
+
+        <div class="col-md">
+          <div class="d-flex gap-2">
+            <button id="djeAddBtn" class="btn btn-primary">Add</button>
+            <button id="djeResetBtn" class="btn btn-outline-secondary">Reset</button>
+          </div>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-center">
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="isActive" checked>
+            <label class="form-check-label" for="isActive">Active</label>
+          </div>
+        </div>
+
+      </div>
+      <div id="addDjeErrors" class="text-danger small mt-2 d-none"></div>
+    </section>
+
+    <!-- Table -->
+    <div class="col-12">
+      <div class="card">
+        <div class="table-responsive table-scroll">
+          <table class="table table-sm table-hover align-middle mb-0">
+            <thead>
               <tr>
-                <td colspan="5" class="text-center text-muted py-4">No DJE items found.</td>
+                <th>Category</th>
+                <th>Subcategory</th>
+                <th>Description</th>
+                <th class="text-end">Cost</th>
+                <th class="text-end">Actions</th>
               </tr>
-            {% endif %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% if items %}
+                {% for i in items %}
+                <tr id="dje-{{ i.id }}">
+                  <td class="text-nowrap">{{ i.category or "" }}</td>
+                  <td class="text-nowrap">{{ i.subcategory or "" }}</td>
+                  <td>{{ i.description or "" }}</td>
+                  <td class="text-end">{{ "{:,.2f}".format(i.default_unit_cost or 0) }}</td>
+                  <td class="text-end">
+                    <div class="btn-group">
+                      <button
+                        class="btn btn-sm btn-outline-secondary"
+                        data-action="edit-dje"
+                        data-dje-id="{{ i.id }}"
+                        data-category="{{ i.category or '' }}"
+                        data-subcategory="{{ i.subcategory or '' }}"
+                        data-desc="{{ i.description or '' }}"
+                        data-cost="{{ i.default_unit_cost or '' }}"
+                        data-cost_code="{{ i.cost_code or '' }}"
+                        data-active="{{ 1 if (i.is_active or False) else 0 }}"
+                        title="Edit"
+                      >Edit</button>
+                      <button
+                        class="btn btn-sm btn-outline-danger"
+                        data-action="delete-dje"
+                        data-dje-id="{{ i.id }}"
+                        data-category="{{ i.category or '' }}"
+                        data-subcategory="{{ i.subcategory or '' }}"
+                        data-desc="{{ i.description or '' }}"
+                        title="Delete"
+                      >Delete</button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">No DJE items found.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
