@@ -1,7 +1,8 @@
 from flask import render_template, request, jsonify, url_for
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from app.models.material import Material
 from app.models.dje_item import DjeItem
+from app.models.customer import Customer
 from app.extensions import db
 from . import bp
 from sqlalchemy.exc import IntegrityError
@@ -364,4 +365,113 @@ def delete_dje(item_id):
 
 @bp.get("/customers")
 def customers():
-    return render_template("customers/index.html")
+    q = (request.args.get("q") or "").strip()
+    city = (request.args.get("city") or "").strip()
+
+    query = Customer.query.filter(Customer.is_active.is_(True))
+
+    if q:
+        pattern = f"%{q.lower()}%"
+        query = query.filter(
+            or_(
+                func.lower(Customer.name).like(pattern),
+                func.lower(Customer.primary_contact).like(pattern),
+                func.lower(Customer.email).like(pattern),
+            )
+        )
+    if city:
+        query = query.filter(func.lower(Customer.city).like(f"%{city.lower()}%"))
+
+    items = query.order_by(func.lower(Customer.name).asc()).limit(250).all()
+
+    # Back-link handoff (parity with Materials/DJE)
+    rt = (request.args.get("rt") or "").strip()
+    back_label = None
+    back_href = None
+    if rt == "home":
+        back_label = "Back to Home"
+        back_href = url_for("main.home")
+    elif rt.startswith("estimator"):
+        back_label = "Back to Estimate"
+
+    return render_template(
+        "customers/index.html",
+        customers=items,
+        q=q,
+        city_filter=city,
+        back_label=back_label,
+        back_href=back_href,
+        rt=rt,
+    )
+
+@bp.post("/customers")
+def customers_create():
+    data = request.get_json(silent=True) or {}
+
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify(ok=False, errors={"name": "Customer Name is required."}), 400
+
+    primary_contact = (data.get("primary_contact") or "").strip() or None
+    email = (data.get("email") or "").strip() or None
+    phone = (data.get("phone") or "").strip() or None
+    address = (data.get("address") or "").strip() or None
+    notes = (data.get("notes") or "").strip() or None
+
+    # best-effort city from address if none provided
+    city = (data.get("city") or "").strip() or None
+    if not city and address and "," in address:
+        try:
+            city = address.split(",", 1)[1].strip() or None
+        except Exception:
+            city = None
+
+    c = Customer(
+        name=name,
+        primary_contact=primary_contact,
+        email=email,
+        phone=phone,
+        address=address,
+        city=city,
+        notes=notes,
+        is_active=True,
+    )
+    db.session.add(c)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify(ok=False, errors={"__all__": "A customer with this name already exists (active)."}), 409
+
+    return jsonify(ok=True, id=c.id), 201
+
+@bp.put("/customers/<int:customer_id>")
+def customers_update(customer_id: int):
+    c = Customer.query.get_or_404(customer_id)
+    data = request.get_json(silent=True) or {}
+
+    if "name" in data:
+        name = (data.get("name") or "").strip()
+        if not name:
+            return jsonify(ok=False, errors={"name": "Customer Name is required."}), 400
+        c.name = name
+
+    for key in ("primary_contact", "email", "phone", "address", "city", "notes"):
+        if key in data:
+            val = (data.get(key) or "").strip() or None
+            setattr(c, key, val)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify(ok=False, errors={"__all__": "A customer with this name already exists (active)."}), 409
+
+    return jsonify(ok=True), 200
+
+@bp.delete("/customers/<int:customer_id>")
+def customers_delete(customer_id: int):
+    c = Customer.query.get_or_404(customer_id)
+    db.session.delete(c)
+    db.session.commit()
+    return ("", 204)
