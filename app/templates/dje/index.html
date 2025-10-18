@@ -14,6 +14,19 @@
     </header>
   </div>
 
+  {% if back_label %}
+    <div class="mb-2">
+      <a href="{{ back_href or '#' }}"
+        id="djeBackLink"
+        class="btn btn-link p-0"
+        data-action="lib-back"
+        data-rt="{{ rt }}"
+        data-href="{{ back_href or '' }}">
+        &larr; {{ back_label }}
+      </a>
+    </div>
+  {% endif %}
+
   <!-- Inline Add Bar -->
   <section class="card p-3 mb-3" id="dje-inline-add">
     <div class="row g-2 align-items-end">

@@ -330,3 +330,21 @@
   resetSubSelect(true);
 })();
 
+// -- Back link (query-param handshake) --
+(() => {
+  const el = document.getElementById('djeBackLink');
+  if (!el) return;
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    const rt = el.dataset.rt || '';
+    const href = el.dataset.href || '';
+    if (rt.startsWith('estimator')) {
+      if (document.referrer && (document.referrer.includes('/estimator') || document.referrer.includes('/estimates'))) {
+        history.back(); return;
+      }
+      if (href) window.location.assign(href);
+      return;
+    }
+    if (href) window.location.assign(href);
+  });
+})();
