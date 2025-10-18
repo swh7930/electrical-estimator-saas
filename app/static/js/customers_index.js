@@ -10,16 +10,28 @@
   }
 
   async function addCustomer() {
-    const name = v('cust-add-name');
+    const name = EM_VALID.collapseSpaces(v('cust-add-name'), 255);
     if (!name) { alert('Customer Name is required.'); return; }
 
+    const email = EM_VALID.collapseSpaces(v('cust-add-email'), 255);
+    if (email && !EM_VALID.validateEmail(email)) {
+      alert('Invalid email address.'); return;
+    }
+
+    let phone = EM_VALID.collapseSpaces(v('cust-add-phone'), 32);
+    if (phone) {
+      const normalized = EM_VALID.normalizePhone(phone);
+      if (!normalized) { alert('Invalid US phone number. Use 10 digits (optionally prefixed with 1).'); return; }
+      phone = normalized;
+    }
+
     const payload = {
-      name: name,
-      primary_contact: v('cust-add-contact') || null,
-      email: v('cust-add-email') || null,
-      phone: v('cust-add-phone') || null,
-      address: v('cust-add-address') || null,
-      notes: v('cust-add-notes') || null
+      name,
+      primary_contact: EM_VALID.collapseSpaces(v('cust-add-contact'), 255) || null,
+      email: email || null,
+      phone: phone || null,
+      address: EM_VALID.collapseSpaces(v('cust-add-address'), 300) || null,
+      notes: EM_VALID.collapseSpaces(v('cust-add-notes'), 2000) || null
     };
 
     if (!payload.city) {
@@ -76,17 +88,22 @@
     const id = editingId;
     if (!id) return;
     const payload = {
-      name: v('cust-modal-name'),
-      primary_contact: v('cust-modal-contact') || null,
-      email: v('cust-modal-email') || null,
-      phone: v('cust-modal-phone') || null,
-      address: v('cust-modal-address') || null,
-      notes: v('cust-modal-notes') || null
+      name: EM_VALID.collapseSpaces(v('cust-modal-name'), 255),
+      primary_contact: EM_VALID.collapseSpaces(v('cust-modal-contact'), 255) || null,
+      email: EM_VALID.collapseSpaces(v('cust-modal-email'), 255) || null,
+      phone: EM_VALID.collapseSpaces(v('cust-modal-phone'), 32) || null,
+      address: EM_VALID.collapseSpaces(v('cust-modal-address'), 300) || null,
+      notes: EM_VALID.collapseSpaces(v('cust-modal-notes'), 2000) || null
     };
+
     if (!payload.name) { alert('Customer Name is required.'); return; }
-    if (!payload.city && payload.address) {
-      const c = deriveCity(payload.address);
-      if (c) payload.city = c;
+    if (payload.email && !EM_VALID.validateEmail(payload.email)) {
+      alert('Invalid email address.'); return;
+    }
+    if (payload.phone) {
+      const normalized = EM_VALID.normalizePhone(payload.phone);
+      if (!normalized) { alert('Invalid US phone number. Use 10 digits (optionally prefixed with 1).'); return; }
+      payload.phone = normalized;
     }
 
     const res = await fetch(`/libraries/customers/${id}`, {
@@ -96,8 +113,10 @@
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
-      const msg = (data && data.errors && (data.errors.__all__ || data.errors.name)) || 'Failed to save.';
-      alert(msg); return;
+      const e = (data && data.errors) || {};
+      const msg = e.__all__ || e.name || e.email || e.phone || e.city || 'Failed to save.';
+      alert(msg);
+      return;
     }
     window.location.reload();
   }
