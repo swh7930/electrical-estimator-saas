@@ -11,17 +11,17 @@
 
   async function addCustomer() {
     const name = EM_VALID.collapseSpaces(v('cust-add-name'), 255);
-    if (!name) { alert('Customer Name is required.'); return; }
+    if (!name) { EM_NOTIFY.error('Customer Name is required.'); return; }
 
     const email = EM_VALID.collapseSpaces(v('cust-add-email'), 255);
     if (email && !EM_VALID.validateEmail(email)) {
-      alert('Invalid email address.'); return;
+      EM_NOTIFY.error('Invalid email address.'); return;
     }
 
     let phone = EM_VALID.collapseSpaces(v('cust-add-phone'), 32);
     if (phone) {
       const normalized = EM_VALID.normalizePhone(phone);
-      if (!normalized) { alert('Invalid US phone number. Use 10 digits (optionally prefixed with 1).'); return; }
+      if (!normalized) { EM_NOTIFY.error('Invalid US phone number. Use 10 digits (optionally prefixed with 1).'); return; }
       phone = normalized;
     }
 
@@ -47,7 +47,7 @@
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
       const msg = (data && data.errors && (data.errors.__all__ || data.errors.name)) || 'Failed to add customer.';
-      alert(msg); return;
+      EM_NOTIFY.error(msg); return;
     }
     window.location.href = '/libraries/customers';
   }
@@ -96,13 +96,13 @@
       notes: EM_VALID.collapseSpaces(v('cust-modal-notes'), 2000) || null
     };
 
-    if (!payload.name) { alert('Customer Name is required.'); return; }
+    if (!payload.name) { EM_NOTIFY.error('Customer Name is required.'); return; }
     if (payload.email && !EM_VALID.validateEmail(payload.email)) {
-      alert('Invalid email address.'); return;
+      EM_NOTIFY.error('Invalid email address.'); return;
     }
     if (payload.phone) {
       const normalized = EM_VALID.normalizePhone(payload.phone);
-      if (!normalized) { alert('Invalid US phone number. Use 10 digits (optionally prefixed with 1).'); return; }
+      if (!normalized) { EM_NOTIFY.error('Invalid US phone number. Use 10 digits (optionally prefixed with 1).'); return; }
       payload.phone = normalized;
     }
 
@@ -115,7 +115,7 @@
     if (!res.ok || !data.ok) {
       const e = (data && data.errors) || {};
       const msg = e.__all__ || e.name || e.email || e.phone || e.city || 'Failed to save.';
-      alert(msg);
+      EM_NOTIFY.error(msg);
       return;
     }
     window.location.reload();
@@ -127,7 +127,7 @@
     if (!id) return;
     const res = await fetch(`/libraries/customers/${id}`, { method: 'DELETE' });
     if (res.ok) window.location.reload();
-    else alert('Failed to delete customer.');
+    else EM_NOTIFY.error('Failed to delete customer.');
   }
 
   document.addEventListener('DOMContentLoaded', function () {
