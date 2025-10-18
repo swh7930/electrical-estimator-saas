@@ -51,10 +51,10 @@
    <!-- Right: manage + save + reset -->
   <div class="wf-right d-flex align-items-center gap-2">
     {% if current_step == 'estimator' %}
-      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('libraries.materials') }}">Manage Materials</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('libraries.materials') }}?rt=estimator">Manage Materials</a>
       <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.list_assemblies') }}?rt=estimator">Manage Assemblies</a>
     {% elif current_step == 'dje' %}
-      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('libraries.dje') }}">Manage DJE Items</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('libraries.dje') }}?rt=estimator">Manage DJE Items</a>
     {% endif %}
 
     <button id="workflowSaveBtn" type="button" class="btn btn-sm btn-success">

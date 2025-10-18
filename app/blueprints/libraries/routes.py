@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, url_for
 from sqlalchemy import func
 from app.models.material import Material
 from app.models.dje_item import DjeItem
@@ -42,6 +42,16 @@ def materials():
             .all()
         )
     ]
+    
+    # Back-link handoff
+    rt = (request.args.get("rt") or "").strip()
+    back_label = None
+    back_href = None
+    if rt == "home":
+        back_label = "Back to Home"
+        back_href = url_for("main.home")
+    elif rt.startswith("estimator"):
+        back_label = "Back to Estimate"
 
     return render_template(
         "materials/index.html",
@@ -49,6 +59,9 @@ def materials():
         mat_types=mat_types,
         q=q,
         type_filter=mat_type,
+        back_label=back_label,
+        back_href=back_href,
+        rt=rt,
     )
 
 
@@ -211,12 +224,25 @@ def dje():
     dje_subcats_map = {}
     for cat, sub in sub_pairs:
         dje_subcats_map.setdefault(cat, []).append(sub)
+        
+    # Back-link handoff
+    rt = (request.args.get("rt") or "").strip()
+    back_label = None
+    back_href = None
+    if rt == "home":
+        back_label = "Back to Home"
+        back_href = url_for("main.home")
+    elif rt.startswith("estimator"):
+        back_label = "Back to Estimate"
 
     return render_template(
         "dje/index.html",
         items=items,
         dje_categories=categories,
         dje_subcats_map=dje_subcats_map,
+        back_label=back_label,
+        back_href=back_href,
+        rt=rt,
     )
 
 @bp.post("/dje")

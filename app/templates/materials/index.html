@@ -1,7 +1,10 @@
-{% extends "base.html" %} {% block title %}Materials · Electrical Estimator{%
-endblock %} {% block container_class %}container-xxl{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %}Materials · Electrical Estimator{%endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
 <div id="materials-grid" class="row g-4">
+  
   <!-- Header -->
   <div class="col-12">
     <header class="text-center border-bottom py-3 mb-3">
@@ -13,6 +16,19 @@ content %}
       </div>
     </header>
   </div>
+
+  {% if back_label %}
+    <div class="mb-2">
+      <a href="{{ back_href or '#' }}"
+        id="materialsBackLink"
+        class="btn btn-link p-0"
+        data-action="lib-back"
+        data-rt="{{ rt }}"
+        data-href="{{ back_href or '' }}">
+        &larr; {{ back_label }}
+      </a>
+    </div>
+  {% endif %}
 
   <!-- Inline Add Bar -->
   <div class="col-12">
