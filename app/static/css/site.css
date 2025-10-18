@@ -1031,3 +1031,9 @@ header.border-bottom + .card {
   background: var(--bs-body-bg, #fff);
 }
 
+/* Global Toasts */
+#toast-root { position: fixed; top: 1rem; right: 1rem; z-index: 1200; pointer-events: none; }
+#toast-root .toast-container { pointer-events: auto; }
+
+/* If your navbar is ~56px tall, place toasts just below it */
+#toast-root { top: calc(56px + 1rem); }
