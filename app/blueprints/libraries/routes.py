@@ -4,6 +4,15 @@ from app.models.material import Material
 from app.models.dje_item import DjeItem
 from app.models.customer import Customer
 from app.extensions import db
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func, or_
+from app.utils.validators import (
+    clean_str,
+    is_valid_email,
+    normalize_phone,
+    is_valid_city,
+    derive_city_from_address,
+)
 from . import bp
 from sqlalchemy.exc import IntegrityError
 
@@ -407,29 +416,45 @@ def customers():
 @bp.post("/customers")
 def customers_create():
     data = request.get_json(silent=True) or {}
+    errors = {}
 
-    name = (data.get("name") or "").strip()
+    # Required
+    name = clean_str(data.get("name"), 255)
     if not name:
-        return jsonify(ok=False, errors={"name": "Customer Name is required."}), 400
+        errors["name"] = "Customer Name is required."
 
-    primary_contact = (data.get("primary_contact") or "").strip() or None
-    email = (data.get("email") or "").strip() or None
-    phone = (data.get("phone") or "").strip() or None
-    address = (data.get("address") or "").strip() or None
-    notes = (data.get("notes") or "").strip() or None
+    # Optional, cleaned
+    primary_contact = clean_str(data.get("primary_contact"), 255)
+    email_raw = clean_str(data.get("email"), 255)
+    phone_raw = clean_str(data.get("phone"), 32)
+    address = clean_str(data.get("address"), 300)
+    notes = clean_str(data.get("notes"), 2000)
+    city = clean_str(data.get("city"), 100)
 
-    # best-effort city from address if none provided
-    city = (data.get("city") or "").strip() or None
-    if not city and address and "," in address:
-        try:
-            city = address.split(",", 1)[1].strip() or None
-        except Exception:
-            city = None
+    # Email
+    if email_raw and not is_valid_email(email_raw):
+        errors["email"] = "Invalid email address."
+
+    # Phone (normalize to (###) ###-####)
+    phone = None
+    if phone_raw:
+        phone = normalize_phone(phone_raw)
+        if not phone:
+            errors["phone"] = "Invalid US phone number. Use 10 digits (optionally prefixed with 1)."
+
+    # City (use provided else derive from address)
+    if not city and address:
+        city = derive_city_from_address(address)
+    if city and not is_valid_city(city):
+        errors["city"] = "City contains invalid characters."
+
+    if errors:
+        return jsonify(ok=False, errors=errors), 400
 
     c = Customer(
         name=name,
         primary_contact=primary_contact,
-        email=email,
+        email=email_raw,
         phone=phone,
         address=address,
         city=city,
@@ -449,17 +474,52 @@ def customers_create():
 def customers_update(customer_id: int):
     c = Customer.query.get_or_404(customer_id)
     data = request.get_json(silent=True) or {}
+    errors = {}
 
+    # Only validate fields that were provided
     if "name" in data:
-        name = (data.get("name") or "").strip()
+        name = clean_str(data.get("name"), 255)
         if not name:
-            return jsonify(ok=False, errors={"name": "Customer Name is required."}), 400
-        c.name = name
+            errors["name"] = "Customer Name is required."
+        else:
+            c.name = name
 
-    for key in ("primary_contact", "email", "phone", "address", "city", "notes"):
-        if key in data:
-            val = (data.get(key) or "").strip() or None
-            setattr(c, key, val)
+    if "primary_contact" in data:
+        c.primary_contact = clean_str(data.get("primary_contact"), 255)
+
+    if "email" in data:
+        email_raw = clean_str(data.get("email"), 255)
+        if email_raw and not is_valid_email(email_raw):
+            errors["email"] = "Invalid email address."
+        else:
+            c.email = email_raw
+
+    if "phone" in data:
+        phone_raw = clean_str(data.get("phone"), 32)
+        phone = normalize_phone(phone_raw) if phone_raw else None
+        if phone_raw and not phone:
+            errors["phone"] = "Invalid US phone number. Use 10 digits (optionally prefixed with 1)."
+        else:
+            c.phone = phone
+
+    if "address" in data:
+        c.address = clean_str(data.get("address"), 300)
+
+    if "notes" in data:
+        c.notes = clean_str(data.get("notes"), 2000)
+
+    if "city" in data:
+        city = clean_str(data.get("city"), 100)
+        if city and not is_valid_city(city):
+            errors["city"] = "City contains invalid characters."
+        else:
+            c.city = city
+
+    # If city wasn't provided but address changed, consider deriving (optional)
+    # Not auto-deriving on update unless explicitly requested—keeps surprises minimal.
+
+    if errors:
+        return jsonify(ok=False, errors=errors), 400
 
     try:
         db.session.commit()
