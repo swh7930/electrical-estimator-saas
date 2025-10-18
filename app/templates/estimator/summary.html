@@ -58,6 +58,14 @@
       </table>
 
       <!-- Step C: Material Cost Summary -->
+
+      {# --- Align Summary ranges to Settings (fallbacks if route didn't pass them) --- #}
+      {% set misc_range = misc_range if misc_range is defined else range(0, 31) %}
+      {% set small_tools_range = small_tools_range if small_tools_range is defined else range(0, 21) %}
+      {% set large_tools_range = large_tools_range if large_tools_range is defined else range(0, 21) %}
+      {% set waste_theft_range = waste_theft_range if waste_theft_range is defined else range(0, 31) %}
+      {% set sales_tax_range = sales_tax_range if sales_tax_range is defined else range(0, 21) %}
+
       <table>
         <tr>
           <th colspan="4">Material Cost Summary</th>
@@ -182,6 +190,8 @@
               <option value="30" selected>30%</option>
               <option value="35">35%</option>
               <option value="40">40%</option>
+              <option value="45">45%</option>
+              <option value="50">50%</option>
             </select>
           </td>
           <td class="right" id="overheadValue">$0.00</td>

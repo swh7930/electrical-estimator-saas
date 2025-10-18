@@ -4,10 +4,10 @@ from . import bp
 def _default_percent_ranges():
     # Temporary defaults; we’ll pull these from Settings later
     return dict(
-        misc_range=range(0, 21),          # 0–20%
-        small_tools_range=range(0, 11),   # 0–10%
-        large_tools_range=range(0, 11),   # 0–10%
-        waste_theft_range=range(0, 21),   # 0–20%
+        misc_range=range(0, 31),          # 0–30%
+        small_tools_range=range(0, 21),   # 0–20%
+        large_tools_range=range(0, 21),   # 0–20%
+        waste_theft_range=range(0, 31),   # 0–30%
         sales_tax_range=range(0, 21),     # 0–20%
     )
 
