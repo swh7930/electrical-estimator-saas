@@ -169,3 +169,4 @@
     $('cust-delete-confirm')?.addEventListener('click', confirmDelete, { passive: true });
   });
 })();
+
