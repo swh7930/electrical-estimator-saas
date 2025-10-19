@@ -7,7 +7,13 @@
   <div class="col-12">
     <header class="text-center border-bottom py-3 mb-3">
       <div>
-        <h1 class="h3 mb-1">Start New Estimate</h1>
+        <h1 id="pageTitle" class="h3 mb-1">
+          {% if mode == 'edit' %}Edit Estimate
+          {% elif mode == 'clone' %}Clone Estimate
+          {% else %}Start Standard Estimate
+          {% endif %}
+        </h1>
+
         <div class="text-muted">Fill in the basics to create a standard estimate.</div>
       </div>
     </header>
@@ -83,9 +89,14 @@
 
           <!-- Actions -->
           <div class="col-12 d-flex gap-2">
-            <button id="createEstimateBtn" type="button" class="btn btn-primary">Create</button>
+            <button id="createEstimateBtn" type="button" class="btn btn-primary">
+              {% if mode == 'edit' %}Save{% else %}Create{% endif %}
+            </button>
             <a class="btn btn-outline-secondary" href="{{ url_for('main.home') }}">Cancel</a>
             <a class="btn btn-outline-secondary" href="{{ url_for('main.instructions') }}">Instructions</a>
+            {% if mode == 'edit' and estimate %}
+              <a class="btn btn-outline-secondary" href="/estimator?eid={{ estimate.id }}&rt=estimates">Back to Estimator</a>
+            {% endif %}"btn btn-outline-secondary" href="{{ url_for('main.instructions') }}">Instructions</a>
           </div>
         </form>
       </div>

@@ -92,6 +92,59 @@ def list_json():
 
     return jsonify(ok=True, rows=data)
 
+@bp.get("/<int:estimate_id>/edit")
+def edit(estimate_id: int):
+    est = Estimate.query.get_or_404(estimate_id)
+    # Reuse the same template for create/edit/clone
+    return render_template("estimates/new_standard.html", estimate=est, mode="edit")
+
+@bp.get("/<int:estimate_id>/clone")
+def clone_start(estimate_id: int):
+    est = Estimate.query.get_or_404(estimate_id)
+    return render_template("estimates/new_standard.html", estimate=est, mode="clone")
+
+@bp.put("/<int:estimate_id>")
+def update(estimate_id: int):
+    est = Estimate.query.get_or_404(estimate_id)
+    data = request.get_json(silent=True) or {}
+
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"errors": {"name": "Name is required"}}), 400
+
+    def _s(key):
+        v = (data.get(key) or "").strip()
+        return v or None
+
+    customer_id = data.get("customer_id")
+    try:
+        customer_id = int(customer_id) if str(customer_id or "").isdigit() else None
+    except Exception:
+        customer_id = None
+
+    est.name = name
+    est.project_address = _s("project_address")
+    est.project_ref = _s("project_ref")
+    est.customer_id = customer_id
+
+    db.session.commit()
+    return jsonify({"ok": True, "id": est.id})
+
+@bp.get("/<int:estimate_id>.json")
+def get_estimate_json(estimate_id: int):
+    e = Estimate.query.get_or_404(estimate_id)
+    return jsonify({
+        "id": e.id,
+        "name": e.name,
+        "customer_id": e.customer_id,
+        "project_address": e.project_address or "",
+        "project_ref": e.project_ref or "",
+        "status": e.status,
+        "settings_snapshot": e.settings_snapshot or {},
+        "created_at": e.created_at.isoformat() if e.created_at else None,
+        "updated_at": e.updated_at.isoformat() if e.updated_at else None,
+    })
+
 @bp.post("/<int:estimate_id>/clone")
 def clone_estimate(estimate_id: int):
     e = Estimate.query.get_or_404(estimate_id)
