@@ -1,0 +1,39 @@
+<div class="modal fade" id="customerQuickAddModal" tabindex="-1" aria-labelledby="customerQuickAddLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customerQuickAddLabel">Add Customer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="quickAddCustomerForm" novalidate>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="qaCompanyName">Company Name <span class="text-danger">*</span></label>
+              <input id="qaCompanyName" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="qaContactName">Contact Name</label>
+              <input id="qaContactName" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="qaEmail">Email</label>
+              <input id="qaEmail" type="email" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="qaPhone">Phone</label>
+              <input id="qaPhone" class="form-control" />
+            </div>
+            <div class="col-12">
+              <small class="text-muted">You can add full address details later on the Customers page.</small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button id="qaSubmitBtn" type="submit" class="btn btn-primary">Save Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

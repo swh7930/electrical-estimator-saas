@@ -150,3 +150,20 @@ document.addEventListener("DOMContentLoaded", () => {
   })();
 });
 
+document.addEventListener("customer:created", (e) => {
+  const detail = e.detail || {};
+  const id = detail.id;
+  const name = detail.company_name || "(unnamed)";
+  const sel = document.getElementById("customerSelect");
+  if (!sel || !id) return;
+
+  // Add option if missing, then select it
+  if (![...sel.options].some(o => o.value === String(id))) {
+    const opt = document.createElement("option");
+    opt.value = String(id);
+    opt.textContent = name;
+    sel.appendChild(opt);
+  }
+  sel.value = String(id);
+  sel.dispatchEvent(new Event("change"));
+});
