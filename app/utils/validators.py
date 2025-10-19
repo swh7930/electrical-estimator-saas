@@ -4,6 +4,8 @@ import re
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _CITY_RE = re.compile(r"^[A-Za-z][A-Za-z .'\-]{0,98}[A-Za-z.]?$")
 _DIGITS_RE = re.compile(r"\d+")
+_STATE_RE = re.compile(r"^[A-Za-z]{2}$")
+_ZIP_RE = re.compile(r"^\d{5}(-\d{4})?$")
 
 def clean_str(val: str | None, max_len: int = 255) -> str | None:
     """
@@ -50,3 +52,13 @@ def derive_city_from_address(address: str | None) -> str | None:
         return None
     part = address.split(",", 1)[1].strip()
     return clean_str(part, max_len=100)
+
+def is_valid_state(val: str | None) -> bool:
+    if not val:
+        return True
+    return bool(_STATE_RE.match(val.strip()))
+
+def is_valid_zip(val: str | None) -> bool:
+    if not val:
+        return True
+    return bool(_ZIP_RE.match(val.strip()))
