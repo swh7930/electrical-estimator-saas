@@ -5,3 +5,4 @@ bp = Blueprint("estimator", __name__, template_folder="templates")
 from . import routes          # page views: /estimator, /estimator/dje, etc.
 from . import api_materials   # /estimator/api/material-types, /material_descriptions
 from . import api_dje         # /estimator/api/dje-*
+from . import api_assemblies
