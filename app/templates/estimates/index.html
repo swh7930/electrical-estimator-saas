@@ -22,45 +22,45 @@ content %}
         >
       </div>
     </header>
+
+    <div class="mb-2">
+      <a href="{{ url_for('main.home') }}" id="estimatesBackLink" class="btn btn-link p-0">
+        &larr; Back to Home
+      </a>
+    </div>
+
   </div>
 
   <!-- Filters -->
   <div class="col-12">
-    <form class="card p-3">
+    <form class="card p-3" onsubmit="return false;">
       <div class="row g-3 align-items-end">
         <div class="col-12 col-md-4">
-          <label class="form-label">Search</label>
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Name, customer, notes…"
-          />
+          <label class="form-label" for="estFilterQ">Search</label>
+          <input id="estFilterQ" type="text" class="form-control" placeholder="Name, customer, notes…" />
         </div>
         <div class="col-6 col-md-3">
-          <label class="form-label">Customer</label>
-          <select class="form-select">
+          <label class="form-label" for="estFilterCustomer">Customer</label>
+          <select id="estFilterCustomer" class="form-select">
             <option value="">All customers</option>
-            <option>Acme Outfitters</option>
-            <option>Midwest Logistics</option>
-            <option>City Schools</option>
           </select>
         </div>
         <div class="col-6 col-md-2">
-          <label class="form-label">Status</label>
-          <select class="form-select">
+          <label class="form-label" for="estFilterStatus">Status</label>
+          <select id="estFilterStatus" class="form-select">
             <option value="">Any</option>
-            <option>Draft</option>
-            <option>Submitted</option>
-            <option>Awarded</option>
-            <option>Lost</option>
+            <option value="draft">Draft</option>
+            <option value="submitted">Submitted</option>
+            <option value="awarded">Awarded</option>
+            <option value="lost">Lost</option>
           </select>
         </div>
         <div class="col-6 col-md-2">
-          <label class="form-label">Updated (from)</label>
-          <input type="date" class="form-control" />
+          <label class="form-label" for="estFilterFrom">Updated (from)</label>
+          <input id="estFilterFrom" type="date" class="form-control" />
         </div>
         <div class="col-6 col-md-1 d-grid">
-          <button type="button" class="btn btn-secondary">Clear</button>
+          <button id="estFilterClear" type="button" class="btn btn-secondary">Clear</button>
         </div>
       </div>
     </form>
@@ -69,8 +69,8 @@ content %}
   <!-- Table -->
   <div class="col-12">
     <div class="card">
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
+      <div class="table-responsive table-scroll">
+        <table id="estimatesTable" class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
               <th>Estimate</th>
@@ -80,97 +80,7 @@ content %}
               <th class="text-end">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- sample rows; replace with real data later -->
-            <tr>
-              <td>Retail TI – Panel / Lighting</td>
-              <td>Acme Outfitters</td>
-              <td><span class="badge bg-secondary">Draft</span></td>
-              <td>Today, 8:41 AM</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <a
-                    class="btn btn-sm btn-outline-primary"
-                    href="/estimates/123"
-                    >Open</a
-                  >
-                  <button
-                    class="btn btn-sm btn-outline-secondary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#cloneEstimateModal"
-                  >
-                    Clone
-                  </button>
-                  <button
-                    class="btn btn-sm btn-outline-danger"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmDeleteModal"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Warehouse Feeders</td>
-              <td>Midwest Logistics</td>
-              <td><span class="badge bg-info text-dark">Submitted</span></td>
-              <td>Yesterday</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <a
-                    class="btn btn-sm btn-outline-primary"
-                    href="/estimates/124"
-                    >Open</a
-                  >
-                  <button
-                    class="btn btn-sm btn-outline-secondary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#cloneEstimateModal"
-                  >
-                    Clone
-                  </button>
-                  <button
-                    class="btn btn-sm btn-outline-danger"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmDeleteModal"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Primary School Addition</td>
-              <td>City Schools</td>
-              <td><span class="badge bg-success">Awarded</span></td>
-              <td>Sep 22</td>
-              <td class="text-end">
-                <div class="btn-group">
-                  <a
-                    class="btn btn-sm btn-outline-primary"
-                    href="/estimates/125"
-                    >Open</a
-                  >
-                  <button
-                    class="btn btn-sm btn-outline-secondary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#cloneEstimateModal"
-                  >
-                    Clone
-                  </button>
-                  <button
-                    class="btn btn-sm btn-outline-danger"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmDeleteModal"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <!-- /sample rows -->
-          </tbody>
+          <tbody id="estimatesTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -254,4 +164,8 @@ content %}
     </div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/estimates_index.js') }}"></script>
 {% endblock %}
