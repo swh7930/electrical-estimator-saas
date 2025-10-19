@@ -29,19 +29,19 @@
     <nav aria-label="Estimator workflow" class="wf-crumbs">
       <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item">
-          <a href="{{ url_for('estimator.estimator_home') }}"
+          <a href="{{ url_for('estimator.estimator_home') }}{% if request.args.get('eid') %}?eid={{ request.args.get('eid') }}{% endif %}"
              {% if current_step == 'estimator' %}aria-current="page"{% endif %}>Material</a>
         </li>
         <li class="breadcrumb-item">
-          <a href="{{ url_for('estimator.estimator_adjustments') }}"
+          <a href="{{ url_for('estimator.estimator_adjustments') }}{% if request.args.get('eid') %}?eid={{ request.args.get('eid') }}{% endif %}"
              {% if current_step == 'adjustments' %}aria-current="page"{% endif %}>Adjustments</a>
         </li>
         <li class="breadcrumb-item">
-          <a href="{{ url_for('estimator.estimator_dje') }}"
+          <a href="{{ url_for('estimator.estimator_dje') }}{% if request.args.get('eid') %}?eid={{ request.args.get('eid') }}{% endif %}"
              {% if current_step == 'dje' %}aria-current="page"{% endif %}>DJE</a>
         </li>
         <li class="breadcrumb-item">
-          <a href="{{ url_for('estimator.estimator_summary') }}"
+          <a href="{{ url_for('estimator.estimator_summary') }}{% if request.args.get('eid') %}?eid={{ request.args.get('eid') }}{% endif %}"
              {% if current_step == 'summary' %}aria-current="page"{% endif %}>Summary</a>
         </li>
       </ol>
