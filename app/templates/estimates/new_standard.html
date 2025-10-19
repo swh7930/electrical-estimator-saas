@@ -84,9 +84,9 @@
             <textarea id="estimateNotes" class="form-control" rows="3" placeholder="Scope overview, assumptions, exclusions…"></textarea>
           </div>
 
-          <!-- Actions (design-only) -->
+          <!-- Actions -->
           <div class="col-12 d-flex gap-2">
-            <a class="btn btn-primary" href="/estimator">Create &amp; Open Estimator</a>
+            <button id="createEstimateBtn" type="button" class="btn btn-primary">Create &amp; Open Estimator</button>
             <a class="btn btn-outline-secondary" href="{{ url_for('main.instructions') }}">Instructions</a>
           </div>
         </form>
