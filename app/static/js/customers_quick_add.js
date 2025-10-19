@@ -36,12 +36,14 @@
       });
       if (!res.ok) throw new Error("Create failed");
       const raw = await res.json();
-      const c = raw?.customer || raw; // support either shape
+        const c = raw?.customer || raw || {};
+        const typedName = (document.getElementById("qaCompanyName")?.value || "").trim();
+        const name = c.company_name || c.companyName || typedName;
 
-      // Tell the page a customer was created (id + company_name required)
-      document.dispatchEvent(new CustomEvent("customer:created", {
-        detail: { id: c.id, company_name: c.company_name }
-      }));
+        // Tell the page a customer was created (id + name)
+        document.dispatchEvent(new CustomEvent("customer:created", {
+        detail: { id: c.id, company_name: name, name }
+        }));
 
       // Reset + close
       $("quickAddCustomerForm")?.reset();
