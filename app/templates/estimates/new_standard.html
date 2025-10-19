@@ -45,11 +45,12 @@ container_class %}container-xxl{% endblock %} {% block content %}
 
           <!-- Customer -->
           <div class="col-md-6">
-            <label for="customerSelect" class="form-label">Customer</label>
-            <select id="customerSelect" class="form-select">
-              <option value="">Choose customer…</option>
-            </select>
-            <div class="form-text">Active customers from Customers table.</div>
+              <label for="customerSelect" class="form-label">Customer</label>
+              <select id="customerSelect" class="form-select">
+                <option value="">Choose customer…</option>
+              </select>
+              <button id="btnQuickAddCustomer" type="button" class="btn btn-sm btn-outline-primary">+ Add new</button>
+              <div class="form-text">Active customers from Customers table.</div>
           </div>
 
           <!-- Dates -->
@@ -169,6 +170,8 @@ container_class %}container-xxl{% endblock %} {% block content %}
     </section>
   </div>
 </div>
+{% include "customers/_quick_add_modal.html" %}
 {% endblock %} {% block scripts %} {{ super() }}
 <script src="{{ url_for('static', filename='js/estimates_new_standard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/customers_quick_add.js') }}"></script>
 {% endblock %}
