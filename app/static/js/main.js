@@ -29,6 +29,35 @@
   };
 })();
 
+// Keep estimator workflow links carrying ?eid=&rt= across pages
+function eePropagateWorkflowParams() {
+  const params = new URLSearchParams(window.location.search);
+  const eid = params.get('eid');
+  const rt  = params.get('rt');
+  if (!eid && !rt) return; // nothing to do
+
+  // Match only the workflow pages; leave other links untouched
+  const selector = [
+    'a[href^="/estimator"]',
+    'a[href^="/adjustments"]',
+    'a[href^="/dje"]',
+    'a[href^="/summary"]'
+  ].join(', ');
+
+  document.querySelectorAll(selector).forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href) return;
+    try {
+      const url = new URL(href, window.location.origin);
+      if (eid) url.searchParams.set('eid', eid);
+      if (rt)  url.searchParams.set('rt', rt);
+      a.setAttribute('href', url.pathname + (url.search ? url.search : ''));
+    } catch (_) {
+      // Ignore malformed/anchor-only links
+    }
+  });
+}
+
 // --- Workflow header: Save button (shared across Estimator pages) ---
 document.addEventListener('DOMContentLoaded', function () {
   var saveBtn = document.getElementById('workflowSaveBtn');
@@ -56,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
       window.location.href = '/estimates/new';
     }
   }, { passive: true });
+
+  eePropagateWorkflowParams();
 });
 
 // Global: Treat Enter like Tab inside forms (but not on buttons or textareas)
