@@ -5,13 +5,14 @@ from app.models.dje_item import DjeItem
 from app.models.customer import Customer
 from app.extensions import db
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, or_
 from app.utils.validators import (
     clean_str,
     is_valid_email,
     normalize_phone,
     is_valid_city,
     derive_city_from_address,
+    is_valid_state,
+    is_valid_zip
 )
 from . import bp
 from sqlalchemy.exc import IntegrityError
@@ -376,24 +377,26 @@ def delete_dje(item_id):
 def customers():
     q = (request.args.get("q") or "").strip()
     city = (request.args.get("city") or "").strip()
+    active = (request.args.get("active") or "true").strip().lower()  # true|false|all
 
-    query = Customer.query.filter(Customer.is_active.is_(True))
+    query = Customer.query
+    if active in ("true", "false"):
+        query = query.filter(Customer.is_active.is_(active == "true"))
 
     if q:
         pattern = f"%{q.lower()}%"
-        query = query.filter(
-            or_(
-                func.lower(Customer.name).like(pattern),
-                func.lower(Customer.primary_contact).like(pattern),
-                func.lower(Customer.email).like(pattern),
-            )
-        )
+        query = query.filter(or_(
+            func.lower(Customer.company_name).like(pattern),
+            func.lower(Customer.contact_name).like(pattern),
+            func.lower(Customer.email).like(pattern),
+        ))
+
     if city:
         query = query.filter(func.lower(Customer.city).like(f"%{city.lower()}%"))
 
-    items = query.order_by(func.lower(Customer.name).asc()).limit(250).all()
+    items = query.order_by(func.lower(Customer.company_name).asc()).limit(250).all()
 
-    # Back-link handoff (parity with Materials/DJE)
+    # Back-link handoff (same pattern you use elsewhere)
     rt = (request.args.get("rt") or "").strip()
     back_label = None
     back_href = None
@@ -408,65 +411,99 @@ def customers():
         customers=items,
         q=q,
         city_filter=city,
+        active_filter=active,
         back_label=back_label,
         back_href=back_href,
         rt=rt,
     )
+    
+@bp.get("/customers.json")
+def customers_json():
+    q = (request.args.get("q") or "").strip()
+    active = (request.args.get("active") or "true").strip().lower()
+
+    query = Customer.query
+    if active in ("true", "false"):
+        query = query.filter(Customer.is_active.is_(active == "true"))
+
+    if q:
+        pattern = f"%{q.lower()}%"
+        query = query.filter(or_(
+            func.lower(Customer.company_name).like(pattern),
+            func.lower(Customer.contact_name).like(pattern),
+            func.lower(Customer.email).like(pattern),
+        ))
+
+    rows = query.order_by(func.lower(Customer.company_name).asc()).limit(500).all()
+    data = [{
+        "id": c.id,
+        "company_name": c.company_name,
+        "contact_name": c.contact_name,
+        "email": c.email,
+        "phone": c.phone,
+        "address1": c.address1,
+        "address2": c.address2,
+        "city": c.city,
+        "state": c.state,
+        "zip": c.zip,
+        "notes": c.notes,
+        "is_active": bool(c.is_active),
+    } for c in rows]
+    return jsonify(ok=True, rows=data)
 
 @bp.post("/customers")
 def customers_create():
     data = request.get_json(silent=True) or {}
     errors = {}
 
-    # Required
-    name = clean_str(data.get("name"), 255)
-    if not name:
-        errors["name"] = "Customer Name is required."
+    company_name = clean_str(data.get("company_name"), 255)
+    if not company_name:
+        errors["company_name"] = "Company Name is required."
 
-    # Optional, cleaned
-    primary_contact = clean_str(data.get("primary_contact"), 255)
+    contact_name = clean_str(data.get("contact_name"), 255)
     email_raw = clean_str(data.get("email"), 255)
     phone_raw = clean_str(data.get("phone"), 32)
-    address = clean_str(data.get("address"), 300)
-    notes = clean_str(data.get("notes"), 2000)
+    address1 = clean_str(data.get("address1"), 255)
+    address2 = clean_str(data.get("address2"), 255)
     city = clean_str(data.get("city"), 100)
+    state = clean_str(data.get("state"), 2)
+    zip_code = clean_str(data.get("zip"), 10)
+    notes = clean_str(data.get("notes"), 2000)
+    is_active = bool(data.get("is_active")) if "is_active" in data else True
 
-    # Email
     if email_raw and not is_valid_email(email_raw):
         errors["email"] = "Invalid email address."
 
-    # Phone (normalize to (###) ###-####)
     phone = None
     if phone_raw:
         phone = normalize_phone(phone_raw)
         if not phone:
             errors["phone"] = "Invalid US phone number. Use 10 digits (optionally prefixed with 1)."
 
-    # City (use provided else derive from address)
-    if not city and address:
-        city = derive_city_from_address(address)
+    if not city and address1:
+        city = derive_city_from_address(address1)
     if city and not is_valid_city(city):
         errors["city"] = "City contains invalid characters."
+
+    if state and not is_valid_state(state):
+        errors["state"] = "State must be 2 letters."
+    if zip_code and not is_valid_zip(zip_code):
+        errors["zip"] = "ZIP must be 12345 or 12345-1234."
 
     if errors:
         return jsonify(ok=False, errors=errors), 400
 
     c = Customer(
-        name=name,
-        primary_contact=primary_contact,
-        email=email_raw,
-        phone=phone,
-        address=address,
-        city=city,
-        notes=notes,
-        is_active=True,
+        company_name=company_name, contact_name=contact_name, email=email_raw, phone=phone,
+        address1=address1, address2=address2, city=city, state=state, zip=zip_code,
+        notes=notes, is_active=is_active
     )
     db.session.add(c)
     try:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return jsonify(ok=False, errors={"__all__": "A customer with this name already exists (active)."}), 409
+        return jsonify(ok=False, errors={"__all__": "Could not save (conflict)."}), 409
 
     return jsonify(ok=True, id=c.id), 201
 
@@ -476,47 +513,46 @@ def customers_update(customer_id: int):
     data = request.get_json(silent=True) or {}
     errors = {}
 
-    # Only validate fields that were provided
-    if "name" in data:
-        name = clean_str(data.get("name"), 255)
-        if not name:
-            errors["name"] = "Customer Name is required."
-        else:
-            c.name = name
+    def set_clean(attr, key, max_len=255):
+        if key in data:
+            setattr(c, attr, clean_str(data.get(key), max_len))
 
-    if "primary_contact" in data:
-        c.primary_contact = clean_str(data.get("primary_contact"), 255)
-
-    if "email" in data:
-        email_raw = clean_str(data.get("email"), 255)
-        if email_raw and not is_valid_email(email_raw):
-            errors["email"] = "Invalid email address."
+    if "company_name" in data:
+        cn = clean_str(data.get("company_name"), 255)
+        if not cn:
+            errors["company_name"] = "Company Name is required."
         else:
-            c.email = email_raw
+            c.company_name = cn
+
+    set_clean("contact_name", "contact_name")
+    set_clean("email", "email")
+    if c.email and not is_valid_email(c.email):
+        errors["email"] = "Invalid email address."
 
     if "phone" in data:
-        phone_raw = clean_str(data.get("phone"), 32)
-        phone = normalize_phone(phone_raw) if phone_raw else None
-        if phone_raw and not phone:
+        pr = clean_str(data.get("phone"), 32)
+        c.phone = normalize_phone(pr) if pr else None
+        if pr and not c.phone:
             errors["phone"] = "Invalid US phone number. Use 10 digits (optionally prefixed with 1)."
-        else:
-            c.phone = phone
 
-    if "address" in data:
-        c.address = clean_str(data.get("address"), 300)
+    set_clean("address1", "address1")
+    set_clean("address2", "address2")
+    set_clean("city", "city", 100)
+    if c.city and not is_valid_city(c.city):
+        errors["city"] = "City contains invalid characters."
 
-    if "notes" in data:
-        c.notes = clean_str(data.get("notes"), 2000)
+    set_clean("state", "state", 2)
+    if c.state and not is_valid_state(c.state):
+        errors["state"] = "State must be 2 letters."
 
-    if "city" in data:
-        city = clean_str(data.get("city"), 100)
-        if city and not is_valid_city(city):
-            errors["city"] = "City contains invalid characters."
-        else:
-            c.city = city
+    set_clean("zip", "zip", 10)
+    if c.zip and not is_valid_zip(c.zip):
+        errors["zip"] = "ZIP must be 12345 or 12345-1234."
 
-    # If city wasn't provided but address changed, consider deriving (optional)
-    # Not auto-deriving on update unless explicitly requested—keeps surprises minimal.
+    set_clean("notes", "notes", 2000)
+
+    if "is_active" in data:
+        c.is_active = bool(data.get("is_active"))
 
     if errors:
         return jsonify(ok=False, errors=errors), 400
@@ -525,9 +561,16 @@ def customers_update(customer_id: int):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return jsonify(ok=False, errors={"__all__": "A customer with this name already exists (active)."}), 409
+        return jsonify(ok=False, errors={"__all__": "Could not save (conflict)."}), 409
 
     return jsonify(ok=True), 200
+
+@bp.post("/customers/<int:customer_id>/toggle_active")
+def customers_toggle_active(customer_id: int):
+    c = Customer.query.get_or_404(customer_id)
+    c.is_active = not bool(c.is_active)
+    db.session.commit()
+    return jsonify(ok=True, is_active=bool(c.is_active))
 
 @bp.delete("/customers/<int:customer_id>")
 def customers_delete(customer_id: int):
