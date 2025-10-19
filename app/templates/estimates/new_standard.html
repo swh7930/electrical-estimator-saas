@@ -1,20 +1,17 @@
-{% extends "base.html" %}
-{% block title %}New Estimate{% endblock %}
-{% block container_class %}container-xxl{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}New Estimate{% endblock %} {% block
+container_class %}container-xxl{% endblock %} {% block content %}
 <div id="estimates-new-grid" class="row g-4">
   <div class="col-12">
     <header class="text-center border-bottom py-3 mb-3">
       <div>
         <h1 id="pageTitle" class="h3 mb-1">
-          {% if mode == 'edit' %}Edit Estimate
-          {% elif mode == 'clone' %}Clone Estimate
-          {% else %}Start Standard Estimate
-          {% endif %}
+          {% if mode == 'edit' %}Edit Estimate {% elif mode == 'clone' %}Clone
+          Estimate {% else %}Start Standard Estimate {% endif %}
         </h1>
 
-        <div class="text-muted">Fill in the basics to create a standard estimate.</div>
+        <div class="text-muted">
+          Fill in the basics to create a standard estimate.
+        </div>
       </div>
     </header>
   </div>
@@ -26,12 +23,24 @@
           <!-- Estimate basics -->
           <div class="col-md-6">
             <label for="estimateName" class="form-label">Estimate Name</label>
-            <input id="estimateName" type="text" class="form-control" placeholder="Tenant Improvement – Suite 200">
+            <input
+              id="estimateName"
+              type="text"
+              class="form-control"
+              placeholder="Tenant Improvement – Suite 200"
+            />
           </div>
 
           <div class="col-md-6">
-            <label for="estimateNumber" class="form-label">Estimate # (optional)</label>
-            <input id="estimateNumber" type="text" class="form-control" placeholder="EE-2025-0012">
+            <label for="estimateNumber" class="form-label"
+              >Estimate # (optional)</label
+            >
+            <input
+              id="estimateNumber"
+              type="text"
+              class="form-control"
+              placeholder="EE-2025-0012"
+            />
           </div>
 
           <!-- Customer -->
@@ -46,56 +55,113 @@
           <!-- Dates -->
           <div class="col-md-3">
             <label for="bidDate" class="form-label">Bid Date</label>
-            <input id="bidDate" type="date" class="form-control">
+            <input id="bidDate" type="date" class="form-control" />
           </div>
           <div class="col-md-3">
             <label for="dueDate" class="form-label">Proposal Due</label>
-            <input id="dueDate" type="date" class="form-control">
+            <input id="dueDate" type="date" class="form-control" />
           </div>
 
           <!-- Project info -->
           <div class="col-md-6">
-            <label for="projectAddress" class="form-label">Project Address</label>
-            <input id="projectAddress" type="text" class="form-control" placeholder="123 Main St, City, ST">
+            <label for="projectAddress" class="form-label"
+              >Project Address</label
+            >
+            <input
+              id="projectAddress"
+              type="text"
+              class="form-control"
+              placeholder="123 Main St, City, ST"
+            />
           </div>
           <div class="col-md-6">
-            <label for="projectRef" class="form-label">Project / Plan Reference (optional)</label>
-            <input id="projectRef" type="text" class="form-control" placeholder="Plan Set 2025-09 Rev B">
+            <label for="projectRef" class="form-label"
+              >Project / Plan Reference (optional)</label
+            >
+            <input
+              id="projectRef"
+              type="text"
+              class="form-control"
+              placeholder="Plan Set 2025-09 Rev B"
+            />
           </div>
 
           <!-- Defaults snapshot (read-only preview pulled from Settings later) -->
           <div class="col-12">
             <div class="bg-light rounded p-3">
-              <div class="fw-semibold mb-2">Estimator Defaults (from Admin → Settings)</div>
-              <div class="row g-2 small">
-                <div class="col-md-3">Labor Rate: <span id="previewLaborRate">$85/hr</span></div>
-                <div class="col-md-3">Overhead: <span id="previewOH">30%</span></div>
-                <div class="col-md-3">Margin: <span id="previewMargin">10%</span></div>
-                <div class="col-md-3">Sales Tax: <span id="previewTax">8%</span></div>
-                <div class="col-md-3">Misc: <span id="previewMisc">10%</span></div>
-                <div class="col-md-3">Small Tools: <span id="previewSmallTools">5%</span></div>
-                <div class="col-md-3">Large Tools: <span id="previewLargeTools">3%</span></div>
-                <div class="col-md-3">Waste/Theft: <span id="previewWaste">10%</span></div>
+              <div class="fw-semibold mb-2">
+                Estimator Defaults (from Admin → Settings)
               </div>
-              <div class="text-muted small mt-2">These will prefill Summary once wiring is enabled.</div>
+              <div class="row g-2 small">
+                <div class="col-md-3">
+                  Labor Rate: <span id="previewLaborRate">$85/hr</span>
+                </div>
+                <div class="col-md-3">
+                  Overhead: <span id="previewOH">30%</span>
+                </div>
+                <div class="col-md-3">
+                  Margin: <span id="previewMargin">10%</span>
+                </div>
+                <div class="col-md-3">
+                  Sales Tax: <span id="previewTax">8%</span>
+                </div>
+                <div class="col-md-3">
+                  Misc: <span id="previewMisc">10%</span>
+                </div>
+                <div class="col-md-3">
+                  Small Tools: <span id="previewSmallTools">5%</span>
+                </div>
+                <div class="col-md-3">
+                  Large Tools: <span id="previewLargeTools">3%</span>
+                </div>
+                <div class="col-md-3">
+                  Waste/Theft: <span id="previewWaste">10%</span>
+                </div>
+              </div>
+              <div class="text-muted small mt-2">
+                These will prefill Summary once wiring is enabled.
+              </div>
             </div>
           </div>
 
           <!-- Notes -->
           <div class="col-12">
-            <label for="estimateNotes" class="form-label">Notes (optional)</label>
-            <textarea id="estimateNotes" class="form-control" rows="3" placeholder="Scope overview, assumptions, exclusions…"></textarea>
+            <label for="estimateNotes" class="form-label"
+              >Notes (optional)</label
+            >
+            <textarea
+              id="estimateNotes"
+              class="form-control"
+              rows="3"
+              placeholder="Scope overview, assumptions, exclusions…"
+            ></textarea>
           </div>
 
           <!-- Actions -->
           <div class="col-12 d-flex gap-2">
-            <button id="createEstimateBtn" type="button" class="btn btn-primary">
+            <button
+              id="createEstimateBtn"
+              type="button"
+              class="btn btn-primary"
+            >
               {% if mode == 'edit' %}Save{% else %}Create{% endif %}
             </button>
-            <a class="btn btn-outline-secondary" href="{{ url_for('main.home') }}">Cancel</a>
-            <a class="btn btn-outline-secondary" href="{{ url_for('main.instructions') }}">Instructions</a>
+            <a
+              class="btn btn-outline-secondary"
+              href="{% if mode == 'create' %}{{ url_for('main.home') }}{% else %}/estimates{% endif %}"
+              >Cancel</a
+            >
+            <a
+              class="btn btn-outline-secondary"
+              href="{{ url_for('main.instructions') }}"
+              >Instructions</a
+            >
             {% if mode == 'edit' and estimate %}
-              <a class="btn btn-outline-secondary" href="/estimator?eid={{ estimate.id }}&rt=estimates">Back to Estimator</a>
+            <a
+              class="btn btn-outline-secondary"
+              href="/estimator?eid={{ estimate.id }}&rt=estimates"
+              >Back to Estimator</a
+            >
             {% endif %}
           </div>
         </form>
@@ -103,8 +169,6 @@
     </section>
   </div>
 </div>
-{% endblock %}
-{% block scripts %}
-  {{ super() }}
-  <script src="{{ url_for('static', filename='js/estimates_new_standard.js') }}"></script>
+{% endblock %} {% block scripts %} {{ super() }}
+<script src="{{ url_for('static', filename='js/estimates_new_standard.js') }}"></script>
 {% endblock %}
