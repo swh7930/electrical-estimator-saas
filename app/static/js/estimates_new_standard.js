@@ -80,9 +80,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function getAbsolutePathOrDefault(param, fallback) {
+    try {
+      const qs = new URLSearchParams(location.search);
+      const val = (qs.get(param) || "").trim();
+      if (!val) return fallback;
+      return val.startsWith("/") ? val : `/${val}`; // guard against relative paths
+    } catch (_) {
+      return fallback;
+    }
+  }
+
   async function handleSave(estimateId) {
     const data = payloadFromForm();
-    if (!data.name) { $("estimateName")?.focus(); return; }
+    if (!data.name) { document.getElementById("estimateName")?.focus(); return; }
+
     try {
       const res = await fetch(`/estimates/${estimateId}`, {
         method: "PUT",
@@ -90,9 +102,13 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Save failed");
-      // Stay on page; user can click "Back to Estimator" or navigate away
+
+      // After successful save, return to list (or absolute rt if present)
+      const redirectTo = getAbsolutePathOrDefault("rt", "/estimates");
+      window.location.assign(redirectTo);
     } catch (e) {
-      console.error(e); alert("Save failed.");
+      console.error(e);
+      alert("Save failed.");
     }
   }
 
