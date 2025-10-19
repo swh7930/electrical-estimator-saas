@@ -8,6 +8,11 @@ marginToMarkup[100] = 200.0;
 const EE_SETTINGS_VERSION_KEY = 'ee.settings.version.applied';
 const EE_RESET_FLAG = 'ee.reset.applyFromSettings';
 
+// ====== Per-estimate namespace (strict) ======
+const EID = new URLSearchParams(window.location.search).get('eid') || null;
+const __NS = EID ? `ee.${EID}.` : 'ee.__global__.';
+const TOTALS_KEY = `${__NS}totals`;
+
 function eeFetchAppSettings() {
   return fetch('/admin/settings.json').then(r => (r.ok ? r.json() : {}));
 }
@@ -51,6 +56,17 @@ function eeApplySettingsToSummary(settings) {
   if (typeof window.updateStepCMaterialSummary === 'function') updateStepCMaterialSummary();
   if (typeof window.updateSummaryTotals === 'function') updateSummaryTotals();
 }
+
+// Fetch estimate JSON and apply its settings snapshot to Summary
+async function eeHydrateFromEstimateSnapshot(eid) {
+  const res = await fetch(`/estimates/${encodeURIComponent(eid)}.json`, { headers: { 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const doc = await res.json();
+  const snap = doc && doc.settings_snapshot ? doc.settings_snapshot : null;
+  if (!snap) throw new Error('Missing settings_snapshot');
+  eeApplySettingsToSummary(snap);
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // Pull Estimator header totals into Summary placeholders
@@ -140,8 +156,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Final initial calc
   updateStepCMaterialSummary();
 
-  // === Apply App Settings on first load or when Settings version changes ===
-  (function hydrateFromAppSettings() {
+  // === Apply defaults on load ===
+  // If eid is present, use that estimate's snapshot (authoritative).
+  // Otherwise, fall back to Admin Settings (versioned).
+  (function hydrateDefaults() {
+    if (EID) {
+      eeHydrateFromEstimateSnapshot(EID).catch(err => {
+        console.error('[Summary] Snapshot hydrate failed:', err);
+      });
+      return;
+    }
+
+    // Legacy path (no eid): use Admin Settings with version flag
     const applied = localStorage.getItem(EE_SETTINGS_VERSION_KEY);
     const forced = sessionStorage.getItem(EE_RESET_FLAG) === '1';
 
@@ -154,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (forced) sessionStorage.removeItem(EE_RESET_FLAG);
       })
-      .catch(() => { /* no-op; keep current UI */ });
+      .catch(err => console.warn('[Summary] Admin settings hydrate failed:', err));
   })();
 
 });
@@ -173,7 +199,7 @@ function renderEstimatorTotalsFromLocalStorage() {
   let hrs = 0;
 
   try {
-    const raw = localStorage.getItem("ee.totals");
+    const raw = localStorage.getItem(TOTALS_KEY);
     if (raw) {
       const data = JSON.parse(raw);
       if (typeof data?.material_cost_price_sheet === "number") mat = data.material_cost_price_sheet;
@@ -374,13 +400,9 @@ function resetAllFromSummary() {
 // === wire Reset button + do a hard reset (use App Settings, not factory defaults) ===
 (function () {
   function eeResetAll() {
-    // Clear local state
-    try { localStorage.removeItem('ee.totals'); } catch {}
-    try { localStorage.removeItem('estimateData'); } catch {}
-    try { localStorage.removeItem(EE_SETTINGS_VERSION_KEY); } catch {}
-    // Tell next load to apply App Settings explicitly
-    try { sessionStorage.setItem(EE_RESET_FLAG, '1'); } catch {}
-    try { sessionStorage.removeItem('ee.session.booted'); } catch {}
+    // Clear ONLY this estimate's namespaced totals (strict per-eid reset)
+    try { localStorage.removeItem(TOTALS_KEY); } catch {}
+    // No global wipes, no forced App Settings when eid is present
 
     // Optional: broadcast
     if (window.ee && typeof window.ee.fire === 'function') {
@@ -414,7 +436,7 @@ function resetAllFromSummary() {
 function __ee_refreshSummaryHeaderFromStorage() {
   try {
     // Estimator writes the header payload to 'ee.totals'
-    const raw = localStorage.getItem('ee.totals');
+    const raw = localStorage.getItem(TOTALS_KEY);
     const t = raw ? JSON.parse(raw) : null;
 
     // Labor Hours header
