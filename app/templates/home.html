@@ -128,7 +128,7 @@ content %}
         <a class="link-secondary small" href="/estimates">View all</a>
       </div>
       <div class="table-responsive">
-        <table class="table mb-0 align-middle">
+        <table id="recentEstimatesTable" class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
               <th>Estimate</th>
@@ -137,32 +137,7 @@ content %}
               <th class="text-end">Open</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Retail TI – Panel / Lighting</td>
-              <td>Acme Outfitters</td>
-              <td>Today, 8:41 AM</td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary disabled">Open</a>
-              </td>
-            </tr>
-            <tr>
-              <td>Warehouse Feeders</td>
-              <td>Midwest Logistics</td>
-              <td>Yesterday</td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary disabled">Open</a>
-              </td>
-            </tr>
-            <tr>
-              <td>Primary School Addition</td>
-              <td>City Schools</td>
-              <td>Sep 22</td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary disabled">Open</a>
-              </td>
-            </tr>
-          </tbody>
+          <tbody id="recentEstimatesBody"></tbody>
         </table>
       </div>
     </div>
@@ -262,4 +237,8 @@ content %}
     </div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/home_index.js') }}"></script>
 {% endblock %}

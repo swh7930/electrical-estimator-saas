@@ -167,7 +167,6 @@ def delete_estimate(estimate_id: int):
     db.session.commit()
     return ("", 204)
 
-
 @bp.get("/fast")
 def fast():
     return render_template("estimates/fast.html")  # stub for later
@@ -175,3 +174,25 @@ def fast():
 @bp.get("/<int:estimate_id>")
 def view(estimate_id):
     return render_template("estimates/view.html", estimate_id=estimate_id)  # stub for later
+
+@bp.get("/recent.json")
+def recent_json():
+    rows = (
+        db.session.query(Estimate, Customer.company_name)
+        .outerjoin(Customer, Estimate.customer_id == Customer.id)
+        .order_by(Estimate.updated_at.desc())
+        .limit(3)
+        .all()
+    )
+    data = [
+        {
+            "id": e.id,
+            "name": e.name,
+            "customer_id": e.customer_id,
+            "customer_name": cname,
+            "status": e.status,
+            "updated_at": e.updated_at.isoformat() if e.updated_at else None,
+        }
+        for (e, cname) in rows
+    ]
+    return jsonify(ok=True, rows=data)
