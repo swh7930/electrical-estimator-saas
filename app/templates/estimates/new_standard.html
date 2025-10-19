@@ -8,7 +8,7 @@
     <header class="text-center border-bottom py-3 mb-3">
       <div>
         <h1 class="h3 mb-1">Start New Estimate</h1>
-        <div class="text-muted">Fill in the basics to create a standard estimate. (Design-only)</div>
+        <div class="text-muted">Fill in the basics to create a standard estimate.</div>
       </div>
     </header>
   </div>
@@ -28,16 +28,13 @@
             <input id="estimateNumber" type="text" class="form-control" placeholder="EE-2025-0012">
           </div>
 
-          <!-- Customer (design-only: dropdown placeholder) -->
+          <!-- Customer -->
           <div class="col-md-6">
             <label for="customerSelect" class="form-label">Customer</label>
             <select id="customerSelect" class="form-select">
-              <option selected disabled>Choose customer…</option>
-              <option>Acme Construction</option>
-              <option>Sunrise Builders</option>
-              <option>Northside Electric</option>
+              <option value="">Choose customer…</option>
             </select>
-            <div class="form-text">Populated from Customers table when wired.</div>
+            <div class="form-text">Active customers from Customers table.</div>
           </div>
 
           <!-- Dates -->
@@ -86,7 +83,8 @@
 
           <!-- Actions -->
           <div class="col-12 d-flex gap-2">
-            <button id="createEstimateBtn" type="button" class="btn btn-primary">Create &amp; Open Estimator</button>
+            <button id="createEstimateBtn" type="button" class="btn btn-primary">Create</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('main.home') }}">Cancel</a>
             <a class="btn btn-outline-secondary" href="{{ url_for('main.instructions') }}">Instructions</a>
           </div>
         </form>

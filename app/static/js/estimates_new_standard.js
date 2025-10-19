@@ -1,22 +1,46 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Populate Estimator Defaults preview from Admin Settings
   fetch("/admin/settings.json")
     .then(r => r.ok ? r.json() : {})
     .then(data => {
-      const s = data.settings || {};
+      const s = (data && data.settings) || {};
       const p = s.pricing || {};
-      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = `${v}%`; };
 
-      if (Number.isFinite(p.overhead_percent)) set("previewOverhead", p.overhead_percent);
-      if (Number.isFinite(p.margin_percent))   set("previewMargin",  p.margin_percent);
-      if (Number.isFinite(p.sales_tax_percent))set("previewTax",     p.sales_tax_percent);
-      if (Number.isFinite(p.misc_percent))        set("previewMisc",      p.misc_percent);
-      if (Number.isFinite(p.small_tools_percent)) set("previewSmallTools",p.small_tools_percent);
-      if (Number.isFinite(p.large_tools_percent)) set("previewLargeTools",p.large_tools_percent);
+      const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+      const setPct  = (id, v) => { if (Number.isFinite(v)) setText(id, `${v}%`); };
+
+      if (Number.isFinite(p.labor_rate))       setText("previewLaborRate", `$${Number(p.labor_rate).toFixed(2)}/hr`);
+      setPct("previewOverhead",        p.overhead_percent);
+      setPct("previewMargin",          p.margin_percent);
+      setPct("previewTax",             p.sales_tax_percent);
+      setPct("previewMisc",            p.misc_percent);
+      setPct("previewSmallTools",      p.small_tools_percent);
+      setPct("previewLargeTools",      p.large_tools_percent);
+      setPct("previewWaste",           p.waste_theft_percent);
     })
     .catch(() => {});
+
+  // Populate Customer dropdown (active only)
+  (async function loadCustomers() {
+    const sel = document.getElementById("customerSelect");
+    if (!sel) return;
+    try {
+      const res  = await fetch("/libraries/customers.json?active=true");
+      const json = await res.json();
+      const rows = (json && json.rows) || [];
+      // keep first "Choose customer…" option
+      sel.innerHTML = '<option value="">Choose customer…</option>';
+      for (const c of rows) {
+        const opt = document.createElement("option");
+        opt.value = String(c.id);
+        opt.textContent = c.company_name || "(unnamed)";
+        sel.appendChild(opt);
+      }
+    } catch (_) { /* no-op */ }
+  })();
 });
 
-// -- Create & Open Estimator (Phase 3) --
+// -- Create (Phase 3) --
 (() => {
   const btn = document.getElementById("createEstimateBtn");
   if (!btn) return;
@@ -31,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
       name: val("estimateName"),
       project_address: val("projectAddress"),
       project_ref: val("projectRef"),
-      customer_id: (function () {
+      customer_id: (() => {
         const s = document.getElementById("customerSelect");
         if (!s) return null;
         const v = (s.value || "").trim();
@@ -57,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.assign(`/estimator?eid=${eid}&rt=estimates`);
       }
     } catch (e) {
-      // Soft-fail: keep console clean; UI is minimal at this step
       console.error(e);
     }
   });
