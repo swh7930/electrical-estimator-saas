@@ -134,32 +134,43 @@ async function hydrateGridFromStorage() {
           if (opt) descSel.value = opt.value;
         }
 
-        // --- FILL DEPENDENT CELLS (Cost ea, Labor Unit, Unit) BEFORE recalc  ⟵ NEW
+         // --- FILL DEPENDENT CELLS (Cost ea, Labor Unit, Unit) BEFORE recalc
         if (descSel.value) {
-          const opt = descSel.selectedOptions && descSel.selectedOptions[0];
-          if (opt) {
-            const tdCostEa = tr.cells[5]; // Cost ea
-            const tdLaborUnit = tr.cells[7]; // Labor Unit
-            const tdUnit = tr.cells[9]; // Unit
+          const tdCostEa = tr.cells[5]; // Cost ea
+          const tdLaborUnit = tr.cells[7]; // Labor Unit
+          const tdUnit = tr.cells[9]; // Unit
 
-            const priceVal = opt.getAttribute('data-price') || '';
-            const laborUnit = opt.getAttribute('data-labor-unit') || '';
-            const unit = opt.getAttribute('data-unit') || '';
+          const typeSel = tr.cells[1].querySelector('select.cell-type');
+          const currentType = typeSel ? typeSel.value : '';
 
-            if (tdCostEa) {
-              tdCostEa.textContent = formatCurrency(priceVal);
-              tdCostEa.style.textAlign = 'right';
+          if (currentType === 'Assemblies') {
+            try {
+              const res = await fetch(`/estimator/api/assemblies/${encodeURIComponent(descSel.value)}/rollup`, { headers: { 'Accept': 'application/json' } });
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              const info = await res.json();
+              if (tdCostEa) { tdCostEa.textContent = formatCurrency(info?.material_cost_total || 0); tdCostEa.style.textAlign = 'right'; }
+              if (tdLaborUnit) { tdLaborUnit.textContent = String(info?.labor_hours_total || 0); }
+              if (tdUnit) { tdUnit.textContent = '1'; }
+            } catch (e) {
+              if (tdCostEa) { tdCostEa.textContent = formatUSD(0); tdCostEa.style.textAlign = 'right'; }
+              if (tdLaborUnit) { tdLaborUnit.textContent = '0'; }
+              if (tdUnit) { tdUnit.textContent = '1'; }
             }
-            if (tdLaborUnit) tdLaborUnit.textContent = laborUnit;
-            if (tdUnit) tdUnit.textContent = unit;
-
-            // now compute Mat Ext / Labor Hrs based on these fields
-            recalcFromDescSelect(descSel);
+          } else {
+            const opt = descSel.selectedOptions && descSel.selectedOptions[0];
+            if (opt) {
+              const priceVal = opt.getAttribute('data-price') || '';
+              const laborUnit = opt.getAttribute('data-labor-unit') || '';
+              const unit = opt.getAttribute('data-unit') || '';
+              if (tdCostEa) { tdCostEa.textContent = formatCurrency(priceVal); tdCostEa.style.textAlign = 'right'; }
+              if (tdLaborUnit) tdLaborUnit.textContent = laborUnit;
+              if (tdUnit) tdUnit.textContent = unit;
+            }
           }
+
+          // now compute Mat Ext / Labor Hrs based on these fields
+          recalcFromDescSelect(descSel);
         }
-      } else if (descSel) {
-        // no type saved → keep description blank
-        descSel.value = '';
       }
 
       // Qty
@@ -196,7 +207,9 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(response => response.json())
     .then(async data => {
       // S1-05b: cache for populating Material Type on new rows
-      window.MATERIAL_TYPES = Array.isArray(data) ? data : [];
+      let types = Array.isArray(data) ? data.slice() : [];
+      types = ['Assemblies', ...types.filter(t => t !== 'Assemblies')]; // put first, dedupe
+      window.MATERIAL_TYPES = types;
       // Loop over the 10 rows rendered by estimator.html
       for (let i = 0; i < 10; i++) {
         const cell = document.getElementById(`materialType_${i}`);
@@ -214,11 +227,11 @@ document.addEventListener("DOMContentLoaded", () => {
           defaultOption.textContent = "Select Type";
           select.appendChild(defaultOption);
 
-          // Add the DB-driven options
-          data.forEach(type => {
+          // Add the DB-driven options (with Assemblies first)
+          types.forEach(t => {
             const option = document.createElement("option");
-            option.value = type;
-            option.textContent = type;
+            option.value = t;
+            option.textContent = t;
             select.appendChild(option);
           });
 
@@ -377,25 +390,28 @@ function renderLoadingDescSelect(descTd) {
 // --- Bite 2 helper: fetch descriptions for a given Material Type from the API ---
 // Returns a Promise resolving to an array (possibly empty). Keeps errors handled upstream.
 async function fetchDescriptionsByType(selectedType) {
-  // Build request URL safely
+  // Assemblies: list assemblies as description options (id + name)
+  if (selectedType === 'Assemblies') {
+    const res = await fetch('/estimator/api/assemblies', { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const items = await res.json();
+    if (!Array.isArray(items)) throw new Error('Bad payload (not an array)');
+    // Shape to match populateDescSelect() expectations
+    return items.map(it => ({
+      id: it.id,
+      item_description: it.name || it.item_description || ''
+    }));
+  }
+
+  // Materials: existing path
   const url = `/estimator/api/material-descriptions?type=${encodeURIComponent(selectedType)}`;
-
-  // Perform the fetch; request JSON
   const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  if (!res.ok) {
-    // Normalize failure for upstream handler
-    throw new Error(`HTTP ${res.status}`);
-  }
-
-  // Expecting an array of items:
-  // { id, item_description, price, labor_unit, unit_quantity_size, unit }
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const payload = await res.json();
-  if (!Array.isArray(payload)) {
-    throw new Error('Bad payload (not an array)');
-  }
-
+  if (!Array.isArray(payload)) throw new Error('Bad payload (not an array)');
   return payload;
 }
+
 
 // --- Bite 2 helper: populate a <select> element with description options ---
 function populateDescSelect(descSelectEl, items) {
@@ -940,7 +956,42 @@ function handleDescChange(e) {
     return;
   }
 
-  // --- SELECTED CASE: fill fields from option data-* and recalc row
+  // --- ASSEMBLIES CASE: Type = 'Assemblies' → fetch rollup and fill cells
+  // Detect the current row's Type value
+  const tr = el.closest('tr');
+  const typeSel = tr ? tr.querySelector('select.cell-type') : null;
+  const currentType = typeSel ? typeSel.value : '';
+  if (currentType === 'Assemblies') {
+    if (!tdCostEa || !tdLaborUnit || !tdUnit) return; // structure guard
+    tdUnit.textContent = '1';
+    fetch(`/estimator/api/assemblies/${encodeURIComponent(el.value)}/rollup`, { headers: { 'Accept': 'application/json' } })
+      .then(res => res.ok ? res.json() : Promise.reject(res.status))
+      .then(info => {
+        const priceEach = Number(info?.material_cost_total || 0);
+        const laborEach = Number(info?.labor_hours_total || 0);
+        tdCostEa.textContent = formatCurrency(priceEach);
+        tdCostEa.style.textAlign = 'right';
+        tdLaborUnit.textContent = String(laborEach);
+
+        // Compute Material Ext & Labor Hrs immediately (also updates header totals)
+        recalcFromDescSelect(el);
+
+        // Move cursor to Qty for fast entry
+        focusQtyFromDesc(el);
+
+        scheduleSaveGrid();
+      })
+      .catch(err => {
+        console.error('[ASM] rollup fetch failed:', err);
+        tdCostEa.textContent = formatUSD(0);
+        tdCostEa.style.textAlign = 'right';
+        tdLaborUnit.textContent = '0';
+        recalcFromDescSelect(el);
+        scheduleSaveGrid();
+      });
+    return; // skip normal material flow
+  }
+
   // --- SELECTED CASE: fill fields from option data-* and recalc row
   if (!tdCostEa || !tdLaborUnit || !tdUnit) return; // structure guard
   const opt = el.selectedOptions && el.selectedOptions[0];
