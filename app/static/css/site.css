@@ -1037,3 +1037,7 @@ header.border-bottom + .card {
 
 /* If your navbar is ~56px tall, place toasts just below it */
 #toast-root { top: calc(56px + 1rem); }
+
+.add_new_btn {
+  margin-top: .5rem;
+}
