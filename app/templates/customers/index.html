@@ -25,25 +25,41 @@
       <section id="customers-inline-add" class="card p-3 mb-3">
         <form class="row g-3 align-items-end" onsubmit="return false;">
           <div class="col-12 col-lg-4">
-            <label class="form-label" for="cust-add-name">Customer Name</label>
-            <input id="cust-add-name" type="text" class="form-control" placeholder="e.g., ACME Construction">
+            <label class="form-label" for="cust-add-company">Company Name</label>
+            <input id="cust-add-company" type="text" class="form-control" required>
           </div>
           <div class="col-12 col-lg-4">
-            <label class="form-label" for="cust-add-contact">Primary Contact</label>
-            <input id="cust-add-contact" type="text" class="form-control" placeholder="e.g., Jane Doe">
+            <label class="form-label" for="cust-add-contact">Contact Name</label>
+            <input id="cust-add-contact" type="text" class="form-control">
           </div>
           <div class="col-12 col-lg-4">
             <label class="form-label" for="cust-add-email">Email</label>
             <input id="cust-add-email" type="email" class="form-control" placeholder="name@company.com">
           </div>
 
-          <div class="col-12 col-lg-4">
+          <div class="col-12 col-lg-3">
             <label class="form-label" for="cust-add-phone">Phone</label>
-            <input id="cust-add-phone" type="tel" class="form-control" placeholder="(555) 123-4567">
+            <input id="cust-add-phone" type="text" class="form-control" placeholder="(555) 123-4567">
           </div>
-          <div class="col-12 col-lg-8">
-            <label class="form-label" for="cust-add-address">Address</label>
-            <input id="cust-add-address" type="text" class="form-control" placeholder="Street, City, State ZIP">
+          <div class="col-12 col-lg-9">
+            <label class="form-label" for="cust-add-address1">Address 1</label>
+            <input id="cust-add-address1" type="text" class="form-control">
+          </div>
+          <div class="col-12 col-lg-9">
+            <label class="form-label" for="cust-add-address2">Address 2</label>
+            <input id="cust-add-address2" type="text" class="form-control">
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label" for="cust-add-city">City</label>
+            <input id="cust-add-city" type="text" class="form-control" value="{{ city_filter or '' }}">
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <label class="form-label" for="cust-add-state">State</label>
+            <input id="cust-add-state" type="text" maxlength="2" class="form-control" placeholder="CA">
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <label class="form-label" for="cust-add-zip">ZIP</label>
+            <input id="cust-add-zip" type="text" class="form-control" placeholder="12345">
           </div>
 
           <div class="col-12">
@@ -51,7 +67,11 @@
             <textarea id="cust-add-notes" class="form-control" rows="1" placeholder="Optional notes"></textarea>
           </div>
 
-          <div class="col-12 d-flex gap-2">
+          <div class="col-12 d-flex flex-wrap align-items-center gap-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="cust-add-active" checked>
+              <label class="form-check-label" for="cust-add-active">Active</label>
+            </div>
             <button id="cust-add-submit" type="button" class="btn btn-primary">Add</button>
             <button id="cust-add-reset" type="button" class="btn btn-outline-secondary">Reset</button>
           </div>
@@ -63,13 +83,21 @@
         <form method="get" action="" class="row g-3 align-items-end">
           <div class="col-12 col-md-4">
             <label class="form-label" for="cust-filter-q">Search</label>
-            <input id="cust-filter-q" type="text" name="q" class="form-control" placeholder="Name, contact, email…" value="{{ q or '' }}">
+            <input id="cust-filter-q" type="text" name="q" class="form-control" placeholder="Company, contact, email…" value="{{ q or '' }}">
           </div>
           <div class="col-12 col-md-4">
             <label class="form-label" for="cust-filter-city">City</label>
             <input id="cust-filter-city" type="text" name="city" class="form-control" placeholder="Filter by city" value="{{ city_filter or '' }}">
           </div>
-          <div class="col-12 col-md-4 d-flex gap-2">
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="cust-filter-active">Active</label>
+            <select id="cust-filter-active" name="active" class="form-select">
+              <option value="true"  {% if (active_filter or 'true') == 'true' %}selected{% endif %}>Active</option>
+              <option value="false" {% if active_filter == 'false' %}selected{% endif %}>Inactive</option>
+              <option value="all"   {% if active_filter == 'all' %}selected{% endif %}>All</option>
+            </select>
+          </div>
+          <div class="col-12 d-flex gap-2">
             <button class="btn btn-outline-primary mt-auto" type="submit">Apply</button>
             <a id="cust-filter-reset" class="btn btn-outline-secondary mt-auto" href="{{ url_for('libraries.customers') }}">Reset</a>
           </div>
@@ -81,53 +109,57 @@
         <table id="customers-table" class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
-              <th scope="col">Customer</th>
-              <th scope="col">Primary Contact</th>
+              <th scope="col">Company</th>
+              <th scope="col">Contact</th>
               <th scope="col">Email</th>
               <th scope="col">Phone</th>
               <th scope="col">City</th>
+              <th scope="col">State</th>
+              <th scope="col" class="text-end">Active</th>
               <th scope="col" class="text-end">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="customers-tbody">
             {% if customers %}
               {% for c in customers %}
                 <tr data-customer-id="{{ c.id }}">
-                  <td>{{ c.name }}</td>
-                  <td>{{ c.primary_contact or '' }}</td>
+                  <td>{{ c.company_name or '' }}</td>
+                  <td>{{ c.contact_name or '' }}</td>
                   <td>{{ c.email or '' }}</td>
                   <td>{{ c.phone or '' }}</td>
                   <td>{{ c.city or '' }}</td>
+                  <td>{{ c.state or '' }}</td>
                   <td class="text-end">
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-primary"
+                    <div class="form-check form-switch d-inline-block">
+                      <input class="form-check-input" type="checkbox" data-action="toggle-active"
+                        data-customer-id="{{ c.id }}" {% if c.is_active %}checked{% endif %}>
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
                       data-action="edit-customer"
                       data-customer-id="{{ c.id }}"
-                      data-name="{{ c.name }}"
-                      data-contact="{{ c.primary_contact or '' }}"
+                      data-company="{{ c.company_name or '' }}"
+                      data-contact="{{ c.contact_name or '' }}"
                       data-email="{{ c.email or '' }}"
                       data-phone="{{ c.phone or '' }}"
-                      data-address="{{ c.address or '' }}"
+                      data-address1="{{ c.address1 or '' }}"
+                      data-address2="{{ c.address2 or '' }}"
                       data-city="{{ c.city or '' }}"
+                      data-state="{{ c.state or '' }}"
+                      data-zip="{{ c.zip or '' }}"
                       data-notes="{{ c.notes or '' }}"
-                      data-bs-toggle="modal"
-                      data-bs-target="#mdlEditCustomer"
-                    >Edit</button>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-danger"
-                      data-action="delete-customer"
-                      data-customer-id="{{ c.id }}"
-                      data-name="{{ c.name }}"
-                      data-bs-toggle="modal"
-                      data-bs-target="#mdlDeleteCustomer"
-                    >Delete</button>
+                      data-active="{{ 'true' if c.is_active else 'false' }}"
+                      data-bs-toggle="modal" data-bs-target="#mdlEditCustomer">Edit</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                      data-action="delete-customer" data-customer-id="{{ c.id }}"
+                      data-name="{{ c.company_name or '' }}"
+                      data-bs-toggle="modal" data-bs-target="#mdlDeleteCustomer">Delete</button>
                   </td>
                 </tr>
               {% endfor %}
             {% else %}
-              <tr><td colspan="6" class="text-muted fst-italic">No customers yet.</td></tr>
+              <tr><td colspan="8" class="text-muted fst-italic">No customers yet.</td></tr>
             {% endif %}
           </tbody>
         </table>
@@ -143,29 +175,51 @@
             </div>
             <div class="modal-body">
               <form class="row g-3">
-                <div class="col-12 col-lg-6">
-                  <label class="form-label" for="cust-modal-name">Customer Name</label>
-                  <input id="cust-modal-name" type="text" class="form-control" value="ACME Construction">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="cust-modal-company">Company Name</label>
+                  <input id="cust-modal-company" type="text" class="form-control">
                 </div>
-                <div class="col-12 col-lg-6">
-                  <label class="form-label" for="cust-modal-contact">Primary Contact</label>
-                  <input id="cust-modal-contact" type="text" class="form-control" value="Jane Doe">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="cust-modal-contact">Contact Name</label>
+                  <input id="cust-modal-contact" type="text" class="form-control">
                 </div>
-                <div class="col-12 col-lg-6">
+                <div class="col-12 col-md-6">
                   <label class="form-label" for="cust-modal-email">Email</label>
-                  <input id="cust-modal-email" type="email" class="form-control" value="jane@acme.example">
+                  <input id="cust-modal-email" type="email" class="form-control">
                 </div>
-                <div class="col-12 col-lg-6">
+                <div class="col-12 col-md-6">
                   <label class="form-label" for="cust-modal-phone">Phone</label>
-                  <input id="cust-modal-phone" type="tel" class="form-control" value="(555) 123-4567">
+                  <input id="cust-modal-phone" type="text" class="form-control" placeholder="(555) 123-4567">
                 </div>
                 <div class="col-12">
-                  <label class="form-label" for="cust-modal-address">Address</label>
-                  <input id="cust-modal-address" type="text" class="form-control" value="123 Main St, Tulsa, OK 74101">
+                  <label class="form-label" for="cust-modal-address1">Address 1</label>
+                  <input id="cust-modal-address1" type="text" class="form-control">
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="cust-modal-address2">Address 2</label>
+                  <input id="cust-modal-address2" type="text" class="form-control">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="cust-modal-city">City</label>
+                  <input id="cust-modal-city" type="text" class="form-control">
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label" for="cust-modal-state">State</label>
+                  <input id="cust-modal-state" type="text" maxlength="2" class="form-control" placeholder="CA">
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label" for="cust-modal-zip">ZIP</label>
+                  <input id="cust-modal-zip" type="text" class="form-control" placeholder="12345">
                 </div>
                 <div class="col-12">
                   <label class="form-label" for="cust-modal-notes">Notes</label>
                   <textarea id="cust-modal-notes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-12">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="cust-modal-active">
+                    <label class="form-check-label" for="cust-modal-active">Active</label>
+                  </div>
                 </div>
               </form>
             </div>
