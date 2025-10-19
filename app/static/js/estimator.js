@@ -2,7 +2,11 @@
 let eeBooted = false;
 
 // ===== Row persistence — SAVE only (Bite 1) =====
-const GRID_KEY = 'ee.grid.v1';
+// ====== Per-estimate namespace (strict) ======
+const EID = new URLSearchParams(window.location.search).get('eid') || null;
+const __NS = EID ? `ee.${EID}.` : 'ee.__global__.';
+const GRID_KEY = `${__NS}grid.v1`;
+const TOTALS_KEY = `${__NS}totals`;
 let eeSaveTimer = null;
 let eeHydrating = false; // will be used in next bite (restore). harmless for now.
 
@@ -201,8 +205,22 @@ async function hydrateGridFromStorage() {
   }
 }
 
+// Fetch estimate JSON and expose its snapshot for the page (no UI changes here)
+async function fetchEstimateSnapshot(eid) {
+  try {
+    const res = await fetch(`/estimates/${encodeURIComponent(eid)}.json`, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    window.ESTIMATE_SNAPSHOT = data && data.settings_snapshot ? data.settings_snapshot : null;
+  } catch (e) {
+    console.error('[Estimator] Failed to load estimate snapshot for eid=%s', eid, e);
+    window.ESTIMATE_SNAPSHOT = null;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   paintHeaderFromStorage();   // ← show last known totals immediately
+  if (EID) { fetchEstimateSnapshot(EID).catch(() => {}); }
   fetch("/estimator/api/material-types")
     .then(response => response.json())
     .then(async data => {
@@ -290,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function paintHeaderFromStorage() {
   try {
-    const raw = localStorage.getItem('ee.totals');
+    const raw = localStorage.getItem(TOTALS_KEY);
     if (!raw) return;
     const data = JSON.parse(raw);
 
@@ -698,7 +716,7 @@ function persistEstimatorTotals(materialTotalNumber, laborTotalHoursNumber) {
       labor_hours_pricing_sheet: Number(laborTotalHoursNumber) || 0,
       updated_at: new Date().toISOString(),
     };
-    window.localStorage.setItem('ee.totals', JSON.stringify(payload));
+    window.localStorage.setItem(TOTALS_KEY, JSON.stringify(payload));
     // S3-02b — emit after persisting header totals
     try {
       if (window.ee && typeof window.ee.fire === 'function') {
@@ -862,7 +880,7 @@ function resetEstimate() {
   }
   updateHeaderTotals();
 
-  try { localStorage.removeItem('ee.totals'); } catch { }
+  try { localStorage.removeItem(TOTALS_KEY); } catch { }
 
   try { localStorage.removeItem(GRID_KEY); } catch { }
 }
