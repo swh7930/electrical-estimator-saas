@@ -102,22 +102,15 @@
     if (!id) return;
 
     if (action === 'open-estimate') {
-      window.location.assign(`/estimator?eid=${id}&rt=estimates`);
-      return;
-    }
-    if (action === 'clone-estimate') {
-      (async () => {
-        try {
-          const res = await fetch(`/estimates/${id}/clone`, { method: 'POST' });
-          if (!res.ok) throw new Error('Clone failed');
-          await loadEstimates();
-        } catch (err) {
-          console.error(err);
-          alert('Clone failed.');
+        // Open the details form in EDIT mode
+        window.location.assign(`/estimates/${id}/edit?rt=estimates`);
+        return;
         }
-      })();
-      return;
-    }
+        if (action === 'clone-estimate') {
+        // Open the details form in CLONE mode (prefilled, not saved yet)
+        window.location.assign(`/estimates/${id}/clone?rt=estimates`);
+        return;
+        }
     if (action === 'delete-estimate') {
       if (!confirm(`Delete “${name}”? This cannot be undone.`)) return;
       (async () => {
