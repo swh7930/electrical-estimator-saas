@@ -33,6 +33,8 @@ class Material(db.Model):
     __allow_unmapped__ = True
     
     id = db.Column(db.Integer, primary_key=True)
+    
+    org_id = db.Column(db.Integer, db.ForeignKey("orgs.id", ondelete="CASCADE"), index=True, nullable=True)
 
     # Core attributes (nullable per baseline; DB is source of truth)
     material_type = db.Column(db.String, nullable=True)

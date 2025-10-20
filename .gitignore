@@ -63,4 +63,5 @@ dist/
 flask_session/
 __pycache__/
 *.pid
-*.tmp
+*.tmp__pycache__/
+*.pyc

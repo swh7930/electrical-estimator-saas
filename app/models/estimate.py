@@ -14,6 +14,10 @@ class Estimate(db.Model):
 
     # Relations
     customer_id = db.Column(db.Integer, ForeignKey("customers.id"), nullable=True, index=True)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True)
+
+    org_id = db.Column(db.Integer, db.ForeignKey("orgs.id", ondelete="CASCADE"), index=True, nullable=True)
 
     # Basics
     name            = db.Column(db.String(255), nullable=False)
@@ -23,6 +27,8 @@ class Estimate(db.Model):
 
     # Immutable snapshot of Admin → Settings at creation time
     settings_snapshot = db.Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    
+    work_payload = db.Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
 
     # Timestamps
     created_at = db.Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))

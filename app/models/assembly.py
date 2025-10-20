@@ -36,6 +36,8 @@ class Assembly(db.Model):
     __tablename__ = "assemblies"
     __allow_unmapped__ = True
     
+    org_id = db.Column(db.Integer, db.ForeignKey("orgs.id", ondelete="CASCADE"), index=True, nullable=True)
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     notes = db.Column(db.Text, nullable=True)

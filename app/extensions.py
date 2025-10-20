@@ -10,6 +10,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
 login_manager = LoginManager()
+login_manager.login_view = "auth.login_get"
 
 # Dev-friendly; swap storage_uri to Redis in prod
 limiter = Limiter(

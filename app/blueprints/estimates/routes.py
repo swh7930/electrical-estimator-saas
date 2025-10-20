@@ -2,10 +2,18 @@ from flask import render_template, request, jsonify, redirect, url_for
 from sqlalchemy import func, or_
 from datetime import datetime
 from . import bp
+from flask_login import current_user
 from app.extensions import db
 from app.models.estimate import Estimate
 from app.models.app_settings import AppSettings
 from app.models.customer import Customer
+
+@bp.before_request
+def _require_login_estimates():
+    if current_user.is_authenticated:
+        return None
+    return redirect(url_for("auth.login_get", next=request.url))
+
 
 @bp.get("/")
 def index():
@@ -46,6 +54,11 @@ def create():
         status="draft",
         settings_snapshot=snapshot,
     )
+    
+    est.user_id = current_user.id
+    est.org_id = current_user.org_id
+    est.work_payload = {}
+    
     db.session.add(est)
     db.session.commit()
 
@@ -60,6 +73,8 @@ def list_json():
     updated_from = (request.args.get("updated_from") or "").strip()
 
     query = db.session.query(Estimate, Customer.company_name).select_from(Estimate).outerjoin(Customer, Estimate.customer_id == Customer.id)
+    
+    query = query.filter(Estimate.org_id == current_user.org_id)
 
     if q:
         like = f"%{q.lower()}%"
@@ -94,18 +109,18 @@ def list_json():
 
 @bp.get("/<int:estimate_id>/edit")
 def edit(estimate_id: int):
-    est = Estimate.query.get_or_404(estimate_id)
+    est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     # Reuse the same template for create/edit/clone
     return render_template("estimates/new_standard.html", estimate=est, mode="edit")
 
 @bp.get("/<int:estimate_id>/clone")
 def clone_start(estimate_id: int):
-    est = Estimate.query.get_or_404(estimate_id)
+    est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     return render_template("estimates/new_standard.html", estimate=est, mode="clone")
 
 @bp.put("/<int:estimate_id>")
 def update(estimate_id: int):
-    est = Estimate.query.get_or_404(estimate_id)
+    est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     data = request.get_json(silent=True) or {}
 
     name = (data.get("name") or "").strip()
@@ -132,7 +147,7 @@ def update(estimate_id: int):
 
 @bp.get("/<int:estimate_id>.json")
 def get_estimate_json(estimate_id: int):
-    e = Estimate.query.get_or_404(estimate_id)
+    e = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     return jsonify({
         "id": e.id,
         "name": e.name,
@@ -145,9 +160,24 @@ def get_estimate_json(estimate_id: int):
         "updated_at": e.updated_at.isoformat() if e.updated_at else None,
     })
 
+@bp.put("/<int:estimate_id>/payload")
+def save_payload(estimate_id: int):
+    est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
+    data = request.get_json(silent=True) or {}
+    # NOTE: full tenant scoping lands in 03b.8; for now, auth is enforced by blueprint guard
+    est.work_payload = data
+    db.session.commit()
+    return jsonify(ok=True, id=est.id)
+
+@bp.get("/<int:estimate_id>/payload.json")
+def get_payload_json(estimate_id: int):
+    est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
+    return jsonify(ok=True, id=est.id, payload=est.work_payload or {})
+
+
 @bp.post("/<int:estimate_id>/clone")
 def clone_estimate(estimate_id: int):
-    e = Estimate.query.get_or_404(estimate_id)
+    e =Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     copy = Estimate(
         name=f"{e.name} (copy)" if e.name else "Copy",
         customer_id=e.customer_id,
@@ -162,7 +192,7 @@ def clone_estimate(estimate_id: int):
 
 @bp.delete("/<int:estimate_id>")
 def delete_estimate(estimate_id: int):
-    e = Estimate.query.get_or_404(estimate_id)
+    e = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     db.session.delete(e)
     db.session.commit()
     return ("", 204)
@@ -180,6 +210,7 @@ def recent_json():
     rows = (
         db.session.query(Estimate, Customer.company_name)
         .outerjoin(Customer, Estimate.customer_id == Customer.id)
+        .filter(Estimate.org_id == current_user.org_id)
         .order_by(Estimate.updated_at.desc())
         .limit(3)
         .all()

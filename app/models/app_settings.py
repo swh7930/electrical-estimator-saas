@@ -10,6 +10,9 @@ class AppSettings(db.Model):
     settings_version = db.Column(db.Integer, nullable=False, server_default=text("1"))
     created_at = db.Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
     updated_at = db.Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+    org_id = db.Column(db.Integer, db.ForeignKey("orgs.id", ondelete="CASCADE"), index=True, nullable=True)
+
+
 
     def to_dict(self):
         return dict(

@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, url_for
+from flask import render_template, request, jsonify, url_for, redirect
 from sqlalchemy import func, or_
 from app.models.material import Material
 from app.models.dje_item import DjeItem
@@ -15,7 +15,13 @@ from app.utils.validators import (
     is_valid_zip
 )
 from . import bp
-from sqlalchemy.exc import IntegrityError
+from flask_login import current_user
+
+@bp.before_request
+def _require_login_libraries():
+    if current_user.is_authenticated:
+        return None
+    return redirect(url_for("auth.login_get", next=request.url))
 
 @bp.get("/materials")
 def materials():
@@ -24,6 +30,7 @@ def materials():
     mat_type = (request.args.get("type") or "").strip()
 
     query = Material.query
+    query = query.filter(Material.org_id == current_user.org_id)
 
     if mat_type:
         query = query.filter(Material.material_type == mat_type)
@@ -47,7 +54,7 @@ def materials():
         row[0]
         for row in (
             db.session.query(Material.material_type)
-            .filter(Material.material_type.isnot(None))
+            .filter(Material.org_id == current_user.org_id, Material.material_type.isnot(None))
             .distinct()
             .order_by(Material.material_type.asc())
             .all()
@@ -74,7 +81,6 @@ def materials():
         back_href=back_href,
         rt=rt,
     )
-
 
 @bp.post("/materials")
 def materials_create():
@@ -137,6 +143,9 @@ def materials_create():
         labor_cost_code_desc=(data.get("labor_cost_code_desc") or "").strip() or None,
         is_active=bool(data.get("is_active", True)),
     )
+    
+    m.org_id = current_user.org_id
+
     db.session.add(m)
     try:
         db.session.commit()
@@ -150,16 +159,14 @@ def materials_create():
 
 @bp.route("/materials/<int:material_id>", methods=["DELETE"])
 def materials_delete(material_id: int):
-    m = Material.query.get(material_id)
-    if not m:
-        return jsonify(ok=False, errors={"__all__": "Material not found."}), 404
+    m = Material.query.filter_by(id=material_id, org_id=current_user.org_id).first_or_404()
     db.session.delete(m)
     db.session.commit()
     return jsonify(ok=True), 204
 
 @bp.route("/materials/<int:material_id>", methods=["PUT"])
 def materials_update(material_id: int):
-    m = Material.query.get(material_id)
+    m = Material.query.filter_by(id=material_id, org_id=current_user.org_id).first_or_404()
     if not m:
         return jsonify(ok=False, errors={"__all__": "Material not found."}), 404
 
@@ -191,6 +198,7 @@ def materials_update(material_id: int):
 def dje():
     items = (
         DjeItem.query
+        .filter(DjeItem.org_id == current_user.org_id)
         .order_by(
             func.lower(DjeItem.category).asc(),
             func.lower(DjeItem.subcategory).asc(),
@@ -203,7 +211,7 @@ def dje():
      # DISTINCT first (subquery), then ORDER BY LOWER(...) on the outer query (DB-side)
     cat_subq = (
         db.session.query(DjeItem.category.label("category"))
-        .filter(DjeItem.category.isnot(None))
+        .filter(DjeItem.org_id == current_user.org_id, DjeItem.category.isnot(None))
         .distinct()
         .subquery()
     )
@@ -219,7 +227,11 @@ def dje():
             DjeItem.category.label("category"),
             DjeItem.subcategory.label("subcategory"),
         )
-        .filter(DjeItem.category.isnot(None), DjeItem.subcategory.isnot(None))
+        .filter(
+            DjeItem.org_id == current_user.org_id,
+            DjeItem.category.isnot(None),
+            DjeItem.subcategory.isnot(None),
+        )
         .distinct()
         .subquery()
     )
@@ -279,8 +291,8 @@ def create_dje():
     except (TypeError, ValueError):
         errors.append("Unit Cost must be a valid number.")
 
-        if errors:
-            return jsonify({"message": "Validation error", "errors": errors}), 400
+    if errors:
+        return jsonify({"message": "Validation error", "errors": errors}), 400
 
     item = DjeItem(
         category=category,
@@ -290,6 +302,7 @@ def create_dje():
         cost_code=cost_code or None,
         is_active=is_active,
     )
+    item.org_id = current_user.org_id
     try:
         db.session.add(item)
         db.session.commit()
@@ -315,7 +328,7 @@ def create_dje():
 
 @bp.put("/dje/<int:item_id>")
 def update_dje(item_id):
-    item = DjeItem.query.get_or_404(item_id)
+    item = DjeItem.query.filter_by(id=item_id, org_id=current_user.org_id).first_or_404()
     data = request.get_json(silent=True) or {}
     errors = []
 
@@ -362,16 +375,12 @@ def update_dje(item_id):
         }
     }), 200
 
-
 @bp.delete("/dje/<int:item_id>")
 def delete_dje(item_id):
-    item = DjeItem.query.get_or_404(item_id)
+    item = DjeItem.query.filter_by(id=item_id, org_id=current_user.org_id).first_or_404()
     db.session.delete(item)
     db.session.commit()
     return ("", 204)
-
-
-
 
 @bp.get("/customers")
 def customers():
@@ -380,6 +389,7 @@ def customers():
     active = (request.args.get("active") or "true").strip().lower()  # true|false|all
 
     query = Customer.query
+    query = query.filter(Customer.org_id == current_user.org_id)
     if active in ("true", "false"):
         query = query.filter(Customer.is_active.is_(active == "true"))
 
@@ -423,6 +433,7 @@ def customers_json():
     active = (request.args.get("active") or "true").strip().lower()
 
     query = Customer.query
+    query = query.filter(Customer.org_id == current_user.org_id)
     if active in ("true", "false"):
         query = query.filter(Customer.is_active.is_(active == "true"))
 
@@ -498,6 +509,8 @@ def customers_create():
         address1=address1, address2=address2, city=city, state=state, zip=zip_code,
         notes=notes, is_active=is_active
     )
+    c.user_id = current_user.id
+    c.org_id = current_user.org_id
     db.session.add(c)
     try:
         db.session.commit()
@@ -509,7 +522,7 @@ def customers_create():
 
 @bp.put("/customers/<int:customer_id>")
 def customers_update(customer_id: int):
-    c = Customer.query.get_or_404(customer_id)
+    c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
     data = request.get_json(silent=True) or {}
     errors = {}
 
@@ -567,14 +580,14 @@ def customers_update(customer_id: int):
 
 @bp.post("/customers/<int:customer_id>/toggle_active")
 def customers_toggle_active(customer_id: int):
-    c = Customer.query.get_or_404(customer_id)
+    c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
     c.is_active = not bool(c.is_active)
     db.session.commit()
     return jsonify(ok=True, is_active=bool(c.is_active))
 
 @bp.delete("/customers/<int:customer_id>")
 def customers_delete(customer_id: int):
-    c = Customer.query.get_or_404(customer_id)
+    c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
     db.session.delete(c)
     db.session.commit()
     return ("", 204)

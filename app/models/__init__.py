@@ -4,3 +4,5 @@ from .dje_item import DjeItem
 from .app_settings import AppSettings
 from .customer import Customer
 from .estimate import Estimate
+from .user import User
+from .org import Org
