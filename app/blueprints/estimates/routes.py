@@ -329,6 +329,80 @@ def export_summary_csv(estimate_id: int):
     resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
 
+@bp.get("/export/index.csv")
+def export_estimates_index_csv():
+    # Org-scoped list of estimates; optional query-string filters may be appended by the UI.
+    q = (request.args.get("q") or "").strip()
+
+    # Base query (tenant isolation)
+    rows = (
+        db.session.query(Estimate, Customer)
+        .outerjoin(Customer, Estimate.customer_id == Customer.id)
+        .filter(Estimate.org_id == current_user.org_id)
+        .order_by(Estimate.created_at.desc())
+        .all()
+    )
+
+    # Simple 'q' filter if present (matches name/title and customer company, case-insensitive)
+    if q:
+        q_lc = q.lower()
+        rows = [
+            (est, cust)
+            for (est, cust) in rows
+            if (
+                (getattr(est, "name", "") or getattr(est, "title", "") or "").lower().find(q_lc) != -1
+                or ((cust.company_name if cust else "") or "").lower().find(q_lc) != -1
+            )
+        ]
+
+    # CSV buffer
+    buf = io.StringIO(newline="")
+    w = csv.writer(buf)
+
+    # Header
+    header = [
+        "id","name","customer","status","created_at","updated_at","material_total","labor_hours_total"
+    ]
+    w.writerow(header)
+
+    q2 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)}"
+    q4 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)}"
+    to_dec = lambda v: (Decimal(str(v)) if v not in (None, "") else Decimal("0"))
+
+    for est, cust in rows:
+        payload = est.work_payload or {}
+        totals = payload.get("totals") or {}
+
+        mat_total = to_dec(totals.get("material_cost_price_sheet"))
+        labor_total = to_dec(totals.get("labor_hours_pricing_sheet"))
+
+        name = (getattr(est, "name", None) or getattr(est, "title", None) or "").strip()
+        customer = (cust.company_name if cust else "") or ""
+        # Graceful status fallback (string if available; else active/inactive)
+        status = getattr(est, "status", None)
+        if status is None:
+            status = "active" if getattr(est, "is_active", True) else "inactive"
+
+        created = est.created_at.strftime("%Y-%m-%d %H:%M:%S") if getattr(est, "created_at", None) else ""
+        updated = est.updated_at.strftime("%Y-%m-%d %H:%M:%S") if getattr(est, "updated_at", None) else ""
+
+        w.writerow([
+            est.id, name, customer, status, created, updated, q2(mat_total), q4(labor_total)
+        ])
+
+    csv_str = buf.getvalue()
+    buf.close()
+
+    stamp = datetime.now().strftime("%Y%m%d")
+    filename = f"estimates_index_{stamp}.csv"
+
+    resp = make_response(csv_str)
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return resp
+
+
+
 @bp.post("/<int:estimate_id>/clone")
 def clone_estimate(estimate_id: int):
     e =Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
