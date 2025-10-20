@@ -1,5 +1,6 @@
 from flask import jsonify, request, current_app
 from . import bp
+from flask_login import current_user
 from app.extensions import db
 from app.models.material import Material
 
@@ -9,12 +10,13 @@ def get_material_types():
     """Return distinct active material types."""
     try:
         rows = (
-            db.session.query(Material.material_type)
-            .filter(Material.is_active.is_(True))
-            .distinct()
-            .order_by(Material.material_type)
-            .all()
-        )
+        db.session.query(Material.material_type)
+        .filter(Material.is_active.is_(True))
+        .filter(Material.org_id == current_user.org_id)
+        .distinct()
+        .order_by(Material.material_type)
+        .all()
+    )
         return jsonify([r[0] for r in rows if r[0]]), 200
     except Exception as e:
         current_app.logger.exception("GET /api/material-types failed")
@@ -38,6 +40,7 @@ def get_material_descriptions():
                 Material.unit_quantity_size,
             )
             .filter(Material.is_active.is_(True))
+            .filter(Material.org_id == current_user.org_id)
             .filter(Material.material_type == mat_type)
             .order_by(Material.item_description)
             .all()
