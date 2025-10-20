@@ -17,6 +17,12 @@ content %}
         <a class="btn btn-outline-primary" href="{{ url_for('estimates.new') }}"
           >New (Standard)</a
         >
+
+        <a id="exportEstimatesCsvBtn" class="btn btn-sm btn-outline-secondary" href="/estimates/export/index.csv" title="Export current list as CSV">
+          {% include "_includes/icons/export.svg" %}
+          <span>Export CSV</span>
+        </a>
+
         <a class="btn btn-primary" href="/estimator"
           >New (Fast)</a
         >

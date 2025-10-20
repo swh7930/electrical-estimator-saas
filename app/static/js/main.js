@@ -152,6 +152,19 @@ document.addEventListener('DOMContentLoaded', function () {
   }, { passive: true });
 });
 
+// --- Estimates Index: Export CSV (preserve current query string) ---
+document.addEventListener('DOMContentLoaded', function () {
+  var btn = document.getElementById('exportEstimatesCsvBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', function (e) {
+    // Always allow direct download; append current query string if present
+    var url = '/estimates/export/index.csv';
+    var qs = window.location.search;
+    btn.setAttribute('href', url + (qs ? qs : ''));
+  }, { passive: true });
+});
+
 // --- Auto-hydrate from server if local cache is empty (standard flow only) ---
 document.addEventListener('DOMContentLoaded', function () {
   try {
