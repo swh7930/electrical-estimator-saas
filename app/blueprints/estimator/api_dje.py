@@ -1,5 +1,6 @@
 from flask import jsonify, request, current_app
 from . import bp
+from flask_login import current_user
 from app.extensions import db
 from app.models.dje_item import DjeItem
 
@@ -10,7 +11,7 @@ def get_dje_categories():
     try:
         rows = (
             db.session.query(DjeItem.category)
-            .filter(DjeItem.is_active.is_(True))
+            .filter(DjeItem.org_id == current_user.org_id)
             .filter(DjeItem.category.isnot(None))
             .filter(DjeItem.category != "")
             .distinct()
@@ -33,7 +34,7 @@ def get_dje_subcategories():
 
         rows = (
             db.session.query(DjeItem.subcategory)
-            .filter(DjeItem.is_active.is_(True))
+            .filter(DjeItem.org_id == current_user.org_id)
             .filter(DjeItem.category == category)
             .filter(DjeItem.subcategory.isnot(None))
             .filter(DjeItem.subcategory != "")
@@ -62,7 +63,7 @@ def get_dje_descriptions():
                 DjeItem.description,
                 DjeItem.default_unit_cost,
             )
-            .filter(DjeItem.is_active.is_(True))
+            .filter(DjeItem.org_id == current_user.org_id)
             .filter(DjeItem.category == category)
             .filter(DjeItem.subcategory == subcat)
             .filter(DjeItem.description.isnot(None))
