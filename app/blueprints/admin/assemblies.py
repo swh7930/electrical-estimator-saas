@@ -3,8 +3,8 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
-from . import bp  # the single admin blueprint
-
+from . import bp
+from flask_login import current_user
 from app.extensions import db
 from app.models.assembly import Assembly, AssemblyComponent
 from app.models.material import Material
@@ -29,6 +29,7 @@ def list_assemblies():
     # Rows for the table
     rows = (
         Assembly.query
+        .filter(Assembly.org_id == current_user.org_id)
         .order_by(func.lower(Assembly.name).asc())
         .all()
     )
@@ -36,7 +37,10 @@ def list_assemblies():
     # Build categories (DISTINCT first, then ORDER BY lower(...) in outer query)
     cat_subq = (
         db.session.query(Assembly.category.label("category"))
-        .filter(Assembly.category.isnot(None), Assembly.category != "")
+        .filter(
+            Assembly.org_id == current_user.org_id,
+            Assembly.category.isnot(None), Assembly.category != ""
+        )
         .distinct()
         .subquery()
     )
@@ -54,6 +58,7 @@ def list_assemblies():
             Assembly.subcategory.label("subcategory"),
         )
         .filter(
+            Assembly.org_id == current_user.org_id,
             Assembly.category.isnot(None), Assembly.category != "",
             Assembly.subcategory.isnot(None), Assembly.subcategory != "",
         )
@@ -75,7 +80,10 @@ def list_assemblies():
     # Material categories (case-insensitive sorted)
     mat_type_subq = (
         db.session.query(Material.material_type.label("type"))
-        .filter(Material.material_type.isnot(None), Material.material_type != "")
+        .filter(
+            Material.org_id == current_user.org_id,
+            Material.material_type.isnot(None), Material.material_type != ""
+        )
         .distinct()
         .subquery()
     )
@@ -90,9 +98,10 @@ def list_assemblies():
     materials = (
         db.session.query(
             Material.id,
-            Material.material_type,          # <-- include type
+            Material.material_type,
             Material.item_description,
         )
+        .filter(Material.org_id == current_user.org_id)
         .order_by(
             func.lower(Material.material_type).asc(),
             func.lower(Material.item_description).asc(),
@@ -142,6 +151,7 @@ def create_assembly():
             subcategory=(request.form.get("subcategory") or "").strip() or None,
             is_featured=(request.form.get("is_featured") in ("on", "true", "1")),
         )
+        asm.org_id = current_user.org_id  # ← stamp owner org
         db.session.commit()
         flash("Assembly created.", "success")
         return redirect(url_for("admin.list_assemblies"))
@@ -222,7 +232,11 @@ def create_assembly_bundle():
 
     # verify materials exist, build a quick lookup (avoid N queries if you prefer)
     mid_list = [c["material_id"] for c in norm_comps]
-    existing_mids = {m[0] for m in db.session.query(Material.id).filter(Material.id.in_(mid_list)).all()}
+    existing_mids = {
+        m[0] for m in db.session.query(Material.id)
+        .filter(Material.org_id == current_user.org_id, Material.id.in_(mid_list))
+        .all()
+    }
     for idx, c in enumerate(norm_comps, start=1):
         if c["material_id"] not in existing_mids:
             return jsonify({"message": "Validation error",
@@ -239,6 +253,7 @@ def create_assembly_bundle():
             is_featured=is_featured,
             is_active=is_active,
         )
+        a.org_id = current_user.org_id  # ← stamp owner org
         db.session.add(a)
         db.session.flush()  # populate a.id
 
@@ -265,7 +280,7 @@ def create_assembly_bundle():
 @bp.route("/assemblies/<int:assembly_id>/edit", methods=["GET", "PUT"])
 def edit_assembly(assembly_id: int):
     if request.method == "PUT":
-        a = db.session.get(Assembly, assembly_id)
+        a = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
         if not a:
             return jsonify({"message": "Not found"}), 404
 
@@ -307,13 +322,14 @@ def edit_assembly(assembly_id: int):
         }), 200
 
     # --- GET branch (unchanged) ---
-    assembly = db.session.get(Assembly, assembly_id)
+    assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     if not assembly:
         flash("Assembly not found.", "error")
         return redirect(url_for("admin.list_assemblies"))
 
     materials = (
         db.session.query(Material.id, Material.item_description)
+        .filter(Material.org_id == current_user.org_id)
         .order_by(Material.item_description.asc())
         .all()
     )
@@ -338,6 +354,7 @@ def edit_assembly(assembly_id: int):
 
 @bp.get("/assemblies/<int:assembly_id>/components.json")
 def components_json(assembly_id: int):
+    Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     rows = (
         db.session.query(
             AssemblyComponent.id,
@@ -367,7 +384,7 @@ def components_json(assembly_id: int):
 
 @bp.post("/assemblies/<int:assembly_id>/components")
 def add_component(assembly_id: int):
-    assembly = db.session.get(Assembly, assembly_id)
+    assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     if not assembly:
         flash("Assembly not found.", "error")
         return redirect(url_for("admin.new_assembly"))
@@ -396,6 +413,12 @@ def add_component(assembly_id: int):
             sort_order = int(sort_raw)
         except Exception:
             errs.append("Sort order must be an integer.")
+            
+    # Ensure the chosen material belongs to the current org
+    if material_id > 0:
+        mat = Material.query.filter_by(id=material_id, org_id=current_user.org_id).first()
+        if not mat:
+            errs.append("Material not found.")
 
     if errs:
         for m in errs:
@@ -424,7 +447,7 @@ def add_component(assembly_id: int):
 
 @bp.post("/assemblies/<int:assembly_id>/delete")
 def delete_assembly(assembly_id: int):
-    a = db.session.get(Assembly, assembly_id)
+    a = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     if not a:
         flash("Assembly not found.", "error")
         return redirect(url_for("admin.list_assemblies"))
@@ -453,6 +476,12 @@ def delete_assembly(assembly_id: int):
 
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/deactivate")
 def deactivate_component(assembly_id: int, component_id: int):
+    # Assembly must belong to the current org
+    assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first()
+    if not assembly:
+        flash("Assembly not found.", "error")
+        return redirect(url_for("admin.list_assemblies"))
+
     comp = db.session.get(AssemblyComponent, component_id)
     if not comp or comp.assembly_id != assembly_id:
         flash("Component not found.", "error")
@@ -473,6 +502,12 @@ def deactivate_component(assembly_id: int, component_id: int):
 
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/activate")
 def activate_component(assembly_id: int, component_id: int):
+    # Assembly must belong to the current org
+    assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first()
+    if not assembly:
+        flash("Assembly not found.", "error")
+        return redirect(url_for("admin.list_assemblies", assembly_id=assembly_id))
+
     comp = db.session.get(AssemblyComponent, component_id)
     if not comp or comp.assembly_id != assembly_id:
         flash("Component not found.", "error")

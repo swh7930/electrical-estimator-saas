@@ -32,6 +32,8 @@ class DjeItem(db.Model):
     __allow_unmapped__ = True
     
     id = db.Column(db.Integer, primary_key=True)
+    
+    org_id = db.Column(db.Integer, db.ForeignKey("orgs.id", ondelete="CASCADE"), index=True, nullable=True)
 
     # Classification
     category = db.Column(db.String, nullable=False)

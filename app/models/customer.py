@@ -12,6 +12,10 @@ class Customer(db.Model):
     __allow_unmapped__ = True
 
     id = db.Column(db.Integer, primary_key=True)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True)
+    
+    org_id = db.Column(db.Integer, db.ForeignKey("orgs.id", ondelete="CASCADE"), index=True, nullable=True)
 
     # Spec fields
     company_name = db.Column(db.String, nullable=True)

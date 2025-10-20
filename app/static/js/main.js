@@ -64,6 +64,11 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!saveBtn) return;
 
   function getMode() {
+    // If an eid is present in the URL, we are in standard mode.
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('eid')) return 'standard';
+
+    // Otherwise, fall back to meta (some pages may set this)
     try {
       var meta = (window.estimateData && window.estimateData.meta) || {};
       return meta.mode || 'fast';
@@ -72,22 +77,107 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function nsKeys() {
+    var params = new URLSearchParams(window.location.search);
+    var eid = params.get('eid');
+    var ns = eid ? ("ee." + eid + ".") : "ee.__global__.";
+    return { eid: eid, gridKey: ns + "grid.v1", totalsKey: ns + "totals" };
+  }
+
+  function capturePayload() {
+    var k = nsKeys();
+    var payload = { v: 1, grid: null, totals: null, estimateData: null };
+    try { payload.grid = JSON.parse(localStorage.getItem(k.gridKey) || "null"); } catch (_) {}
+    try { payload.totals = JSON.parse(localStorage.getItem(k.totalsKey) || "null"); } catch (_) {}
+    try { payload.estimateData = JSON.parse(localStorage.getItem("estimateData") || "null"); } catch (_) {}
+    return { eid: k.eid, payload: payload };
+  }
+
+  function saveServer(eid, payload) {
+    if (!eid) { window.location.href = "/estimates/new"; return; }
+    try {
+      fetch("/estimates/" + encodeURIComponent(eid) + "/payload", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(function () {
+        // keep console quiet; UI toast can be added later if desired
+      });
+    } catch (_) {}
+  }
+
   saveBtn.addEventListener('click', function () {
     if (getMode() === 'standard') {
       try {
-        // Use your existing helper; estimator grid is already persisted by its own script
+        // Persist grid/totals locally using your existing helper
         if (typeof window.saveEstimateData === 'function') window.saveEstimateData();
-      } catch (e) {
-        // keep console clean
-      }
+      } catch (e) {}
+
+      var cap = capturePayload();
+      saveServer(cap.eid, cap.payload);
     } else {
-      // Fast flow → capture metadata first
+      // Fast flow → capture metadata first (no estimate id yet)
       window.location.href = '/estimates/new';
     }
   }, { passive: true });
 
   eePropagateWorkflowParams();
 });
+
+// --- Auto-hydrate from server if local cache is empty (standard flow only) ---
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var eid = params.get('eid');
+    if (!eid) return; // only standard mode pages have / need eid
+
+    var ns = "ee." + eid + ".";
+    var gridKey = ns + "grid.v1";
+    var totalsKey = ns + "totals";
+    var estKey = "estimateData";
+
+    var hasGrid = !!localStorage.getItem(gridKey);
+    var hasTotals = !!localStorage.getItem(totalsKey);
+    var hasEst = !!localStorage.getItem(estKey);
+
+    // If we already have cache, do nothing.
+    if (hasGrid && hasTotals) return;
+
+    // Prevent reload loop if we just hydrated
+    var hydratedFlag = "ee.hydrated." + eid;
+    if (sessionStorage.getItem(hydratedFlag)) return;
+
+    fetch("/estimates/" + encodeURIComponent(eid) + "/payload.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || !j.payload) return;
+        var p = j.payload || {};
+        var wrote = false;
+
+        if (!hasGrid && p.grid != null) {
+          localStorage.setItem(gridKey, JSON.stringify(p.grid));
+          wrote = true;
+        }
+        if (!hasTotals && p.totals != null) {
+          localStorage.setItem(totalsKey, JSON.stringify(p.totals));
+          wrote = true;
+        }
+        if (!hasEst && p.estimateData != null) {
+          localStorage.setItem(estKey, JSON.stringify(p.estimateData));
+          wrote = true;
+        }
+
+        // Let existing page scripts render the freshly cached data
+        if (wrote) {
+          try { window.dispatchEvent(new CustomEvent('ee:payload:applied', { detail: { eid: eid } })); } catch (_) {}
+          sessionStorage.setItem(hydratedFlag, "1");
+          location.reload();
+        }
+      })
+      .catch(function () { /* silent */ });
+  } catch (_) { /* silent */ }
+});
+
 
 // Global: Treat Enter like Tab inside forms (but not on buttons or textareas)
 document.addEventListener("keydown", (e) => {

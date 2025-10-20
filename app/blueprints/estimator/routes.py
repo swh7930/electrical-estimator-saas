@@ -1,5 +1,13 @@
-from flask import render_template
+from flask import render_template, request, redirect, url_for
 from . import bp
+from flask_login import current_user
+
+@bp.before_request
+def _require_login_estimator():
+    if current_user.is_authenticated:
+        return None
+    return redirect(url_for("auth.login_get", next=request.url))
+
 
 def _default_percent_ranges():
     # Temporary defaults; we’ll pull these from Settings later

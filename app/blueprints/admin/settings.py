@@ -1,6 +1,7 @@
 from flask import render_template, request, jsonify
 from sqlalchemy.sql import func
 from . import bp
+from flask_login import current_user
 
 from app.extensions import db
 from app.models.app_settings import AppSettings
@@ -12,9 +13,14 @@ def settings():
 
 @bp.get("/settings.json")
 def get_settings_json():
-    row = db.session.get(AppSettings, 1)
+    row = db.session.execute(
+        db.select(AppSettings).where(AppSettings.org_id == current_user.org_id)
+    ).scalar_one_or_none()
+
     if not row:
-        return jsonify({})  # empty means "no settings yet"
+        # Keep your existing semantics: return {} when no settings exist yet
+        return jsonify({})
+
     return jsonify(row.to_dict())
 
 @bp.put("/settings.json")
@@ -65,16 +71,19 @@ def put_settings_json():
         "version": int(incoming.get("version") or 1),
     }
 
-    row = db.session.get(AppSettings, 1)
+    row = db.session.execute(
+        db.select(AppSettings).where(AppSettings.org_id == current_user.org_id)
+    ).scalar_one_or_none()
+
     if not row:
-        row = AppSettings(id=1, settings=coerced, settings_version=1)
+        row = AppSettings(org_id=current_user.org_id, settings=coerced, settings_version=1)
         db.session.add(row)
     else:
         row.settings = coerced
         row.settings_version = (row.settings_version or 1) + 1
 
-    # keep updated_at fresh
-    row.updated_at = func.now()
-    db.session.commit()
+        # keep updated_at fresh
+        row.updated_at = func.now()
+        db.session.commit()
 
     return jsonify(row.to_dict())
