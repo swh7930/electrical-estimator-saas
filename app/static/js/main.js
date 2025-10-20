@@ -124,6 +124,34 @@ document.addEventListener('DOMContentLoaded', function () {
   eePropagateWorkflowParams();
 });
 
+// --- Workflow header: Export CSV (Summary only) ---
+document.addEventListener('DOMContentLoaded', function () {
+  var btn = document.getElementById('exportSummaryCsvBtn');
+  if (!btn) return;
+
+  var params = new URLSearchParams(window.location.search);
+  var eid = params.get('eid');
+
+  function enable(v) {
+    if (v) {
+      btn.removeAttribute('disabled');
+      btn.classList.remove('disabled');
+      btn.title = 'Download CSV';
+    } else {
+      btn.setAttribute('disabled', 'disabled');
+      btn.classList.add('disabled');
+      btn.title = 'Save your estimate first';
+    }
+  }
+
+  enable(!!eid);
+
+  btn.addEventListener('click', function () {
+    if (!eid) return;
+    window.location.href = '/estimates/' + encodeURIComponent(eid) + '/export/summary.csv';
+  }, { passive: true });
+});
+
 // --- Auto-hydrate from server if local cache is empty (standard flow only) ---
 document.addEventListener('DOMContentLoaded', function () {
   try {

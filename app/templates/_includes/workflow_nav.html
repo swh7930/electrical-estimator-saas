@@ -62,6 +62,13 @@
       <span>Save</span>
     </button>
 
+    {% if current_step == 'summary' %}
+    <button id="exportSummaryCsvBtn" type="button" class="btn btn-sm btn-outline-secondary" title="Save your estimate first">
+      {% include "_includes/icons/export.svg" %}
+      <span>Export CSV</span>
+    </button>
+    {% endif %}
+
     <button id="{{ reset_id }}" type="button" class="btn btn-sm btn-primary">
       {% include "_includes/icons/reset.svg" %}
       <span>Reset</span>

@@ -1,4 +1,10 @@
 from flask import render_template, request, jsonify, redirect, url_for
+from flask import make_response
+import csv, io
+from decimal import Decimal, ROUND_HALF_UP
+from app.models.material import Material
+from app.models.dje_item import DjeItem
+from app.services.assemblies import get_assembly_rollup, ServiceError
 from sqlalchemy import func, or_
 from datetime import datetime
 from . import bp
@@ -174,6 +180,154 @@ def get_payload_json(estimate_id: int):
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     return jsonify(ok=True, id=est.id, payload=est.work_payload or {})
 
+@bp.get("/<int:estimate_id>/export/summary.csv")
+def export_summary_csv(estimate_id: int):
+    # Scope: tenant-owned estimate only
+    est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
+    payload = est.work_payload or {}
+    grid = (payload.get("grid") or {}).get("rows") or []
+    totals = payload.get("totals") or {}
+    estdata = payload.get("estimateData") or {}
+    dje_costs = (estdata.get("costs") or {})
+    dje_rows = dje_costs.get("dje_rows") or []
+
+    # CSV buffer
+    buf = io.StringIO(newline="")
+    w = csv.writer(buf)
+
+    # Header (fixed order)
+    header = [
+        "line_no","section","material_type","category","subcategory","description","notes",
+        "qty","unit","labor_adj","cost_ea","material_ext","labor_unit","labor_hrs"
+    ]
+    w.writerow(header)
+
+    # Helpers
+    q2 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)}"
+    q4 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)}"
+    to_dec = lambda v: (Decimal(str(v)) if v not in (None, "") else Decimal("0"))
+
+    line_no = 1
+
+    # ---- MATERIAL / ASSEMBLY lines from estimator grid ----
+    for row in grid:
+        try:
+            rtype = (row.get("type") or "").strip()
+            desc_text = (row.get("descText") or "").strip()
+            desc_val = row.get("descValue")
+            qty = to_dec(row.get("qty"))
+            ladj = to_dec(row.get("ladj") or "1")
+            unit = "1"  # UI normalizes to per-each in estimator
+
+            # Default fields
+            section = "MATERIAL"
+            mat_type = rtype
+            category = ""
+            subcategory = ""
+            cost_ea = Decimal("0")
+            labor_unit = Decimal("0")
+
+            # Assemblies (when Type == 'Assemblies')
+            if rtype == "Assemblies" and desc_val:
+                try:
+                    info = get_assembly_rollup(int(desc_val), org_id=current_user.org_id)
+                    # Per single assembly
+                    cost_ea = to_dec(info.get("material_cost_total"))
+                    labor_unit = to_dec(info.get("labor_hours_total"))
+                    section = "ASSEMBLY"
+                except ServiceError:
+                    # Not found or cross-tenant → treat as zeroed line (still exportable)
+                    cost_ea = Decimal("0")
+                    labor_unit = Decimal("0")
+
+            # Materials (default)
+            elif desc_val:
+                mat = (
+                    db.session.query(Material)
+                    .filter(Material.id == int(desc_val))
+                    .filter(Material.org_id == current_user.org_id)
+                    .one_or_none()
+                )
+                if mat:
+                    # API/UI use price and labor_unit as per-each values
+                    cost_ea = to_dec(mat.price)
+                    labor_unit = to_dec(mat.labor_unit)
+                # else: leave zeros (stale ref / cross-tenant)
+
+            # Compute extensions
+            material_ext = (qty * cost_ea).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            labor_hrs = (qty * labor_unit * ladj).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+
+            w.writerow([
+                line_no, section, mat_type, category, subcategory, desc_text, (row.get("notes") or ""),
+                f"{qty.normalize()}", unit, f"{ladj.normalize()}",
+                q2(cost_ea), q2(material_ext), q4(labor_unit), q4(labor_hrs)
+            ])
+            line_no += 1
+
+        except Exception:
+            # Keep export resilient; skip malformed rows
+            continue
+
+    # ---- DJE lines from DJE page ----
+    for drow in dje_rows:
+        try:
+            desc_id = drow.get("desc_id")
+            qty = to_dec(drow.get("qty"))
+            multi = to_dec(drow.get("multi") or "1")
+            notes = drow.get("notes") or ""
+            category = ""
+            subcategory = ""
+            desc_text = ""
+
+            cost_ea = Decimal("0")
+            labor_unit = Decimal("0")  # DJE has no labor unit
+            labor_hrs = Decimal("0")
+
+            if desc_id:
+                item = (
+                    db.session.query(DjeItem)
+                    .filter(DjeItem.id == int(desc_id))
+                    .filter(DjeItem.org_id == current_user.org_id)
+                    .one_or_none()
+                )
+                if item:
+                    category = item.category or ""
+                    subcategory = item.subcategory or ""
+                    # description field name is 'description' on DJE items
+                    desc_text = item.description or ""
+                    cost_ea = to_dec(item.default_unit_cost)
+
+            material_ext = (qty * multi * cost_ea).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+            w.writerow([
+                line_no, "DJE", "", category, subcategory, desc_text, notes,
+                f"{qty.normalize()}", "", "1",
+                q2(cost_ea), q2(material_ext), q4(labor_unit), q4(labor_hrs)
+            ])
+            line_no += 1
+
+        except Exception:
+            continue
+
+    # ---- Totals rows (end) ----
+    mat_total = to_dec(totals.get("material_cost_price_sheet"))
+    labor_total = to_dec(totals.get("labor_hours_pricing_sheet"))
+
+    w.writerow([line_no, "TOTALS", "", "", "", "Material Total", "", "", "", "", "", q2(mat_total), "", ""])
+    line_no += 1
+    w.writerow([line_no, "TOTALS", "", "", "", "Labor Hours Total", "", "", "", "", "", "", "", q4(labor_total)])
+
+    # Build response
+    csv_str = buf.getvalue()
+    buf.close()
+    stamp = datetime.now().strftime("%Y%m%d")
+    filename = f"estimate_{estimate_id}_summary_{stamp}.csv"
+
+    resp = make_response(csv_str)
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return resp
 
 @bp.post("/<int:estimate_id>/clone")
 def clone_estimate(estimate_id: int):
