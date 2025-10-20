@@ -25,7 +25,7 @@ def _to_decimal(value):
         return Decimal("0")
 
 
-def get_assembly_rollup(assembly_id: int) -> dict:
+def get_assembly_rollup(assembly_id: int, *, org_id: Optional[int] = None) -> dict:
     """
     Compute live totals for an assembly:
       - material_cost_total: SUM(qty_per_assembly * price_each)
@@ -36,6 +36,15 @@ def get_assembly_rollup(assembly_id: int) -> dict:
 
     Returns a dict with Decimal totals quantized to 4 places.
     """
+    
+    if org_id is not None:
+        exists = db.session.query(Assembly.id).filter(
+            Assembly.id == assembly_id,
+            Assembly.org_id == org_id,
+        ).scalar()
+        if not exists:
+            raise ServiceError("not_found")
+    
     rows = (
         db.session.query(
             AssemblyComponent.qty_per_assembly,
@@ -105,10 +114,13 @@ def list_assemblies(
     category: Optional[str] = None,
     subcategory: Optional[str] = None,
     q: Optional[str] = None,
+    org_id: Optional[int] = None,
     limit: int = 50,
     offset: int = 0,
 ) -> Page:
     query = session.query(Assembly)
+    if org_id is not None:
+        query = query.filter(Assembly.org_id == org_id)
     if active_only:
         query = query.filter(Assembly.is_active.is_(True))
     if category:
