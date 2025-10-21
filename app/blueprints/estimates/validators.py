@@ -1,19 +1,24 @@
-from typing import List, Dict, Any
+from typing import List, Any
 
 def validate_fast_export_payload(payload: Any) -> List[str]:
     """
-    Minimal HF1 validation for Fast Export payloads.
+    HF2c.1: Accept either 'cells' (preferred) or 'totals' for Fast Export payloads.
     Requirements:
-      - payload must be an object (dict)
-      - payload["totals"] must exist and be an object (dict)
-    Return:
+      - payload must be a JSON object (dict)
+      - EITHER payload['cells'] is a dict OR payload['totals'] is a dict
+    Returns:
       - [] when valid
       - list of "field: message" strings when invalid
     """
     errors: List[str] = []
+
     if not isinstance(payload, dict):
         return ["payload: must be a JSON object"]
+
+    cells = payload.get("cells")
     totals = payload.get("totals")
-    if not isinstance(totals, dict):
-        errors.append("totals: required object")
+
+    if not isinstance(cells, dict) and not isinstance(totals, dict):
+        errors.append("cells or totals: required object")
+
     return errors
