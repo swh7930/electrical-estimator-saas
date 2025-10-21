@@ -1,5 +1,4 @@
-from flask import render_template, request, jsonify, redirect, url_for
-from flask import current_app, make_response
+from flask import render_template, request, jsonify, redirect, url_for, current_app, make_response, send_file, abort
 import csv, io, os
 from decimal import Decimal, ROUND_HALF_UP
 from app.models.material import Material
@@ -9,12 +8,14 @@ from app.services.assemblies import get_assembly_rollup, ServiceError
 from sqlalchemy import func, or_
 from datetime import datetime
 from . import bp
-from flask_login import current_user
+from .validators import validate_fast_export_payload
+from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.estimate import Estimate
 from app.models.app_settings import AppSettings
 from app.models.customer import Customer
 from weasyprint import HTML, CSS
+from io import BytesIO
 
 @bp.before_request
 def _require_login_estimates():
@@ -184,152 +185,44 @@ def get_payload_json(estimate_id: int):
 
 @bp.get("/<int:estimate_id>/export/summary.csv")
 def export_summary_csv(estimate_id: int):
-    # Scope: tenant-owned estimate only
+    """
+    HF1: Saved Export (CSV)
+    - No route math.
+    - Load saved snapshot-like summary only.
+    - If missing, return 409 JSON.
+    - Temporary minimal CSV content; HF2 will render full layout.
+    """
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     payload = est.work_payload or {}
-    grid = (payload.get("grid") or {}).get("rows") or []
-    totals = payload.get("totals") or {}
-    estdata = payload.get("estimateData") or {}
-    dje_costs = (estdata.get("costs") or {})
-    dje_rows = dje_costs.get("dje_rows") or []
 
-    # CSV buffer
+    # Try common summary snapshot locations
+    summary = ((payload.get("estimateData") or {}).get("summary_export")
+               or payload.get("summary_totals")
+               or payload.get("summary")
+               or payload.get("summary_snapshot"))
+
+    if not summary:
+        return jsonify({
+            "error": "snapshot_missing",
+            "message": "No saved summary snapshot found. Save your estimate or use Fast Export."
+        }), 409
+
+    # Minimal CSV for HF1 (placeholder) — HF2 will use the shared Summary partial data
     buf = io.StringIO(newline="")
     w = csv.writer(buf)
-
-    # Header (fixed order)
-    header = [
-        "line_no","section","material_type","category","subcategory","description","notes",
-        "qty","unit","labor_adj","cost_ea","material_ext","labor_unit","labor_hrs"
-    ]
-    w.writerow(header)
-
-    # Helpers
-    q2 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)}"
-    q4 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)}"
-    to_dec = lambda v: (Decimal(str(v)) if v not in (None, "") else Decimal("0"))
-
-    line_no = 1
-
-    # ---- MATERIAL / ASSEMBLY lines from estimator grid ----
-    for row in grid:
-        try:
-            rtype = (row.get("type") or "").strip()
-            desc_text = (row.get("descText") or "").strip()
-            desc_val = row.get("descValue")
-            qty = to_dec(row.get("qty"))
-            ladj = to_dec(row.get("ladj") or "1")
-            unit = "1"  # UI normalizes to per-each in estimator
-
-            # Default fields
-            section = "MATERIAL"
-            mat_type = rtype
-            category = ""
-            subcategory = ""
-            cost_ea = Decimal("0")
-            labor_unit = Decimal("0")
-
-            # Assemblies (when Type == 'Assemblies')
-            if rtype == "Assemblies" and desc_val:
-                try:
-                    info = get_assembly_rollup(int(desc_val), org_id=current_user.org_id)
-                    # Per single assembly
-                    cost_ea = to_dec(info.get("material_cost_total"))
-                    labor_unit = to_dec(info.get("labor_hours_total"))
-                    section = "ASSEMBLY"
-                except ServiceError:
-                    # Not found or cross-tenant → treat as zeroed line (still exportable)
-                    cost_ea = Decimal("0")
-                    labor_unit = Decimal("0")
-
-            # Materials (default)
-            elif desc_val:
-                mat = (
-                    db.session.query(Material)
-                    .filter(Material.id == int(desc_val))
-                    .filter(Material.org_id == current_user.org_id)
-                    .one_or_none()
-                )
-                if mat:
-                    # API/UI use price and labor_unit as per-each values
-                    cost_ea = to_dec(mat.price)
-                    labor_unit = to_dec(mat.labor_unit)
-                # else: leave zeros (stale ref / cross-tenant)
-
-            # Compute extensions
-            material_ext = (qty * cost_ea).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            labor_hrs = (qty * labor_unit * ladj).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
-
-            w.writerow([
-                line_no, section, mat_type, category, subcategory, desc_text, (row.get("notes") or ""),
-                f"{qty.normalize()}", unit, f"{ladj.normalize()}",
-                q2(cost_ea), q2(material_ext), q4(labor_unit), q4(labor_hrs)
-            ])
-            line_no += 1
-
-        except Exception:
-            # Keep export resilient; skip malformed rows
-            continue
-
-    # ---- DJE lines from DJE page ----
-    for drow in dje_rows:
-        try:
-            desc_id = drow.get("desc_id")
-            qty = to_dec(drow.get("qty"))
-            multi = to_dec(drow.get("multi") or "1")
-            notes = drow.get("notes") or ""
-            category = ""
-            subcategory = ""
-            desc_text = ""
-
-            cost_ea = Decimal("0")
-            labor_unit = Decimal("0")  # DJE has no labor unit
-            labor_hrs = Decimal("0")
-
-            if desc_id:
-                item = (
-                    db.session.query(DjeItem)
-                    .filter(DjeItem.id == int(desc_id))
-                    .filter(DjeItem.org_id == current_user.org_id)
-                    .one_or_none()
-                )
-                if item:
-                    category = item.category or ""
-                    subcategory = item.subcategory or ""
-                    # description field name is 'description' on DJE items
-                    desc_text = item.description or ""
-                    cost_ea = to_dec(item.default_unit_cost)
-
-            material_ext = (qty * multi * cost_ea).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-            w.writerow([
-                line_no, "DJE", "", category, subcategory, desc_text, notes,
-                f"{qty.normalize()}", "", "1",
-                q2(cost_ea), q2(material_ext), q4(labor_unit), q4(labor_hrs)
-            ])
-            line_no += 1
-
-        except Exception:
-            continue
-
-    # ---- Totals rows (end) ----
-    mat_total = to_dec(totals.get("material_cost_price_sheet"))
-    labor_total = to_dec(totals.get("labor_hours_pricing_sheet"))
-
-    w.writerow([line_no, "TOTALS", "", "", "", "Material Total", "", "", "", "", "", q2(mat_total), "", ""])
-    line_no += 1
-    w.writerow([line_no, "TOTALS", "", "", "", "Labor Hours Total", "", "", "", "", "", "", "", q4(labor_total)])
-
-    # Build response
+    w.writerow(["status", "mode", "note"])
+    w.writerow(["ok", "SAVED", "HF1 placeholder CSV."])
     csv_str = buf.getvalue()
     buf.close()
-    stamp = datetime.now().strftime("%Y%m%d")
+
+    stamp = datetime.utcnow().strftime("%Y%m%d")
     filename = f"estimate_{estimate_id}_summary_{stamp}.csv"
 
     resp = make_response(csv_str)
     resp.headers["Content-Type"] = "text/csv; charset=utf-8"
     resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
+
 
 @bp.get("/export/index.csv")
 def export_estimates_index_csv():
@@ -405,171 +298,123 @@ def export_estimates_index_csv():
 
 @bp.get("/<int:estimate_id>/export/summary.pdf")
 def export_summary_pdf(estimate_id: int):
-    # Tenant-scoped estimate
+    """
+    HF1: Saved Export (PDF)
+    - No route math.
+    - Load saved snapshot-like summary only.
+    - If missing, return 409 JSON.
+    - Temporary minimal PDF content; HF2 will render the real Summary clone.
+    """
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     payload = est.work_payload or {}
-    grid    = (payload.get("grid") or {}).get("rows") or []
-    totals  = payload.get("totals") or {}
-    costs   = (payload.get("estimateData") or {}).get("costs") or {}
-    dje_rows = costs.get("dje_rows") or []
 
-    # Optional customer
-    cust = None
-    if getattr(est, "customer_id", None):
-        cust = Customer.query.filter_by(id=est.customer_id, org_id=current_user.org_id).first()
+    # Try common summary snapshot locations
+    summary = ((payload.get("estimateData") or {}).get("summary_export")
+               or payload.get("summary_totals")
+               or payload.get("summary")
+               or payload.get("summary_snapshot"))
 
-    # Helpers
-    to_dec = lambda v: (Decimal(str(v)) if v not in (None, "") else Decimal("0"))
-    q2 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)}"
-    q4 = lambda d: f"{(Decimal(d) if d is not None else Decimal('0')).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)}"
+    if not summary:
+        return jsonify({
+            "error": "snapshot_missing",
+            "message": "No saved summary snapshot found. Save your estimate or use Fast Export."
+        }), 409
 
-    lines = []
-    line_no = 1
+    # Minimal HTML for HF1
+    html = f"""
+    <html>
+      <head>
+        <meta charset='utf-8'>
+        <title>Estimate {estimate_id} — Summary (PDF)</title>
+      </head>
+      <body>
+        <h1>Estimate Summary</h1>
+        <p>Mode: <strong>SAVED</strong> — HF1 placeholder PDF.</p>
+      </body>
+    </html>
+    """
 
-    # --- MATERIAL / ASSEMBLY lines (from Estimator grid) ---
-    for row in grid:
-        try:
-            rtype = (row.get("type") or "").strip()
-            desc_text = (row.get("descText") or "").strip()
-            desc_val  = row.get("descValue")
-            qty  = to_dec(row.get("qty"))
-            ladj = to_dec(row.get("ladj") or "1")
-
-            section = "MATERIAL"
-            mat_type = rtype
-            category = ""
-            subcategory = ""
-            unit = ""
-            cost_ea = Decimal("0")
-            labor_unit = Decimal("0")
-
-            # Assembly row
-            if rtype == "Assemblies" and desc_val:
-                # Verify ownership before rollup
-                owned = Assembly.query.filter_by(id=int(desc_val), org_id=current_user.org_id).first()
-                if owned:
-                    info = get_assembly_rollup(int(desc_val))
-                    cost_ea    = to_dec(info.get("material_cost_total"))
-                    labor_unit = to_dec(info.get("labor_hours_total"))
-                    section = "ASSEMBLY"
-                    unit = "ea"
-                else:
-                    # Not owned or missing → zeroed line
-                    section = "ASSEMBLY"
-                    unit = "ea"
-
-            # Material row
-            elif desc_val:
-                mat = (
-                    db.session.query(Material)
-                    .filter(Material.id == int(desc_val))
-                    .filter(Material.org_id == current_user.org_id)
-                    .one_or_none()
-                )
-                if mat:
-                    cost_ea = to_dec(mat.price)
-                    labor_unit = to_dec(mat.labor_unit)
-                    unit = (mat.unit or "").strip()
-
-            material_ext = (qty * cost_ea).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            labor_hrs    = (qty * labor_unit * ladj).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
-
-            lines.append({
-                "line_no": line_no,
-                "section": section,
-                "material_type": mat_type,
-                "category": category,
-                "subcategory": subcategory,
-                "description": desc_text,
-                "notes": row.get("notes") or "",
-                "qty": f"{qty.normalize()}",
-                "unit": unit,
-                "labor_adj": f"{ladj.normalize()}",
-                "cost_ea": q2(cost_ea),
-                "material_ext": q2(material_ext),
-                "labor_unit": q4(labor_unit),
-                "labor_hrs": q4(labor_hrs),
-            })
-            line_no += 1
-        except Exception:
-            continue
-
-    # --- DJE lines ---
-    for drow in dje_rows:
-        try:
-            desc_id = drow.get("desc_id")
-            qty     = to_dec(drow.get("qty"))
-            multi   = to_dec(drow.get("multi") or "1")
-            notes   = drow.get("notes") or ""
-
-            category = ""
-            subcategory = ""
-            desc_text = ""
-            cost_ea = Decimal("0")
-
-            if desc_id:
-                item = (
-                    db.session.query(DjeItem)
-                    .filter(DjeItem.id == int(desc_id))
-                    .filter(DjeItem.org_id == current_user.org_id)
-                    .one_or_none()
-                )
-                if item:
-                    category = item.category or ""
-                    subcategory = item.subcategory or ""
-                    desc_text = item.description or ""
-                    cost_ea = to_dec(item.default_unit_cost)
-
-            material_ext = (qty * multi * cost_ea).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-            lines.append({
-                "line_no": line_no,
-                "section": "DJE",
-                "material_type": "",
-                "category": category,
-                "subcategory": subcategory,
-                "description": desc_text,
-                "notes": notes,
-                "qty": f"{qty.normalize()}",
-                "unit": "",
-                "labor_adj": "1",
-                "cost_ea": q2(cost_ea),
-                "material_ext": q2(material_ext),
-                "labor_unit": q4(Decimal("0")),
-                "labor_hrs": q4(Decimal("0")),
-            })
-            line_no += 1
-        except Exception:
-            continue
-
-    # Totals
-    mat_total   = to_dec(totals.get("material_cost_price_sheet"))
-    labor_total = to_dec(totals.get("labor_hours_pricing_sheet"))
-
-    # Render HTML → PDF
-    html = render_template(
-        "exports/summary_pdf.html",
-        est=est,
-        customer=cust,
-        lines=lines,
-        mat_total=q2(mat_total),
-        labor_total=q4(labor_total),
-        generated_at=datetime.utcnow(),
-    )
-
-    # Attach site CSS for typography (local file path for WeasyPrint)
     site_css = os.path.join(current_app.root_path, "static", "css", "site.css")
+    pdf_css  = os.path.join(current_app.root_path, "static", "css", "pdf.css")
     pdf_bytes = HTML(string=html, base_url=request.host_url).write_pdf(
-        stylesheets=[CSS(filename=site_css)]
+        stylesheets=[CSS(filename=site_css), CSS(filename=pdf_css)]
     )
 
     stamp = datetime.utcnow().strftime("%Y%m%d")
     filename = f"estimate_{estimate_id}_summary_{stamp}.pdf"
-
     resp = make_response(pdf_bytes)
     resp.headers["Content-Type"] = "application/pdf"
     resp.headers["Content-Disposition"] = f'inline; filename="{filename}"'
     return resp
+
+@bp.post("/exports/summary.csv")
+def fast_export_summary_csv():
+    """
+    HF1: Fast Export (CSV)
+    - Accept finalized export payload from the UI (unsaved fast mode).
+    - Validate minimal shape; do not perform any math.
+    - Temporary minimal CSV content; HF2 will render full layout.
+    """
+    data = request.get_json(silent=True) or {}
+    errors = validate_fast_export_payload(data)
+    if errors:
+        return jsonify({"error": "invalid_payload", "fields": errors}), 422
+
+    buf = io.StringIO(newline="")
+    w = csv.writer(buf)
+    w.writerow(["status", "mode", "note"])
+    w.writerow(["ok", "FAST", "HF1 placeholder CSV."])
+    csv_str = buf.getvalue()
+    buf.close()
+
+    stamp = datetime.utcnow().strftime("%Y%m%d")
+    filename = f"estimate_fast_summary_{stamp}.csv"
+
+    resp = make_response(csv_str)
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return resp
+
+
+@bp.post("/exports/summary.pdf")
+def fast_export_summary_pdf():
+    """
+    HF1: Fast Export (PDF)
+    - Accept finalized export payload from the UI (unsaved fast mode).
+    - Validate minimal shape; do not perform any math.
+    - Temporary minimal PDF content; HF2 will render the real Summary clone.
+    """
+    data = request.get_json(silent=True) or {}
+    errors = validate_fast_export_payload(data)
+    if errors:
+        return jsonify({"error": "invalid_payload", "fields": errors}), 422
+
+    html = """
+    <html>
+      <head>
+        <meta charset='utf-8'>
+        <title>Estimate — Summary (PDF)</title>
+      </head>
+      <body>
+        <h1>Estimate Summary</h1>
+        <p>Mode: <strong>FAST</strong> — HF1 placeholder PDF.</p>
+      </body>
+    </html>
+    """
+
+    site_css = os.path.join(current_app.root_path, "static", "css", "site.css")
+    pdf_css  = os.path.join(current_app.root_path, "static", "css", "pdf.css")
+    pdf_bytes = HTML(string=html, base_url=request.host_url).write_pdf(
+        stylesheets=[CSS(filename=site_css), CSS(filename=pdf_css)]
+    )
+
+    stamp = datetime.utcnow().strftime("%Y%m%d")
+    filename = f"estimate_fast_summary_{stamp}.pdf"
+    resp = make_response(pdf_bytes)
+    resp.headers["Content-Type"] = "application/pdf"
+    resp.headers["Content-Disposition"] = f'inline; filename="{filename}"'
+    return resp
+
 
 @bp.post("/<int:estimate_id>/clone")
 def clone_estimate(estimate_id: int):
