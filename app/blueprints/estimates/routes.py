@@ -1,6 +1,6 @@
 from flask import render_template, request, jsonify, redirect, url_for
 from flask import current_app, make_response
-import csv, io
+import csv, io, os
 from decimal import Decimal, ROUND_HALF_UP
 from app.models.material import Material
 from app.models.dje_item import DjeItem
@@ -559,7 +559,7 @@ def export_summary_pdf(estimate_id: int):
 
     # Attach site CSS for typography (local file path for WeasyPrint)
     site_css = os.path.join(current_app.root_path, "static", "css", "site.css")
-    pdf_bytes = HTML(string=html, base_url=current_app.root_path).write_pdf(
+    pdf_bytes = HTML(string=html, base_url=request.host_url).write_pdf(
         stylesheets=[CSS(filename=site_css)]
     )
 
