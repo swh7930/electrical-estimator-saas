@@ -62,6 +62,13 @@
       <span>Save</span>
     </button>
 
+     {% if current_step == 'summary' %}
+    <a id="exportSummaryPdfBtn" class="btn btn-sm btn-outline-secondary" href="#" title="Save your estimate first">
+      {% include "_includes/icons/export.svg" %}
+      <span>Export PDF</span>
+    </a>
+    {% endif %}
+
     {% if current_step == 'summary' %}
     <button id="exportSummaryCsvBtn" type="button" class="btn btn-sm btn-outline-secondary" title="Save your estimate first">
       {% include "_includes/icons/export.svg" %}

@@ -124,6 +124,35 @@ document.addEventListener('DOMContentLoaded', function () {
   eePropagateWorkflowParams();
 });
 
+// --- Workflow header: Export PDF (Summary only) ---
+document.addEventListener('DOMContentLoaded', function () {
+  var btn = document.getElementById('exportSummaryPdfBtn');
+  if (!btn) return;
+
+  var params = new URLSearchParams(window.location.search);
+  var eid = params.get('eid');
+
+  function enable(v) {
+    if (v) {
+      btn.removeAttribute('disabled');
+      btn.classList.remove('disabled');
+      btn.title = 'Download PDF';
+    } else {
+      btn.setAttribute('disabled', 'disabled');
+      btn.classList.add('disabled');
+      btn.title = 'Save your estimate first';
+    }
+  }
+
+  enable(!!eid);
+
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (!eid) return;
+    window.open('/estimates/' + encodeURIComponent(eid) + '/export/summary.pdf', '_blank');
+  }, { passive: true });
+});
+
 // --- Workflow header: Export CSV (Summary only) ---
 document.addEventListener('DOMContentLoaded', function () {
   var btn = document.getElementById('exportSummaryCsvBtn');

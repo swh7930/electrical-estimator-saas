@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Estimate {{ est.id }} — Summary</title>
+    <style>
+      /* Minimal, print-friendly tweaks layered over site.css */
+      @page { size: A4; margin: 18mm 14mm; }
+      body { font-size: 12px; color: #111; }
+      h1, h2 { margin: 0 0 8px; }
+      h1 { font-size: 20px; }
+      h2 { font-size: 14px; color: #444; text-transform: uppercase; letter-spacing: .04em; }
+      .meta { margin: 2px 0; }
+      .totals { margin-top: 8px; display: flex; gap: 24px; }
+      .totals .card { padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+      th { text-align: left; font-weight: 600; }
+      .num { text-align: right; white-space: nowrap; }
+      .section { margin-top: 16px; }
+      .muted { color: #666; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Estimate Summary</h1>
+      <div class="meta"><strong>ID:</strong> {{ est.id }}</div>
+      <div class="meta"><strong>Name:</strong> {{ (est.name or est.title or '') | trim }}</div>
+      {% if customer %}
+      <div class="meta"><strong>Customer:</strong> {{ customer.company_name }}</div>
+      {% endif %}
+      <div class="meta muted">Generated {{ generated_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</div>
+
+      <div class="totals">
+        <div class="card"><strong>Material Total</strong><div class="num">{{ mat_total }}</div></div>
+        <div class="card"><strong>Labor Hours Total</strong><div class="num">{{ labor_total }}</div></div>
+      </div>
+    </header>
+
+    <section class="section">
+      <h2>Line Items</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Section</th>
+            <th>Material Type</th>
+            <th>Description</th>
+            <th>Notes</th>
+            <th class="num">Qty</th>
+            <th>Unit</th>
+            <th class="num">Labor Adj</th>
+            <th class="num">Cost ea</th>
+            <th class="num">Material Ext</th>
+            <th class="num">Labor Unit</th>
+            <th class="num">Labor Hrs</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in lines %}
+          <tr>
+            <td class="num">{{ r.line_no }}</td>
+            <td>{{ r.section }}</td>
+            <td>{{ r.material_type }}</td>
+            <td>{{ r.description }}</td>
+            <td>{{ r.notes }}</td>
+            <td class="num">{{ r.qty }}</td>
+            <td>{{ r.unit }}</td>
+            <td class="num">{{ r.labor_adj }}</td>
+            <td class="num">{{ r.cost_ea }}</td>
+            <td class="num">{{ r.material_ext }}</td>
+            <td class="num">{{ r.labor_unit }}</td>
+            <td class="num">{{ r.labor_hrs }}</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="9"></td>
+            <td class="num"><strong>{{ mat_total }}</strong></td>
+            <td></td>
+            <td class="num"><strong>{{ labor_total }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </body>
+</html>
