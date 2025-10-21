@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, redirect, url_for, current_app, make_response, send_file, abort
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, current_app, make_response, send_file, abort
 import csv, io, os
 from decimal import Decimal, ROUND_HALF_UP
 from app.models.material import Material
@@ -195,17 +195,15 @@ def export_summary_csv(estimate_id: int):
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     payload = est.work_payload or {}
 
-    # Try common summary snapshot locations
     summary = ((payload.get("estimateData") or {}).get("summary_export")
-               or payload.get("summary_totals")
-               or payload.get("summary")
-               or payload.get("summary_snapshot"))
+           or payload.get("summary_totals")
+           or payload.get("summary")
+           or payload.get("summary_snapshot"))
 
+    # HF2a: gracefully fall back to full payload so Saved Export still works.
+    # No math here — template/CSV remain simple placeholders until HF2b.
     if not summary:
-        return jsonify({
-            "error": "snapshot_missing",
-            "message": "No saved summary snapshot found. Save your estimate or use Fast Export."
-        }), 409
+        summary = payload
 
     # Minimal CSV for HF1 (placeholder) — HF2 will use the shared Summary partial data
     buf = io.StringIO(newline="")
@@ -308,31 +306,23 @@ def export_summary_pdf(estimate_id: int):
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     payload = est.work_payload or {}
 
-    # Try common summary snapshot locations
     summary = ((payload.get("estimateData") or {}).get("summary_export")
-               or payload.get("summary_totals")
-               or payload.get("summary")
-               or payload.get("summary_snapshot"))
+           or payload.get("summary_totals")
+           or payload.get("summary")
+           or payload.get("summary_snapshot"))
 
+    # HF2a: gracefully fall back to full payload so Saved Export still works.
+    # No math here — the Jinja template renders defensively for now.
     if not summary:
-        return jsonify({
-            "error": "snapshot_missing",
-            "message": "No saved summary snapshot found. Save your estimate or use Fast Export."
-        }), 409
+        summary = payload
 
-    # Minimal HTML for HF1
-    html = f"""
-    <html>
-      <head>
-        <meta charset='utf-8'>
-        <title>Estimate {estimate_id} — Summary (PDF)</title>
-      </head>
-      <body>
-        <h1>Estimate Summary</h1>
-        <p>Mode: <strong>SAVED</strong> — HF1 placeholder PDF.</p>
-      </body>
-    </html>
-    """
+    # Render via Jinja template (structural step)
+    html = render_template(
+        "exports/summary_pdf.html",
+        estimate=est,
+        summary=summary,   # saved snapshot we already located
+        mode="SAVED"
+    )
 
     site_css = os.path.join(current_app.root_path, "static", "css", "site.css")
     pdf_css  = os.path.join(current_app.root_path, "static", "css", "pdf.css")
@@ -389,18 +379,13 @@ def fast_export_summary_pdf():
     if errors:
         return jsonify({"error": "invalid_payload", "fields": errors}), 422
 
-    html = """
-    <html>
-      <head>
-        <meta charset='utf-8'>
-        <title>Estimate — Summary (PDF)</title>
-      </head>
-      <body>
-        <h1>Estimate Summary</h1>
-        <p>Mode: <strong>FAST</strong> — HF1 placeholder PDF.</p>
-      </body>
-    </html>
-    """
+    # Render via Jinja template (structural step)
+    html = render_template(
+        "exports/summary_pdf.html",
+        estimate=None,     # not saved; no Estimate record
+        summary=data,      # validated fast payload
+        mode="FAST"
+    )
 
     site_css = os.path.join(current_app.root_path, "static", "css", "site.css")
     pdf_css  = os.path.join(current_app.root_path, "static", "css", "pdf.css")
