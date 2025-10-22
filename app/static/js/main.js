@@ -553,3 +553,32 @@ function harvestControlsFallback() {
     labor_rate:            lr
   };
 }
+
+// Disable all workflow Reset buttons when an estimate is SAVED (?eid=... in URL).
+// Works on Estimator, Adjustments, DJE, and Summary pages.
+(function () {
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      var eid = new URLSearchParams(location.search).get('eid');
+      if (!eid) return; // Fast mode: keep reset buttons active
+
+      var ids = ['estimatorResetBtn', 'resetAdjustmentsPageBtn', 'djeResetBtn', 'resetAllBtn'];
+
+      function hardDisable(el) {
+        if (!el) return;
+        el.setAttribute('disabled', 'disabled');
+        el.classList.add('disabled');
+        el.setAttribute('aria-disabled', 'true');
+        el.style.pointerEvents = 'none';
+      }
+
+      ids.forEach(function (id) { hardDisable(document.getElementById(id)); });
+
+      // Capture-phase guard: block any click that lands on these buttons even if a script re-enables them later.
+      document.addEventListener('click', function (e) {
+        var t = e.target && e.target.closest && e.target.closest('#estimatorResetBtn, #resetAdjustmentsPageBtn, #djeResetBtn, #resetAllBtn');
+        if (t) { e.preventDefault(); e.stopImmediatePropagation(); }
+      }, true);
+    } catch (_) { /* silent */ }
+  });
+})();
