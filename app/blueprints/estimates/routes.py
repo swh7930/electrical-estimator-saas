@@ -169,6 +169,61 @@ def get_estimate_json(estimate_id: int):
         "updated_at": e.updated_at.isoformat() if e.updated_at else None,
     })
 
+def _csv_summary_like_string(controls, cells):
+    buf = io.StringIO(newline="")
+    w = csv.writer(buf)
+
+    def C(name):
+        return controls.get(name) if isinstance(controls, dict) else None
+
+    def P(name):
+        v = C(name)
+        # show " (10%)" when numeric; otherwise empty
+        return f" ({int(v)}%)" if isinstance(v, (int, float)) else (f" ({v})" if isinstance(v, str) and v.strip() else "")
+
+    def X(cid):
+        return cells.get(cid, "") if isinstance(cells, dict) else ""
+
+    # Labor Cost Summary (Step A)
+    w.writerow(["Labor Cost Summary", "Labor Hours (Pricing Sheet)", X("labor-hours-pricing-sheet")])
+    w.writerow(["Labor Cost Summary", "Adjusted Labor Hours",        X("summaryAdjustedHours")])
+    w.writerow(["Labor Cost Summary", "Additional Labor Hours",      X("summaryAdditionalHours")])
+    w.writerow(["Labor Cost Summary", "Total Labor Hours",           X("summaryTotalHours")])
+
+    # Step B
+    w.writerow(["Step B", "Total Labor Cost", X("summaryTotalLaborCost")])
+
+    # Material Cost Summary (Step C)
+    w.writerow(["Material Cost Summary", "Material Cost (Pricing Sheet)", X("material-cost-price-sheet")])
+    w.writerow(["Material Cost Summary", f"Misc{P('misc_percent')}",        X("miscMaterialValue")])
+    w.writerow(["Material Cost Summary", f"Small Tools{P('small_tools_percent')}", X("smallToolsValue")])
+    w.writerow(["Material Cost Summary", f"Large Tools{P('large_tools_percent')}", X("largeToolsValue")])
+    w.writerow(["Material Cost Summary", f"Waste and Theft{P('waste_theft_percent')}", X("wasteTheftValue")])
+    w.writerow(["Material Cost Summary", "Taxable Material",               X("taxableMaterialValue")])
+    w.writerow(["Material Cost Summary", f"Sales Tax{P('sales_tax_percent')}", X("salesTaxValue")])
+    w.writerow(["Material Cost Summary", "Total Material Cost + Sales Tax",   X("totalMaterialCostValue")])
+
+    # Adders / Totals
+    w.writerow(["Adders", "DJE",        X("djeValue")])
+    w.writerow(["Adders", f"Overhead{P('overhead_percent')}", X("overheadValue")])
+    w.writerow(["Adders", "Prime Cost", X("primeCostValue")])
+    w.writerow(["Adders", "Break Even", X("breakEvenValue")])
+
+    # Sales Price Summary (H–L)
+    w.writerow(["Sales Price Summary", "Markup %",          X("markupValue")])
+    w.writerow(["Sales Price Summary", "Profit Margin",     X("profitMarginValue")])
+    w.writerow(["Sales Price Summary", "Estimated Sales Price", X("estimatedSalesPriceValue")])
+
+    # Labor Hour Breakdown
+    w.writerow(["Labor Hour Breakdown", "1 man", X("oneManDays")])
+    w.writerow(["Labor Hour Breakdown", "2 man", X("twoManDays")])
+    w.writerow(["Labor Hour Breakdown", "4 man", X("fourManDays")])
+
+    s = buf.getvalue()
+    buf.close()
+    return s
+
+
 @bp.put("/<int:estimate_id>/payload")
 def save_payload(estimate_id: int):
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
@@ -193,15 +248,14 @@ def export_summary_csv(estimate_id: int):
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     payload = est.work_payload or {}
 
-    # Resolve snapshot; fall back to full payload to stay graceful
-    summary = (
-        (payload.get("estimateData") or {}).get("summary_export")
-        or payload.get("summary_export")
-        or payload.get("summary_totals")
-        or payload.get("summary")
-        or payload.get("summary_snapshot")
-        or payload
-    )
+    # Try common summary snapshot locations (prefer summary_export)
+    summary = ((payload.get("estimateData") or {}).get("summary_export")
+            or payload.get("summary_export")
+            or payload.get("summary_totals")
+            or payload.get("summary")
+            or payload.get("summary_snapshot")
+            or payload)
+
 
     def _get_controls(s):
         try:
@@ -229,70 +283,7 @@ def export_summary_csv(estimate_id: int):
     cells    = _get_cells(summary)
     totals   = summary.get("totals") if isinstance(summary, dict) and isinstance(summary.get("totals"), dict) else None
 
-    buf = io.StringIO(newline="")
-    w = csv.writer(buf)
-    w.writerow(["section", "key", "value"])
-
-    # Controls first (fixed order; only write keys that exist)
-    order_controls = [
-        "labor_rate",
-        "margin_percent",
-        "overhead_percent",
-        "misc_percent",
-        "small_tools_percent",
-        "large_tools_percent",
-        "waste_theft_percent",
-        "sales_tax_percent",
-    ]
-    if isinstance(controls, dict) and controls:
-        for k in order_controls:
-            if k in controls:
-                w.writerow(["controls", k, controls[k]])
-        for k, v in controls.items():
-            if k not in order_controls:
-                w.writerow(["controls", k, v])
-
-    # Cells next by your exact DOM ids (exclude form inputs/selects)
-    id_order = [
-        "labor-hours-pricing-sheet",
-        "summaryAdjustedHours",
-        "summaryAdditionalHours",
-        "summaryTotalHours",
-        "summaryTotalLaborCost",
-        "material-cost-price-sheet",
-        "miscMaterialValue",
-        "smallToolsValue",
-        "largeToolsValue",
-        "wasteTheftValue",
-        "taxableMaterialValue",
-        "salesTaxValue",
-        "totalMaterialCostValue",
-        "djeValue",
-        "primeCostValue",
-        "overheadValue",
-        "breakEvenValue",
-        "markupValue",
-        "profitMarginValue",
-        "estimatedSalesPriceValue",
-        "oneManDays",
-        "twoManDays",
-        "fourManDays",
-    ]
-    if isinstance(cells, dict) and cells:
-        for cid in id_order:
-            if cid in cells:
-                w.writerow(["cells", cid, cells[cid]])
-        for cid, val in cells.items():
-            if cid not in id_order:
-                w.writerow(["cells", cid, val])
-
-    # If there were no cells but you have a totals dict, include it last
-    if (not cells) and isinstance(totals, dict) and totals:
-        for k, v in totals.items():
-            w.writerow(["totals", k, v])
-
-    csv_str = buf.getvalue()
-    buf.close()
+    csv_str = _csv_summary_like_string(controls, cells)
 
     stamp = datetime.utcnow().strftime("%Y%m%d")
     filename = f"estimate_{estimate_id}_summary_{stamp}.csv"
@@ -301,7 +292,6 @@ def export_summary_csv(estimate_id: int):
     resp.headers["Content-Type"] = "text/csv; charset=utf-8"
     resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
-
 
 @bp.get("/export/index.csv")
 def export_estimates_index_csv():
@@ -387,10 +377,13 @@ def export_summary_pdf(estimate_id: int):
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     payload = est.work_payload or {}
 
+    # Try common summary snapshot locations (prefer summary_export)
     summary = ((payload.get("estimateData") or {}).get("summary_export")
-           or payload.get("summary_totals")
-           or payload.get("summary")
-           or payload.get("summary_snapshot"))
+            or payload.get("summary_export")
+            or payload.get("summary_totals")
+            or payload.get("summary")
+            or payload.get("summary_snapshot")
+            or payload)
 
     # HF2a: gracefully fall back to full payload so Saved Export still works.
     # No math here — the Jinja template renders defensively for now.
@@ -456,67 +449,7 @@ def fast_export_summary_csv():
     cells    = _get_cells(data)
     totals   = data.get("totals") if isinstance(data, dict) and isinstance(data.get("totals"), dict) else None
 
-    buf = io.StringIO(newline="")
-    w = csv.writer(buf)
-    w.writerow(["section", "key", "value"])
-
-    order_controls = [
-        "labor_rate",
-        "margin_percent",
-        "overhead_percent",
-        "misc_percent",
-        "small_tools_percent",
-        "large_tools_percent",
-        "waste_theft_percent",
-        "sales_tax_percent",
-    ]
-    if isinstance(controls, dict) and controls:
-        for k in order_controls:
-            if k in controls:
-                w.writerow(["controls", k, controls[k]])
-        for k, v in controls.items():
-            if k not in order_controls:
-                w.writerow(["controls", k, v])
-
-    id_order = [
-        "labor-hours-pricing-sheet",
-        "summaryAdjustedHours",
-        "summaryAdditionalHours",
-        "summaryTotalHours",
-        "summaryTotalLaborCost",
-        "material-cost-price-sheet",
-        "miscMaterialValue",
-        "smallToolsValue",
-        "largeToolsValue",
-        "wasteTheftValue",
-        "taxableMaterialValue",
-        "salesTaxValue",
-        "totalMaterialCostValue",
-        "djeValue",
-        "primeCostValue",
-        "overheadValue",
-        "breakEvenValue",
-        "markupValue",
-        "profitMarginValue",
-        "estimatedSalesPriceValue",
-        "oneManDays",
-        "twoManDays",
-        "fourManDays",
-    ]
-    if isinstance(cells, dict) and cells:
-        for cid in id_order:
-            if cid in cells:
-                w.writerow(["cells", cid, cells[cid]])
-        for cid, val in cells.items():
-            if cid not in id_order:
-                w.writerow(["cells", cid, val])
-
-    if (not cells) and isinstance(totals, dict) and totals:
-        for k, v in totals.items():
-            w.writerow(["totals", k, v])
-
-    csv_str = buf.getvalue()
-    buf.close()
+    csv_str = _csv_summary_like_string(controls, cells)
 
     stamp = datetime.utcnow().strftime("%Y%m%d")
     filename = f"estimate_fast_summary_{stamp}.csv"
@@ -525,7 +458,6 @@ def fast_export_summary_csv():
     resp.headers["Content-Type"] = "text/csv; charset=utf-8"
     resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
-
 
 @bp.post("/exports/summary.pdf")
 def fast_export_summary_pdf():
@@ -560,7 +492,6 @@ def fast_export_summary_pdf():
     resp.headers["Content-Type"] = "application/pdf"
     resp.headers["Content-Disposition"] = f'inline; filename="{filename}"'
     return resp
-
 
 @bp.post("/<int:estimate_id>/clone")
 def clone_estimate(estimate_id: int):
