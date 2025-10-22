@@ -86,12 +86,131 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function capturePayload() {
     var k = nsKeys();
-    var payload = { v: 1, grid: null, totals: null, estimateData: null };
+    var payload = { v: 1, grid: null, totals: null, estimateData: null, cells: null, summary_export: null };
+
     try { payload.grid = JSON.parse(localStorage.getItem(k.gridKey) || "null"); } catch (_) {}
     try { payload.totals = JSON.parse(localStorage.getItem(k.totalsKey) || "null"); } catch (_) {}
     try { payload.estimateData = JSON.parse(localStorage.getItem("estimateData") || "null"); } catch (_) {}
+
+    // Snapshot Summary visible values (cells)
+    payload.cells = captureSummaryCells();
+
+    // NEW: Snapshot controls (margin%, overhead%, adders, tax%, labor rate) in a clean place
+    payload.summary_export = {
+      cells: payload.cells || {},
+      controls: captureSummaryControls()
+    };
+
+    // SANITIZE: margin/overhead do NOT belong under materials — remove if present
+    try {
+      if (payload.estimateData && payload.estimateData.materials) {
+        if ('margin_percent' in payload.estimateData.materials) {
+          delete payload.estimateData.materials.margin_percent;
+        }
+        if ('overhead_percent' in payload.estimateData.materials) {
+          delete payload.estimateData.materials.overhead_percent;
+        }
+      }
+    } catch (_) {}
+
     return { eid: k.eid, payload: payload };
   }
+
+  function captureSummaryControls() {
+    // Exact IDs in your Summary
+    var marginSel   = document.getElementById('marginSelect');
+    var overheadSel = document.getElementById('overheadPercentSelect');
+    var laborRateEl = document.getElementById('laborRateInput');
+
+    // Name-based selects in the Material section
+    var miscSel  = document.querySelector('select[name="misc_percent"]');
+    var smallSel = document.querySelector('select[name="small_tools_percent"]');
+    var largeSel = document.querySelector('select[name="large_tools_percent"]');
+    var wasteSel = document.querySelector('select[name="waste_theft_percent"]');
+    var taxSel   = document.querySelector('select[name="sales_tax_percent"]');
+
+    function val(sel) {
+      if (!sel) return null;
+      var v = sel.value;
+      if (v === '' || v == null) return null;
+      var n = Number(v);
+      return Number.isFinite(n) ? n : v;
+    }
+
+    // Prefer authoritative persisted values when present
+    var overheadFromData = (
+      window.estimateData &&
+      estimateData.materials &&
+      Number.isFinite(Number(estimateData.materials.overhead_percent))
+    ) ? Number(estimateData.materials.overhead_percent) : null;
+
+    var laborFromData = (
+      window.estimateData &&
+      estimateData.totals &&
+      typeof estimateData.totals.laborRate === 'number'
+    ) ? estimateData.totals.laborRate : null;
+
+    var laborFromInput = (function () {
+      if (!laborRateEl) return null;
+      var num = Number(String(laborRateEl.value).replace(/[^0-9.]/g, ''));
+      return Number.isFinite(num) ? num : null;
+    })();
+
+    return {
+      margin_percent: val(marginSel),
+      overhead_percent: (overheadFromData != null ? overheadFromData : val(overheadSel)),
+      misc_percent:  val(miscSel),
+      small_tools_percent: val(smallSel),
+      large_tools_percent: val(largeSel),
+      waste_theft_percent: val(wasteSel),
+      sales_tax_percent:  val(taxSel),
+      // Prefer persisted numeric laborRate; else parse the input text
+      labor_rate: (laborFromData != null ? laborFromData : laborFromInput)
+    };
+  }
+
+  function captureSummaryCells() {
+    // Only on the Summary page (marker cell must exist)
+    var marker = document.getElementById('labor-hours-pricing-sheet');
+    if (!marker) return null;
+
+    // Exact IDs taken from your current _summary_tables.html (no guesses)
+    var ids = [
+      'labor-hours-pricing-sheet',
+      'summaryAdjustedHours',
+      'summaryAdditionalHours',
+      'summaryTotalHours',
+      'summaryTotalLaborCost',
+      'material-cost-price-sheet',
+      'miscMaterialValue',
+      'smallToolsValue',
+      'largeToolsValue',
+      'wasteTheftValue',
+      'taxableMaterialValue',
+      'salesTaxValue',
+      'totalMaterialCostValue',
+      'djeValue',
+      'primeCostValue',
+      'overheadValue',
+      'breakEvenValue',
+      'markupValue',
+      'profitMarginValue',
+      'estimatedSalesPriceValue',
+      'oneManDays',
+      'twoManDays',
+      'fourManDays'
+    ];
+
+  var out = {};
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var txt = (el.tagName === 'INPUT') ? el.value : el.textContent;
+    out[id] = (txt == null ? '' : String(txt)).trim();
+  });
+  return out;
+}
+
 
   function saveServer(eid, payload) {
     if (!eid) { window.location.href = "/estimates/new"; return; }
@@ -100,10 +219,17 @@ document.addEventListener('DOMContentLoaded', function () {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
-      }).then(function () {
-        // keep console quiet; UI toast can be added later if desired
+      })
+      .then(function (res) {
+        if (!res || !res.ok) throw new Error("save_failed");
+        try { showToast("Estimate saved", "success"); } catch (_) {}
+      })
+      .catch(function () {
+        try { showToast("Save failed", "danger"); } catch (_) {}
       });
-    } catch (_) {}
+    } catch (_) {
+      try { showToast("Save failed", "danger"); } catch (__){ }
+    }
   }
 
   saveBtn.addEventListener('click', function () {
@@ -150,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     if (!eid) return;
     window.open('/estimates/' + encodeURIComponent(eid) + '/export/summary.pdf', '_blank');
-  }, { passive: true });
+  }, { passive: false });
 });
 
 // --- Workflow header: Export CSV (Summary only) ---
@@ -281,3 +407,42 @@ document.addEventListener("keydown", (e) => {
     if (typeof next.select === "function") next.select();
   }
 });
+
+// Uses existing #toastStack container in base.html
+function showToast(message, type, delay) {
+  var stack = document.getElementById('toastStack');
+  if (!stack) { try { alert(message); } catch (_) {} return; }
+
+  var theme = (type === 'danger' || type === 'error') ? 'text-bg-danger'
+            : (type === 'warning') ? 'text-bg-warning'
+            : 'text-bg-success';
+
+  var el = document.createElement('div');
+  el.className = 'toast ' + theme + ' border-0';
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', 'polite');
+  el.setAttribute('aria-atomic', 'true');
+  el.innerHTML =
+    '<div class="d-flex">' +
+      '<div class="toast-body">' + message + '</div>' +
+      '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+    '</div>';
+
+  stack.appendChild(el);
+
+  // Prefer Bootstrap if present; fallback to simple show/hide
+  try {
+    var Toast = window.bootstrap && window.bootstrap.Toast;
+    if (Toast) {
+      var t = new Toast(el, { delay: delay || 2200, autohide: true });
+      el.addEventListener('hidden.bs.toast', function () { el.remove(); });
+      t.show();
+    } else {
+      el.classList.add('show');
+      setTimeout(function () { el.remove(); }, (delay || 2200) + 400);
+    }
+  } catch (_) {
+    el.classList.add('show');
+    setTimeout(function () { el.remove(); }, (delay || 2200) + 400);
+  }
+}
