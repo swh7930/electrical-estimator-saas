@@ -186,30 +186,111 @@ def get_payload_json(estimate_id: int):
 @bp.get("/<int:estimate_id>/export/summary.csv")
 def export_summary_csv(estimate_id: int):
     """
-    HF1: Saved Export (CSV)
-    - No route math.
-    - Load saved snapshot-like summary only.
-    - If missing, return 409 JSON.
-    - Temporary minimal CSV content; HF2 will render full layout.
+    Saved Export (CSV)
+    Source of truth: saved payload snapshot (summary_export.controls + summary_export.cells).
+    No calculations here.
     """
     est = Estimate.query.filter_by(id=estimate_id, org_id=current_user.org_id).first_or_404()
     payload = est.work_payload or {}
 
-    summary = ((payload.get("estimateData") or {}).get("summary_export")
-           or payload.get("summary_totals")
-           or payload.get("summary")
-           or payload.get("summary_snapshot"))
+    # Resolve snapshot; fall back to full payload to stay graceful
+    summary = (
+        (payload.get("estimateData") or {}).get("summary_export")
+        or payload.get("summary_export")
+        or payload.get("summary_totals")
+        or payload.get("summary")
+        or payload.get("summary_snapshot")
+        or payload
+    )
 
-    # HF2a: gracefully fall back to full payload so Saved Export still works.
-    # No math here — template/CSV remain simple placeholders until HF2b.
-    if not summary:
-        summary = payload
+    def _get_controls(s):
+        try:
+            se = s.get("summary_export") if isinstance(s.get("summary_export"), dict) else s.get("summaryExport")
+            if isinstance(se, dict) and isinstance(se.get("controls"), dict):
+                return se["controls"]
+            if isinstance(s.get("controls"), dict):
+                return s["controls"]
+        except Exception:
+            pass
+        return None
 
-    # Minimal CSV for HF1 (placeholder) — HF2 will use the shared Summary partial data
+    def _get_cells(s):
+        try:
+            se = s.get("summary_export") if isinstance(s.get("summary_export"), dict) else s.get("summaryExport")
+            if isinstance(se, dict) and isinstance(se.get("cells"), dict):
+                return se["cells"]
+            if isinstance(s.get("cells"), dict):
+                return s["cells"]
+        except Exception:
+            pass
+        return None
+
+    controls = _get_controls(summary)
+    cells    = _get_cells(summary)
+    totals   = summary.get("totals") if isinstance(summary, dict) and isinstance(summary.get("totals"), dict) else None
+
     buf = io.StringIO(newline="")
     w = csv.writer(buf)
-    w.writerow(["status", "mode", "note"])
-    w.writerow(["ok", "SAVED", "HF1 placeholder CSV."])
+    w.writerow(["section", "key", "value"])
+
+    # Controls first (fixed order; only write keys that exist)
+    order_controls = [
+        "labor_rate",
+        "margin_percent",
+        "overhead_percent",
+        "misc_percent",
+        "small_tools_percent",
+        "large_tools_percent",
+        "waste_theft_percent",
+        "sales_tax_percent",
+    ]
+    if isinstance(controls, dict) and controls:
+        for k in order_controls:
+            if k in controls:
+                w.writerow(["controls", k, controls[k]])
+        for k, v in controls.items():
+            if k not in order_controls:
+                w.writerow(["controls", k, v])
+
+    # Cells next by your exact DOM ids (exclude form inputs/selects)
+    id_order = [
+        "labor-hours-pricing-sheet",
+        "summaryAdjustedHours",
+        "summaryAdditionalHours",
+        "summaryTotalHours",
+        "summaryTotalLaborCost",
+        "material-cost-price-sheet",
+        "miscMaterialValue",
+        "smallToolsValue",
+        "largeToolsValue",
+        "wasteTheftValue",
+        "taxableMaterialValue",
+        "salesTaxValue",
+        "totalMaterialCostValue",
+        "djeValue",
+        "primeCostValue",
+        "overheadValue",
+        "breakEvenValue",
+        "markupValue",
+        "profitMarginValue",
+        "estimatedSalesPriceValue",
+        "oneManDays",
+        "twoManDays",
+        "fourManDays",
+    ]
+    if isinstance(cells, dict) and cells:
+        for cid in id_order:
+            if cid in cells:
+                w.writerow(["cells", cid, cells[cid]])
+        for cid, val in cells.items():
+            if cid not in id_order:
+                w.writerow(["cells", cid, val])
+
+    # If there were no cells but you have a totals dict, include it last
+    if (not cells) and isinstance(totals, dict) and totals:
+        for k, v in totals.items():
+            w.writerow(["totals", k, v])
+
     csv_str = buf.getvalue()
     buf.close()
 
@@ -340,20 +421,100 @@ def export_summary_pdf(estimate_id: int):
 @bp.post("/exports/summary.csv")
 def fast_export_summary_csv():
     """
-    HF1: Fast Export (CSV)
-    - Accept finalized export payload from the UI (unsaved fast mode).
-    - Validate minimal shape; do not perform any math.
-    - Temporary minimal CSV content; HF2 will render full layout.
+    Fast Export (CSV)
+    Accepts payload with summary_export.controls and/or summary_export.cells.
+    No calculations here.
     """
     data = request.get_json(silent=True) or {}
     errors = validate_fast_export_payload(data)
     if errors:
         return jsonify({"error": "invalid_payload", "fields": errors}), 422
 
+    def _get_controls(s):
+        try:
+            se = s.get("summary_export") if isinstance(s.get("summary_export"), dict) else s.get("summaryExport")
+            if isinstance(se, dict) and isinstance(se.get("controls"), dict):
+                return se["controls"]
+            if isinstance(s.get("controls"), dict):
+                return s["controls"]
+        except Exception:
+            pass
+        return None
+
+    def _get_cells(s):
+        try:
+            se = s.get("summary_export") if isinstance(s.get("summary_export"), dict) else s.get("summaryExport")
+            if isinstance(se, dict) and isinstance(se.get("cells"), dict):
+                return se["cells"]
+            if isinstance(s.get("cells"), dict):
+                return s["cells"]
+        except Exception:
+            pass
+        return None
+
+    controls = _get_controls(data)
+    cells    = _get_cells(data)
+    totals   = data.get("totals") if isinstance(data, dict) and isinstance(data.get("totals"), dict) else None
+
     buf = io.StringIO(newline="")
     w = csv.writer(buf)
-    w.writerow(["status", "mode", "note"])
-    w.writerow(["ok", "FAST", "HF1 placeholder CSV."])
+    w.writerow(["section", "key", "value"])
+
+    order_controls = [
+        "labor_rate",
+        "margin_percent",
+        "overhead_percent",
+        "misc_percent",
+        "small_tools_percent",
+        "large_tools_percent",
+        "waste_theft_percent",
+        "sales_tax_percent",
+    ]
+    if isinstance(controls, dict) and controls:
+        for k in order_controls:
+            if k in controls:
+                w.writerow(["controls", k, controls[k]])
+        for k, v in controls.items():
+            if k not in order_controls:
+                w.writerow(["controls", k, v])
+
+    id_order = [
+        "labor-hours-pricing-sheet",
+        "summaryAdjustedHours",
+        "summaryAdditionalHours",
+        "summaryTotalHours",
+        "summaryTotalLaborCost",
+        "material-cost-price-sheet",
+        "miscMaterialValue",
+        "smallToolsValue",
+        "largeToolsValue",
+        "wasteTheftValue",
+        "taxableMaterialValue",
+        "salesTaxValue",
+        "totalMaterialCostValue",
+        "djeValue",
+        "primeCostValue",
+        "overheadValue",
+        "breakEvenValue",
+        "markupValue",
+        "profitMarginValue",
+        "estimatedSalesPriceValue",
+        "oneManDays",
+        "twoManDays",
+        "fourManDays",
+    ]
+    if isinstance(cells, dict) and cells:
+        for cid in id_order:
+            if cid in cells:
+                w.writerow(["cells", cid, cells[cid]])
+        for cid, val in cells.items():
+            if cid not in id_order:
+                w.writerow(["cells", cid, val])
+
+    if (not cells) and isinstance(totals, dict) and totals:
+        for k, v in totals.items():
+            w.writerow(["totals", k, v])
+
     csv_str = buf.getvalue()
     buf.close()
 
