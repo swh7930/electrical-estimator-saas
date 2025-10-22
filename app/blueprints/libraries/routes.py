@@ -1,8 +1,9 @@
-from flask import render_template, request, jsonify, url_for, redirect
+from flask import render_template, request, jsonify, url_for, redirect, request, abort, session
 from sqlalchemy import func, or_
 from app.models.material import Material
 from app.models.dje_item import DjeItem
 from app.models.customer import Customer
+from app.models.org_membership import OrgMembership, ROLE_ADMIN, ROLE_OWNER
 from app.extensions import db
 from sqlalchemy.exc import IntegrityError
 from app.utils.validators import (
@@ -16,6 +17,24 @@ from app.utils.validators import (
 )
 from . import bp
 from flask_login import current_user
+
+@bp.before_request
+def _acl_libraries_readonly_for_members():
+    # Require login
+    if not getattr(current_user, "is_authenticated", False):
+        abort(401)
+    # Resolve org
+    org_id = session.get("current_org_id") or getattr(current_user, "org_id", None)
+    if not org_id:
+        abort(401)
+    # Membership check
+    m = db.session.query(OrgMembership).filter_by(org_id=org_id, user_id=current_user.id).one_or_none()
+    if not m:
+        abort(404)  # anti-enumeration
+    # Writes require admin/owner; reads allowed for members
+    if request.method not in ("GET", "HEAD", "OPTIONS") and m.role not in (ROLE_ADMIN, ROLE_OWNER):
+        abort(403)
+
 
 @bp.before_request
 def _require_login_libraries():

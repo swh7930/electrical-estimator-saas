@@ -1,5 +1,5 @@
 # app/blueprints/admin/assemblies.py
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, abort, session
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
@@ -8,6 +8,7 @@ from flask_login import current_user
 from app.extensions import db
 from app.models.assembly import Assembly, AssemblyComponent
 from app.models.material import Material
+from app.models.org_membership import OrgMembership, ROLE_ADMIN, ROLE_OWNER
 
 from app.services.assemblies import (
     ServiceError,
@@ -22,6 +23,19 @@ from app.services.assemblies import (
     update_component as svc_update_component,
     set_component_active as svc_set_component_active,
 )
+
+@bp.before_request
+def _acl_assemblies_readonly_for_members():
+    if not getattr(current_user, "is_authenticated", False):
+        abort(401)
+    org_id = session.get("current_org_id") or getattr(current_user, "org_id", None)
+    if not org_id:
+        abort(401)
+    m = db.session.query(OrgMembership).filter_by(org_id=org_id, user_id=current_user.id).one_or_none()
+    if not m:
+        abort(404)
+    if request.method not in ("GET", "HEAD", "OPTIONS") and m.role not in (ROLE_ADMIN, ROLE_OWNER):
+        abort(403)
 
 
 @bp.get("/assemblies")
