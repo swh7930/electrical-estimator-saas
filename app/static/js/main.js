@@ -49,8 +49,11 @@ function eePropagateWorkflowParams() {
     if (!href) return;
     try {
       const url = new URL(href, window.location.origin);
-      if (eid) url.searchParams.set('eid', eid);
-      if (rt)  url.searchParams.set('rt', rt);
+      const path = (url.pathname || '').replace(/\/+$/,'');
+      if (path !== '/estimator') {          // don’t carry EID into a fresh Estimator page
+        if (eid) url.searchParams.set('eid', eid);
+        if (rt)  url.searchParams.set('rt', rt);
+      }
       a.setAttribute('href', url.pathname + (url.search ? url.search : ''));
     } catch (_) {
       // Ignore malformed/anchor-only links
@@ -170,47 +173,27 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function captureSummaryCells() {
-    // Only on the Summary page (marker cell must exist)
-    var marker = document.getElementById('labor-hours-pricing-sheet');
-    if (!marker) return null;
-
-    // Exact IDs taken from your current _summary_tables.html (no guesses)
+    // Try to harvest whatever is on the Summary DOM right now (no hard gate)
     var ids = [
-      'labor-hours-pricing-sheet',
-      'summaryAdjustedHours',
-      'summaryAdditionalHours',
-      'summaryTotalHours',
-      'summaryTotalLaborCost',
-      'material-cost-price-sheet',
-      'miscMaterialValue',
-      'smallToolsValue',
-      'largeToolsValue',
-      'wasteTheftValue',
-      'taxableMaterialValue',
-      'salesTaxValue',
-      'totalMaterialCostValue',
-      'djeValue',
-      'primeCostValue',
-      'overheadValue',
-      'breakEvenValue',
-      'markupValue',
-      'profitMarginValue',
-      'estimatedSalesPriceValue',
-      'oneManDays',
-      'twoManDays',
-      'fourManDays'
+      'labor-hours-pricing-sheet', 'summaryAdjustedHours', 'summaryAdditionalHours',
+      'summaryTotalHours', 'summaryTotalLaborCost', 'material-cost-price-sheet',
+      'miscMaterialValue', 'smallToolsValue', 'largeToolsValue', 'wasteTheftValue',
+      'taxableMaterialValue', 'salesTaxValue', 'totalMaterialCostValue', 'djeValue',
+      'primeCostValue', 'overheadValue', 'breakEvenValue', 'markupValue',
+      'profitMarginValue', 'estimatedSalesPriceValue', 'oneManDays', 'twoManDays',
+      'fourManDays', 'laborRateInput'
     ];
 
-  var out = {};
-  ids.forEach(function (id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    var txt = (el.tagName === 'INPUT') ? el.value : el.textContent;
-    out[id] = (txt == null ? '' : String(txt)).trim();
-  });
-  return out;
-}
-
+    var out = {};
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
+      if (!el) continue;
+      var txt = (el.tagName === 'INPUT') ? el.value : el.textContent;
+      out[ids[i]] = (txt == null ? '' : String(txt)).trim();
+    }
+    // If nothing was found at all, return an empty object (not null) so exporters still send controls
+    return out;
+  }
 
   function saveServer(eid, payload) {
     if (!eid) { window.location.href = "/estimates/new"; return; }
@@ -258,25 +241,16 @@ document.addEventListener('DOMContentLoaded', function () {
   var params = new URLSearchParams(window.location.search);
   var eid = params.get('eid');
 
-  function enable(v) {
-    if (v) {
-      btn.removeAttribute('disabled');
-      btn.classList.remove('disabled');
-      btn.title = 'Download PDF';
-    } else {
-      btn.setAttribute('disabled', 'disabled');
-      btn.classList.add('disabled');
-      btn.title = 'Save your estimate first';
-    }
-  }
+    // Always enabled; Fast path works without EID
+    btn.removeAttribute('disabled');
+    btn.classList.remove('disabled');
+    btn.title = eid ? 'Download PDF' : 'Export current summary (Fast)';
 
-  enable(!!eid);
-
-  btn.addEventListener('click', function (e) {
-    e.preventDefault();
-    if (!eid) return;
-    window.open('/estimates/' + encodeURIComponent(eid) + '/export/summary.pdf', '_blank');
-  }, { passive: false });
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!eid) { return exportSummaryPdfSmart(e, null); }
+      exportSummaryPdfSmart(e, eid);
+    }, { passive: false });
 });
 
 // --- Workflow header: Export CSV (Summary only) ---
@@ -287,24 +261,16 @@ document.addEventListener('DOMContentLoaded', function () {
   var params = new URLSearchParams(window.location.search);
   var eid = params.get('eid');
 
-  function enable(v) {
-    if (v) {
-      btn.removeAttribute('disabled');
-      btn.classList.remove('disabled');
-      btn.title = 'Download CSV';
-    } else {
-      btn.setAttribute('disabled', 'disabled');
-      btn.classList.add('disabled');
-      btn.title = 'Save your estimate first';
-    }
-  }
+  // Always enabled; Fast path works without EID
+  btn.removeAttribute('disabled');
+  btn.classList.remove('disabled');
+  btn.title = eid ? 'Download CSV' : 'Export current summary (Fast)';
 
-  enable(!!eid);
-
-  btn.addEventListener('click', function () {
-    if (!eid) return;
-    window.location.href = '/estimates/' + encodeURIComponent(eid) + '/export/summary.csv';
-  }, { passive: true });
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (!eid) { return exportSummaryCsvSmart(e, null); }
+    exportSummaryCsvSmart(e, eid);
+  }, { passive: false });
 });
 
 // --- Estimates Index: Export CSV (preserve current query string) ---
@@ -445,4 +411,145 @@ function showToast(message, type, delay) {
     el.classList.add('show');
     setTimeout(function () { el.remove(); }, (delay || 2200) + 400);
   }
+}
+
+// Smart export: if eid present -> Saved GET; else -> Fast POST with summary_export
+function exportSummaryPdfSmart(e, eid) {
+  try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch(_) {}
+  try { if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch(_) {}
+
+  // Saved path = simple GET
+  if (eid) {
+    window.open('/estimates/' + encodeURIComponent(eid) + '/export/summary.pdf', '_blank');
+    return;
+  }
+
+  // Fast path = build from DOM right now (no payload dependency)
+  var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+  var cells = (typeof captureSummaryCells === 'function')
+    ? (captureSummaryCells() || {})
+    : harvestCellsFallback();
+
+  var controls = (typeof captureSummaryControls === 'function')
+    ? (captureSummaryControls() || {})
+    : harvestControlsFallback();
+
+  fetch('/estimates/exports/summary.pdf', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+    body: JSON.stringify({ summary_export: { cells: cells, controls: controls } })
+  })
+  .then(function (r) { if (!r.ok) throw new Error('export_failed'); return r.blob(); })
+  .then(function (b) { var u = URL.createObjectURL(b); window.open(u, '_blank'); })
+  .catch(function () { try { showToast('Export PDF failed', 'danger'); } catch(_) {} });
+}
+
+
+function exportSummaryCsvSmart(e, eid) {
+  try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch(_) {}
+  try { if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch(_) {}
+
+  // Saved path = simple GET
+  if (eid) {
+    window.location.href = '/estimates/' + encodeURIComponent(eid) + '/export/summary.csv';
+    return;
+  }
+
+  // Fast path = build from DOM right now
+  var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+  var cells = (typeof captureSummaryCells === 'function')
+    ? (captureSummaryCells() || {})
+    : harvestCellsFallback();
+
+  var controls = (typeof captureSummaryControls === 'function')
+    ? (captureSummaryControls() || {})
+    : harvestControlsFallback();
+
+  fetch('/estimates/exports/summary.csv', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+    body: JSON.stringify({ summary_export: { cells: cells, controls: controls } })
+  })
+  .then(function (r) {
+    if (!r.ok) throw new Error('export_failed');
+    var disp = r.headers.get('Content-Disposition') || '';
+    var m = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disp);
+    var filename = (m && m[1]) ? decodeURIComponent(m[1]) : 'estimate_summary.csv';
+    return r.blob().then(function (b) { return { b: b, filename: filename }; });
+  })
+  .then(function (o) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(o.b);
+    a.download = o.filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(a.href); a.remove();
+    }, 500);
+  })
+  .catch(function () { try { showToast('Export CSV failed', 'danger'); } catch(_) {} });
+}
+
+// --- Fallback harvesters (used when captureSummary* are not defined) ---
+function harvestCellsFallback() {
+  // Use your exact Summary IDs; input uses .value, others .textContent
+  var ids = [
+    'labor-hours-pricing-sheet','summaryAdjustedHours','summaryAdditionalHours',
+    'summaryTotalHours','summaryTotalLaborCost','material-cost-price-sheet',
+    'miscMaterialValue','smallToolsValue','largeToolsValue','wasteTheftValue',
+    'taxableMaterialValue','salesTaxValue','totalMaterialCostValue','djeValue',
+    'primeCostValue','overheadValue','breakEvenValue','markupValue',
+    'profitMarginValue','estimatedSalesPriceValue','oneManDays','twoManDays',
+    'fourManDays','laborRateInput'
+  ];
+  var out = {};
+  for (var i=0;i<ids.length;i++){
+    var el = document.getElementById(ids[i]);
+    if (!el) continue;
+    var val = (el.tagName === 'INPUT') ? el.value : el.textContent;
+    if (val == null) continue;
+    val = String(val).trim();
+    // keep zeros like "0" / "$0.00"
+    out[ids[i]] = val;
+  }
+  return out;
+}
+
+function harvestControlsFallback() {
+  // Your exact controls in Summary
+  var marginSel   = document.getElementById('marginSelect');
+  var overheadSel = document.getElementById('overheadPercentSelect');
+  var laborRateEl = document.getElementById('laborRateInput');
+  var miscSel     = document.querySelector('select[name="misc_percent"]');
+  var smallSel    = document.querySelector('select[name="small_tools_percent"]');
+  var largeSel    = document.querySelector('select[name="large_tools_percent"]');
+  var wasteSel    = document.querySelector('select[name="waste_theft_percent"]');
+  var taxSel      = document.querySelector('select[name="sales_tax_percent"]');
+
+  function numOrNull(x){
+    if (x == null || x === '') return null;
+    var n = Number(x);
+    return Number.isFinite(n) ? n : x;
+  }
+  function pick(sel){ return sel ? numOrNull(sel.value) : null; }
+
+  // Prefer numeric labor rate if typed; leave as number
+  var lr = null;
+  if (laborRateEl) {
+    var raw = String(laborRateEl.value || '').replace(/[^0-9.]/g,'');
+    lr = raw ? Number(raw) : null;
+    if (!Number.isFinite(lr)) lr = null;
+  }
+
+  return {
+    margin_percent:        pick(marginSel),
+    overhead_percent:      pick(overheadSel),
+    misc_percent:          pick(miscSel),
+    small_tools_percent:   pick(smallSel),
+    large_tools_percent:   pick(largeSel),
+    waste_theft_percent:   pick(wasteSel),
+    sales_tax_percent:     pick(taxSel),
+    labor_rate:            lr
+  };
 }
