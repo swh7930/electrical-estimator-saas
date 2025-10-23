@@ -9,6 +9,8 @@ from . import bp
 from app.services import tokens
 from app.services.email import send_verification_email, send_password_reset_email
 from flask_wtf.csrf import generate_csrf
+from app.extensions import csrf
+
 
 def _login_email_scope():
     data_json = request.get_json(silent=True) or {}
@@ -122,7 +124,13 @@ def reset_request():
     # Always respond the same way
     return redirect(url_for("auth.login_get"))
 
+@csrf.exempt
 @bp.get("/csrf-token")
 def csrf_token():
     token = generate_csrf()
-    return jsonify({"csrf_token": token})
+    resp = jsonify({"csrf_token": token})
+    # keep tokens fresh; avoid caches holding stale tokens
+    resp.headers["Cache-Control"] = "no-store"
+    # optional helper cookie; header alone is sufficient for Flask-WTF
+    resp.set_cookie("csrf_token", token, samesite="Lax")
+    return resp
