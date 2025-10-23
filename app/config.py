@@ -38,6 +38,20 @@ class BaseConfig:
 
     # Used for absolute links in emails (must be https in prod)
     APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:5000")
+    
+        # --- Stripe (Billing) ---
+    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+    STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    # Price IDs (per environment via env vars)
+    STRIPE_PRICE_PRO_MONTHLY = os.getenv("STRIPE_PRICE_PRO_MONTHLY")
+    STRIPE_PRICE_PRO_ANNUAL = os.getenv("STRIPE_PRICE_PRO_ANNUAL")
+    STRIPE_PRICE_ELITE_MONTHLY = os.getenv("STRIPE_PRICE_ELITE_MONTHLY")
+    STRIPE_PRICE_ELITE_ANNUAL = os.getenv("STRIPE_PRICE_ELITE_ANNUAL")
+
+    # Taxes: we use exclusive pricing; Stripe Tax computes/collects at checkout/invoice
+    ENABLE_STRIPE_TAX = (os.getenv("ENABLE_STRIPE_TAX", "true").lower() == "true")
 
     # Token salt for email flows
     EMAIL_TOKEN_SALT = os.getenv("EMAIL_TOKEN_SALT", "email-token-v1")
