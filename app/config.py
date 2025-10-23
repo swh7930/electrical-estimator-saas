@@ -25,12 +25,29 @@ class BaseConfig:
 
     # Flask-Limiter default: off globally; prefer per-route limits
     RATELIMIT_DEFAULT = None
+    
+    # --- Mail ---
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "localhost")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+    MAIL_USE_TLS = (os.getenv("MAIL_USE_TLS", "true").lower() == "true")
+    MAIL_USE_SSL = (os.getenv("MAIL_USE_SSL", "false").lower() == "true")
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", 'Electrical Estimator <no-reply@local.test>')
+    MAIL_SUPPRESS_SEND = (os.getenv("MAIL_SUPPRESS_SEND", "false").lower() == "true")
+
+    # Used for absolute links in emails (must be https in prod)
+    APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:5000")
+
+    # Token salt for email flows
+    EMAIL_TOKEN_SALT = os.getenv("EMAIL_TOKEN_SALT", "email-token-v1")
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
     SESSION_COOKIE_SECURE = False
     REMEMBER_COOKIE_SECURE = False
+    MAIL_SUPPRESS_SEND = True
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
@@ -42,6 +59,7 @@ class ProductionConfig(BaseConfig):
     REMEMBER_COOKIE_SECURE = True
     # allow override if you need "Strict" for purely internal apps
     SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
+    MAIL_SUPPRESS_SEND = False
 
 class TestingConfig(BaseConfig):
     TESTING = True

@@ -1,0 +1,8 @@
+Hi {{ user_name }},
+
+We received a request to reset your password.
+
+Reset: {{ action_url }}
+
+This link expires in {{ token_ttl_minutes }} minutes.
+If you didn’t request this, you can ignore this message.
