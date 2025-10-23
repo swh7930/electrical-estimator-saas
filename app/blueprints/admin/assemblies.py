@@ -5,7 +5,7 @@ from sqlalchemy import func
 
 from . import bp
 from flask_login import current_user
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models.assembly import Assembly, AssemblyComponent
 from app.models.material import Material
 from app.models.org_membership import OrgMembership, ROLE_ADMIN, ROLE_OWNER
@@ -155,6 +155,7 @@ def new_assembly():
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies")
+@limiter.limit("60 per minute")
 def create_assembly():
     name = (request.form.get("name") or "").strip()
     try:
@@ -182,6 +183,7 @@ def create_assembly():
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)    
 @bp.post("/assemblies/bundle")
+@limiter.limit("60 per minute")
 def create_assembly_bundle():
     """
     JSON-only endpoint to create an assembly and its components atomically.
@@ -403,6 +405,7 @@ def components_json(assembly_id: int):
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components")
+@limiter.limit("60 per minute")
 def add_component(assembly_id: int):
     assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     if not assembly:
@@ -466,6 +469,7 @@ def add_component(assembly_id: int):
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/delete")
+@limiter.limit("60 per minute")
 def delete_assembly(assembly_id: int):
     a = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     if not a:
@@ -496,6 +500,7 @@ def delete_assembly(assembly_id: int):
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/deactivate")
+@limiter.limit("60 per minute")
 def deactivate_component(assembly_id: int, component_id: int):
     # Assembly must belong to the current org
     assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first()
@@ -522,6 +527,7 @@ def deactivate_component(assembly_id: int, component_id: int):
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/activate")
+@limiter.limit("60 per minute")
 def activate_component(assembly_id: int, component_id: int):
     # Assembly must belong to the current org
     assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first()

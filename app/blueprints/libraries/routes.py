@@ -4,7 +4,7 @@ from app.models.material import Material
 from app.models.dje_item import DjeItem
 from app.models.customer import Customer
 from app.models.org_membership import OrgMembership, ROLE_ADMIN, ROLE_OWNER
-from app.extensions import db
+from app.extensions import db, limiter
 from sqlalchemy.exc import IntegrityError
 from app.utils.validators import (
     clean_str,
@@ -105,6 +105,7 @@ def materials():
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/materials")
+@limiter.limit("120 per minute")
 def materials_create():
     """
     Accepts JSON from fetch() and creates a Material.
@@ -295,6 +296,7 @@ def dje():
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/dje")
+@limiter.limit("120 per minute")
 def create_dje():
     data = request.get_json(silent=True) or {}
     errors = []
@@ -354,6 +356,7 @@ def create_dje():
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.put("/dje/<int:item_id>")
+@limiter.limit("120 per minute")
 def update_dje(item_id):
     item = DjeItem.query.filter_by(id=item_id, org_id=current_user.org_id).first_or_404()
     data = request.get_json(silent=True) or {}
@@ -404,6 +407,7 @@ def update_dje(item_id):
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.delete("/dje/<int:item_id>")
+@limiter.limit("120 per minute")
 def delete_dje(item_id):
     item = DjeItem.query.filter_by(id=item_id, org_id=current_user.org_id).first_or_404()
     db.session.delete(item)
@@ -494,6 +498,7 @@ def customers_json():
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/customers")
+@limiter.limit("120 per minute")
 def customers_create():
     data = request.get_json(silent=True) or {}
     errors = {}
@@ -553,6 +558,7 @@ def customers_create():
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.put("/customers/<int:customer_id>")
+@limiter.limit("120 per minute")
 def customers_update(customer_id: int):
     c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
     data = request.get_json(silent=True) or {}
@@ -612,6 +618,7 @@ def customers_update(customer_id: int):
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/customers/<int:customer_id>/toggle_active")
+@limiter.limit("120 per minute")
 def customers_toggle_active(customer_id: int):
     c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
     c.is_active = not bool(c.is_active)
@@ -620,6 +627,7 @@ def customers_toggle_active(customer_id: int):
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.delete("/customers/<int:customer_id>")
+@limiter.limit("120 per minute")
 def customers_delete(customer_id: int):
     c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
     db.session.delete(c)

@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from . import bp
 from flask_login import current_user
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models.app_settings import AppSettings
 from app.services.policy import require_member, role_required
 from app.models.org_membership import OrgMembership,  ROLE_ADMIN, ROLE_OWNER
@@ -21,7 +21,6 @@ def settings():
 
     return render_template("admin/settings.html", settings=settings, can_write=_can_write_settings())
 
-
 @bp.get("/settings.json")
 @require_member
 def get_settings_json():
@@ -35,8 +34,10 @@ def get_settings_json():
 
     return jsonify(row.to_dict())
 
-@bp.put("/settings.json")
+
 @role_required(ROLE_ADMIN, ROLE_OWNER)
+@bp.put("/settings.json")
+@limiter.limit("15 per minute")
 def put_settings_json():
     payload = request.get_json(silent=True) or {}
     incoming = payload.get("settings", {})

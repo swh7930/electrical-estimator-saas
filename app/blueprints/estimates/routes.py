@@ -10,7 +10,7 @@ from datetime import datetime
 from . import bp
 from .validators import validate_fast_export_payload
 from flask_login import login_required, current_user
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models.estimate import Estimate
 from app.models.app_settings import AppSettings
 from app.models.customer import Customer
@@ -239,6 +239,7 @@ def get_payload_json(estimate_id: int):
     return jsonify(ok=True, id=est.id, payload=est.work_payload or {})
 
 @bp.get("/<int:estimate_id>/export/summary.csv")
+@limiter.limit("30 per minute")
 def export_summary_csv(estimate_id: int):
     """
     Saved Export (CSV)
@@ -294,6 +295,7 @@ def export_summary_csv(estimate_id: int):
     return resp
 
 @bp.get("/export/index.csv")
+@limiter.limit("30 per minute")
 def export_estimates_index_csv():
     # Org-scoped list of estimates; optional query-string filters may be appended by the UI.
     q = (request.args.get("q") or "").strip()
@@ -366,6 +368,7 @@ def export_estimates_index_csv():
     return resp
 
 @bp.get("/<int:estimate_id>/export/summary.pdf")
+@limiter.limit("8 per minute")
 def export_summary_pdf(estimate_id: int):
     """
     HF1: Saved Export (PDF)
@@ -412,6 +415,7 @@ def export_summary_pdf(estimate_id: int):
     return resp
 
 @bp.post("/exports/summary.csv")
+@limiter.limit("30 per minute")
 def fast_export_summary_csv():
     """
     Fast Export (CSV)
@@ -460,6 +464,7 @@ def fast_export_summary_csv():
     return resp
 
 @bp.post("/exports/summary.pdf")
+@limiter.limit("8 per minute")
 def fast_export_summary_pdf():
     """
     HF1: Fast Export (PDF)

@@ -1,11 +1,17 @@
 from flask import render_template, request, redirect, url_for, session
 from flask_login import login_user, logout_user, current_user
 from sqlalchemy import func
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models.user import User
 from app.models.org import Org
 from app.models.org_membership import OrgMembership, ROLE_OWNER, ROLE_MEMBER
 from . import bp
+
+def _login_email_scope():
+    data_json = request.get_json(silent=True) or {}
+    email = (request.form.get("email") or data_json.get("email") or "").strip().lower()
+    # Keep a stable scope even if email is blank
+    return f"login-email:{email or 'missing'}"
 
 @bp.get("/login")
 def login_get():
@@ -15,6 +21,8 @@ def login_get():
     return render_template("auth/login.html")
 
 @bp.post("/login")
+@limiter.limit("10 per minute; 100 per hour")              # per-IP (anon → IP via _rate_limit_key)
+@limiter.limit("5 per minute; 20 per hour", key_func=_login_email_scope)  # per-account
 def login_post():
     email = (request.form.get("email") or "").strip()
     password = request.form.get("password") or ""
