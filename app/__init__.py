@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 
 # Load .env only for local/dev. In prod, env vars come from the platform.
 if os.getenv("APP_ENV", "development") != "production":
@@ -13,6 +13,15 @@ from .extensions import db, migrate, csrf, login_manager, limiter, mail
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
+    
+        # ---- S3-03b.5 Rate Limiting storage configuration ----
+    app_env = (os.getenv("APP_ENV", "development") or "development").lower()
+    use_redis = app_env in ("staging", "production")
+    storage_uri = os.environ.get("REDIS_URL") if use_redis else "memory://"
+    if use_redis and not storage_uri:
+        # Hard fail in stage/prod so we never silently run without RL storage
+        raise RuntimeError("REDIS_URL is required in staging/production for rate limiting")
+    # -------------------------------------------------------
 
     # Config: clean, explicit, class-based
     app.config.from_object(get_config())
@@ -22,7 +31,8 @@ def create_app():
     migrate.init_app(app, db, directory="migrations")
     csrf.init_app(app)
     login_manager.init_app(app)
-    limiter.init_app(app)
+    # Global soft fallback: catch outliers without harming normal UX
+    limiter.init_app(app, storage_uri=storage_uri, default_limits=["1000 per hour"])
     mail.init_app(app)
 
     # Blueprints (explicit, consistent prefixes)
@@ -48,6 +58,12 @@ def create_app():
     # Admin & API
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(api_bp,   url_prefix="/api")
+    
+    # Exempt Flask's static endpoint from default/global limits
+    try:
+        limiter.exempt(app.view_functions["static"])
+    except KeyError:
+        pass
    
     # Template globals (shared across all templates)
     from datetime import datetime, timezone
@@ -91,6 +107,7 @@ def create_app():
             "can_write": can_write,
         }
 
+    @limiter.exempt
     # Health
     @app.get("/healthz")
     def healthz():
@@ -120,6 +137,26 @@ def create_app():
         if "application/json" in accept:
             return {"error": "forbidden", "code": 403}, 403
         return render_template("errors/403.html"), 403
+    
+    # 429 Too Many Requests — consistent JSON/HTML with Retry-After
+    @app.errorhandler(429)
+    def too_many_requests(e):
+        retry_after = getattr(e, "retry_after", None)
+        headers = {}
+        if retry_after is not None:
+            headers["Retry-After"] = str(int(retry_after))
+        wants_json = (
+            "application/json" in (request.headers.get("Accept") or "").lower()
+            or request.is_json
+            or request.path.endswith(".json")
+        )
+        if wants_json:
+            payload = {"error": "rate_limited", "code": 429}
+            if retry_after is not None:
+                payload["retry_after"] = int(retry_after)
+            return (payload, 429, headers)
+        # HTML
+        return (render_template("errors/429.html", retry_after=retry_after), 429, headers)
     
     # CLI commands (ops-grade utilities)
     from .cli import register_cli
