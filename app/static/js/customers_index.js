@@ -1,4 +1,14 @@
 (function () {
+  const meta = document.querySelector('meta[name="x-can-write"]');
+  const CAN_WRITE = !!(meta && meta.content === '1');
+  if (!CAN_WRITE) {
+    const scope = document.getElementById('customers-grid') || document;
+    scope.querySelectorAll('input, select, textarea, button').forEach((el) => {
+      el.setAttribute('disabled', 'disabled');
+      el.setAttribute('aria-disabled', 'true');
+    });
+    return; // skip binding add/edit/delete handlers
+  }
   const $ = (id) => document.getElementById(id);
   const v = (id) => { const el = $(id); return el ? (el.value || '').trim() : ''; };
   const set = (id, val) => { const el = $(id); if (el) el.value = (val || ''); };

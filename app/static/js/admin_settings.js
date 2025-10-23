@@ -117,7 +117,10 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      const canMeta = document.querySelector('meta[name="x-can-write"]');
+      const CAN_WRITE = !!(canMeta && canMeta.content === '1');
       setStatus("");
+
       // Load existing (if any)
       fetch("/admin/settings.json")
         .then(r => r.ok ? r.json() : {})
@@ -125,6 +128,15 @@
           if (data && data.settings) applyToForm(data.settings);
         })
         .catch(() => { /* keep defaults */ });
+            if (!CAN_WRITE) {
+        const scope = document.getElementById('admin-settings-grid') || document;
+        scope.querySelectorAll('input, select, textarea, button').forEach((el) => {
+          el.setAttribute('disabled', 'disabled');
+          el.setAttribute('aria-disabled', 'true');
+        });
+        // View-only: do not bind autosave handlers.
+        return;
+      }
 
       // Auto-save on change/blur
       const ids = [

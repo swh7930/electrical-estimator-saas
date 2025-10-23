@@ -9,6 +9,7 @@ from app.extensions import db
 from app.models.assembly import Assembly, AssemblyComponent
 from app.models.material import Material
 from app.models.org_membership import OrgMembership, ROLE_ADMIN, ROLE_OWNER
+from app.services.policy import require_member, role_required
 
 from app.services.assemblies import (
     ServiceError,
@@ -37,7 +38,7 @@ def _acl_assemblies_readonly_for_members():
     if request.method not in ("GET", "HEAD", "OPTIONS") and m.role not in (ROLE_ADMIN, ROLE_OWNER):
         abort(403)
 
-
+@require_member
 @bp.get("/assemblies")
 def list_assemblies():
     # Rows for the table
@@ -147,11 +148,12 @@ def list_assemblies():
         rt=rt,
     )
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.get("/assemblies/new")
 def new_assembly():
     return render_template("admin/assemblies_new.html")
 
-
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies")
 def create_assembly():
     name = (request.form.get("name") or "").strip()
@@ -177,7 +179,8 @@ def create_assembly():
         db.session.rollback()
         flash("Database error creating assembly.", "error")
         return redirect(url_for("admin.new_assembly"))
-    
+
+@role_required(ROLE_ADMIN, ROLE_OWNER)    
 @bp.post("/assemblies/bundle")
 def create_assembly_bundle():
     """
@@ -291,6 +294,7 @@ def create_assembly_bundle():
 
     return jsonify({"message": "Created", "id": a.id}), 201
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.route("/assemblies/<int:assembly_id>/edit", methods=["GET", "PUT"])
 def edit_assembly(assembly_id: int):
     if request.method == "PUT":
@@ -366,6 +370,7 @@ def edit_assembly(assembly_id: int):
         show_all=(show == "all"),
     )
 
+@require_member
 @bp.get("/assemblies/<int:assembly_id>/components.json")
 def components_json(assembly_id: int):
     Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
@@ -396,6 +401,7 @@ def components_json(assembly_id: int):
     ]
     return jsonify(data), 200
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components")
 def add_component(assembly_id: int):
     assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
@@ -458,7 +464,7 @@ def add_component(assembly_id: int):
 
     return redirect(url_for("admin.list_assemblies"))
 
-
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/delete")
 def delete_assembly(assembly_id: int):
     a = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
@@ -488,6 +494,7 @@ def delete_assembly(assembly_id: int):
 
     return redirect(url_for("admin.list_assemblies"))
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/deactivate")
 def deactivate_component(assembly_id: int, component_id: int):
     # Assembly must belong to the current org
@@ -513,7 +520,7 @@ def deactivate_component(assembly_id: int, component_id: int):
     show = request.args.get("show") or ""
     return redirect(url_for("admin.list_assemblies", assembly_id=assembly_id, show=show))
 
-
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/activate")
 def activate_component(assembly_id: int, component_id: int):
     # Assembly must belong to the current org

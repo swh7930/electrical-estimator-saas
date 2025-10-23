@@ -2,9 +2,14 @@
   {% set summary = {} %}
 {% endif %}
 
-{# cell(id, default) -> fills value for a cell by its DOM id from summary.cells[id] #}
+{# Normalize: if a nested summary_export exists, use it; else use the current summary #}
+{% set se = (summary.summary_export if summary is mapping and summary.get('summary_export') else summary) %}
+
+{# cell(id, default) -> looks in se.cells, then summary.cells, then summary.totals #}
 {% macro cell(id, default='') -%}
-  {%- if summary is mapping and summary.get('cells') is mapping and (id in summary.cells) -%}
+  {%- if se is mapping and se.get('cells') is mapping and (id in se.cells) -%}
+    {{ se.cells[id] }}
+  {%- elif summary is mapping and summary.get('cells') is mapping and (id in summary.cells) -%}
     {{ summary.cells[id] }}
   {%- elif summary is mapping and summary.get('totals') is mapping and (id in summary.totals) -%}
     {{ summary.totals[id] }}
@@ -13,12 +18,10 @@
   {%- endif -%}
 {%- endmacro %}
 
+{# control(key, default) -> looks in se.controls (preferred) #}
 {% macro control(key, default='') -%}
-  {%- if summary is mapping
-        and summary.get('summary_export')
-        and summary.summary_export.get('controls')
-        and (key in summary.summary_export.controls) -%}
-    {{ summary.summary_export.controls[key] }}
+  {%- if se is mapping and se.get('controls') is mapping and (key in se.controls) -%}
+    {{ se.controls[key] }}
   {%- else -%}
     {{ default }}
   {%- endif -%}

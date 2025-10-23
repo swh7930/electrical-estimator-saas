@@ -102,6 +102,17 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+        var meta = document.querySelector('meta[name="x-can-write"]');
+    var CAN_WRITE = !!(meta && meta.content === '1');
+    if (!CAN_WRITE) {
+      var scope = document.getElementById('materials-grid') || document;
+      scope.querySelectorAll('input, select, textarea, button').forEach(function (el) {
+        el.setAttribute('disabled', 'disabled');
+        el.setAttribute('aria-disabled', 'true');
+      });
+      return; // skip binding Add/Edit/Delete handlers
+    }
+
     const addBtn = document.getElementById("materialsAddBtn");
     const addContBtn = document.getElementById("materialsAddContinueBtn");
     const resetBtn = document.getElementById("materialsResetBtn");

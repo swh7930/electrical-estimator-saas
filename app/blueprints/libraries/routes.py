@@ -17,6 +17,7 @@ from app.utils.validators import (
 )
 from . import bp
 from flask_login import current_user
+from app.services.policy import require_member, role_required
 
 @bp.before_request
 def _acl_libraries_readonly_for_members():
@@ -42,6 +43,7 @@ def _require_login_libraries():
         return None
     return redirect(url_for("auth.login_get", next=request.url))
 
+@require_member
 @bp.get("/materials")
 def materials():
     # Basic filters (optional)
@@ -101,6 +103,7 @@ def materials():
         rt=rt,
     )
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/materials")
 def materials_create():
     """
@@ -176,6 +179,7 @@ def materials_create():
         ), 409
     return jsonify(ok=True, id=m.id), 201
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.route("/materials/<int:material_id>", methods=["DELETE"])
 def materials_delete(material_id: int):
     m = Material.query.filter_by(id=material_id, org_id=current_user.org_id).first_or_404()
@@ -183,6 +187,7 @@ def materials_delete(material_id: int):
     db.session.commit()
     return jsonify(ok=True), 204
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.route("/materials/<int:material_id>", methods=["PUT"])
 def materials_update(material_id: int):
     m = Material.query.filter_by(id=material_id, org_id=current_user.org_id).first_or_404()
@@ -213,6 +218,7 @@ def materials_update(material_id: int):
 
     return jsonify(ok=True), 200
 
+@require_member
 @bp.get("/dje")
 def dje():
     items = (
@@ -287,6 +293,7 @@ def dje():
         rt=rt,
     )
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/dje")
 def create_dje():
     data = request.get_json(silent=True) or {}
@@ -345,6 +352,7 @@ def create_dje():
         }
     }), 201
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.put("/dje/<int:item_id>")
 def update_dje(item_id):
     item = DjeItem.query.filter_by(id=item_id, org_id=current_user.org_id).first_or_404()
@@ -394,6 +402,7 @@ def update_dje(item_id):
         }
     }), 200
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.delete("/dje/<int:item_id>")
 def delete_dje(item_id):
     item = DjeItem.query.filter_by(id=item_id, org_id=current_user.org_id).first_or_404()
@@ -401,6 +410,7 @@ def delete_dje(item_id):
     db.session.commit()
     return ("", 204)
 
+@require_member
 @bp.get("/customers")
 def customers():
     q = (request.args.get("q") or "").strip()
@@ -445,7 +455,8 @@ def customers():
         back_href=back_href,
         rt=rt,
     )
-    
+   
+@require_member 
 @bp.get("/customers.json")
 def customers_json():
     q = (request.args.get("q") or "").strip()
@@ -481,6 +492,7 @@ def customers_json():
     } for c in rows]
     return jsonify(ok=True, rows=data)
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/customers")
 def customers_create():
     data = request.get_json(silent=True) or {}
@@ -539,6 +551,7 @@ def customers_create():
 
     return jsonify(ok=True, id=c.id), 201
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.put("/customers/<int:customer_id>")
 def customers_update(customer_id: int):
     c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
@@ -597,6 +610,7 @@ def customers_update(customer_id: int):
 
     return jsonify(ok=True), 200
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/customers/<int:customer_id>/toggle_active")
 def customers_toggle_active(customer_id: int):
     c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()
@@ -604,6 +618,7 @@ def customers_toggle_active(customer_id: int):
     db.session.commit()
     return jsonify(ok=True, is_active=bool(c.is_active))
 
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.delete("/customers/<int:customer_id>")
 def customers_delete(customer_id: int):
     c = Customer.query.filter_by(id=customer_id, org_id=current_user.org_id).first_or_404()

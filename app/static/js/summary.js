@@ -400,16 +400,17 @@ function resetAllFromSummary() {
 // === wire Reset button + do a hard reset (use App Settings, not factory defaults) ===
 (function () {
   function eeResetAll() {
-    // Clear ONLY this estimate's namespaced totals (strict per-eid reset)
-    try { localStorage.removeItem(TOTALS_KEY); } catch {}
-    // No global wipes, no forced App Settings when eid is present
+    // Saved estimates: do nothing (button will be disabled anyway)
+    var eid = new URLSearchParams(window.location.search).get('eid');
+    if (eid) return;
 
-    // Optional: broadcast
-    if (window.ee && typeof window.ee.fire === 'function') {
-      window.ee.fire('ee:resetAll', { source: 'summary' });
-    }
+    // FAST (unsaved) reset: clear only fast working state and signal other pages
+    try { localStorage.removeItem('ee.FAST.grid.v1'); } catch (_) {}
+    try { localStorage.removeItem('ee.FAST.totals'); } catch (_) {}
+    try { localStorage.removeItem('estimateData'); } catch (_) {}
+    try { localStorage.setItem('ee.reset', String(Date.now())); } catch (_) {}
 
-    // Reload; hydration will apply current App Settings
+    // Reload Summary — other pages will hydrate clean on next visit
     location.reload();
   }
 
@@ -477,5 +478,28 @@ window.ee && window.ee.on && window.ee.on('ee:djeChanged', () => {
   __ee_refreshSummaryHeaderFromStorage();
 });
 
+// Disable Summary "Reset All" when estimate is saved (eid present)
+(function () {
+  try {
+    var eid = new URLSearchParams(window.location.search).get('eid');
+    if (!eid) return; // Fast mode: keep clickable
+
+    function disable(el) {
+      if (!el) return;
+      el.setAttribute('disabled', 'disabled');
+      el.classList.add('disabled');
+      el.setAttribute('aria-disabled', 'true');
+      el.style.pointerEvents = 'none';
+      var href = el.getAttribute('href');
+      if (href) { el.setAttribute('data-href-disabled', href); el.removeAttribute('href'); }
+    }
+
+    // Likely candidates: element wired to eeResetAll, or common ids/attrs you use
+    var nodes = document.querySelectorAll(
+      '[onclick*="eeResetAll"], #resetAllBtn, [data-reset="all"], [data-action="reset-all"]'
+    );
+    nodes.forEach(disable);
+  } catch (_) {}
+})();
 
 
