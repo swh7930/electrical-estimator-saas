@@ -7,3 +7,4 @@ from .estimate import Estimate
 from .user import User
 from .org import Org
 from .org_membership import OrgMembership
+from .email_log import EmailLog

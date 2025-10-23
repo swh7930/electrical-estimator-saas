@@ -12,6 +12,8 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(255), nullable=False)
     org_id = db.Column(db.Integer, db.ForeignKey("orgs.id", ondelete="RESTRICT"), index=True, nullable=True)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    
+    email_verified_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())

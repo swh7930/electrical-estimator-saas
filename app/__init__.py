@@ -23,6 +23,11 @@ def create_app():
         raise RuntimeError("REDIS_URL is required in staging/production for rate limiting")
     # -------------------------------------------------------
 
+    # Configure Flask-Limiter via config (compatible with your installed version)
+    app.config["RATELIMIT_STORAGE_URI"] = storage_uri
+    app.config.setdefault("RATELIMIT_DEFAULTS", ["1000 per hour"])
+    app.config.setdefault("RATELIMIT_HEADERS_ENABLED", True)
+    
     # Config: clean, explicit, class-based
     app.config.from_object(get_config())
 
@@ -32,7 +37,7 @@ def create_app():
     csrf.init_app(app)
     login_manager.init_app(app)
     # Global soft fallback: catch outliers without harming normal UX
-    limiter.init_app(app, storage_uri=storage_uri, default_limits=["1000 per hour"])
+    limiter.init_app(app)
     mail.init_app(app)
 
     # Blueprints (explicit, consistent prefixes)
@@ -44,6 +49,7 @@ def create_app():
     from .blueprints.main import bp as main_bp
     from .blueprints.estimates import bp as estimates_bp
     from .blueprints.libraries import bp as libraries_bp
+    from .blueprints.webhooks import bp as webhooks_bp
 
     # Core / marketing
     app.register_blueprint(main_bp)                         # "/"
@@ -59,6 +65,9 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(api_bp,   url_prefix="/api")
     
+    # Webhooks
+    app.register_blueprint(webhooks_bp, url_prefix="/webhooks")
+    
     # Exempt Flask's static endpoint from default/global limits
     try:
         limiter.exempt(app.view_functions["static"])
@@ -67,7 +76,6 @@ def create_app():
    
     # Template globals (shared across all templates)
     from datetime import datetime, timezone
-    import os
 
     @app.context_processor
     def inject_globals():

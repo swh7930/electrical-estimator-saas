@@ -1,0 +1,9 @@
+{% extends "email/base_email.html" %}
+{% block content %}
+<p>Hi {{ user_name }},</p>
+<p>We received a request to reset the password for {{ user_name }}.</p>
+<p><a href="{{ action_url }}">Reset password</a></p>
+<p>If the button doesn’t work, copy and paste this link into your browser:</p>
+<p>{{ action_url }}</p>
+<p>This link expires in {{ token_ttl_minutes }} minutes.</p>
+{% endblock %}

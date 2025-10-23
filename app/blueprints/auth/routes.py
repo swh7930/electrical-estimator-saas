@@ -6,6 +6,8 @@ from app.models.user import User
 from app.models.org import Org
 from app.models.org_membership import OrgMembership, ROLE_OWNER, ROLE_MEMBER
 from . import bp
+from app.services import tokens
+from app.services.email import send_verification_email, send_password_reset_email
 
 def _login_email_scope():
     data_json = request.get_json(silent=True) or {}
@@ -74,3 +76,47 @@ def logout():
         logout_user()
     return redirect(url_for("main.home"))
 
+@bp.post("/verify/resend")
+@limiter.limit("3 per hour")
+def resend_verification():
+    if not current_user.is_authenticated:
+        # Normalize: same behavior whether logged-in or not
+        return redirect(url_for("auth.login_get"))
+    # If already verified, do nothing but return OK-ish
+    if getattr(current_user, "email_verified_at", None):
+        return redirect(url_for("main.home"))
+    send_verification_email(current_user)
+    return redirect(url_for("main.home"))
+
+@bp.get("/verify")
+def verify_email():
+    token = (request.args.get("token") or "").strip()
+    if not token:
+        return redirect(url_for("auth.login_get", verified="0"))
+
+    # TTL must match email service default: 30 minutes
+    email = tokens.verify("verify", token, max_age_seconds=30 * 60)
+    if not email:
+        return redirect(url_for("auth.login_get", verified="0"))
+
+    user = User.query.filter(func.lower(User.email) == email.lower()).first()
+    if not user:
+        return redirect(url_for("auth.login_get", verified="0"))
+
+    if not getattr(user, "email_verified_at", None):
+        user.email_verified_at = func.now()
+        db.session.commit()
+
+    return redirect(url_for("auth.login_get", verified="1"))
+
+@bp.post("/password/reset-request")
+@limiter.limit("10 per hour")
+def reset_request():
+    data = request.get_json(silent=True) or request.form
+    email = (data.get("email") or "").strip().lower()
+    if email:
+        user = User.query.filter(func.lower(User.email) == email).first()
+        if user:
+            send_password_reset_email(user)  # TTL default is 120 minutes in email.py
+    # Always respond the same way
+    return redirect(url_for("auth.login_get"))
