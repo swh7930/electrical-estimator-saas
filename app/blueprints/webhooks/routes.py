@@ -2,10 +2,11 @@ import os
 import hmac
 import hashlib
 from datetime import datetime
-from flask import request, jsonify, abort
+from flask import request, jsonify, abort, current_app
 from . import bp
 from app.extensions import db, csrf
 from app.models import EmailLog
+import json
 
 def _valid_signature(raw_body: bytes, timestamp: str, sig: str) -> bool:
     secret = os.getenv("EMAIL_WEBHOOK_SECRET")
@@ -52,4 +53,12 @@ def email_events():
     )
     db.session.add(log)
     db.session.commit()
+    
+    current_app.logger.info(json.dumps({
+        "event": "mail_webhook",
+        "to": to_email,
+        "status": status,
+        "provider_msg_id": provider_msg_id
+    }))
+    
     return jsonify({"ok": True}), 200
