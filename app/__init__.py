@@ -50,6 +50,8 @@ def create_app():
     from .blueprints.estimates import bp as estimates_bp
     from .blueprints.libraries import bp as libraries_bp
     from .blueprints.webhooks import bp as webhooks_bp
+    from app.blueprints.billing.routes import billing_bp
+    
 
     # Core / marketing
     app.register_blueprint(main_bp)                         # "/"
@@ -67,6 +69,7 @@ def create_app():
     
     # Webhooks
     app.register_blueprint(webhooks_bp, url_prefix="/webhooks")
+    app.register_blueprint(billing_bp, url_prefix="/billing")
     
     # Exempt Flask's static endpoint from default/global limits
     try:

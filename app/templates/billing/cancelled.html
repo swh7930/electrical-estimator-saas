@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Billing — Cancelled{% endblock %}
+{% block content %}
+<div class="container-xxl my-4">
+  <div class="alert alert-warning" role="alert">
+    Checkout was cancelled. You can return to billing to try again.
+  </div>
+  <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary">Back to Billing</a>
+</div>
+{% endblock %}
