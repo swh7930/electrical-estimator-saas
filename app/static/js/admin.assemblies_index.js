@@ -1,5 +1,15 @@
 (() => {
   "use strict";
+  const meta = document.querySelector('meta[name="x-can-write"]');
+  const CAN_WRITE = !!(meta && meta.content === '1');
+  if (!CAN_WRITE) {
+    const scope = document.getElementById('assemblies-grid') || document;
+    scope.querySelectorAll('input, select, textarea, button').forEach((el) => {
+      el.setAttribute('disabled', 'disabled');
+      el.setAttribute('aria-disabled', 'true');
+    });
+    return; // skip binding bundle/component/create handlers
+  }
   const $ = (id) => document.getElementById(id);
 
   // Inline Add controls

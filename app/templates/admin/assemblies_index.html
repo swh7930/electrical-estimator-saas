@@ -2,6 +2,11 @@
 {% block title %}Assemblies{% endblock %}
 {% block container_class %}container-xxl{% endblock %}
 
+{% block head_extra %}
+  {{ super() }}
+  <meta name="x-can-write" content="{{ '1' if can_write else '0' }}">
+{% endblock %}
+
 {% block admin_content %}
 <div id="assemblies-grid" class="row g-4">
   <div class="col-12">

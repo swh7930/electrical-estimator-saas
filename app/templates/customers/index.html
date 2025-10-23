@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Customers · Electrical Estimator{% endblock %}
 {% block container_class %}container-xxl{% endblock %}
+
+{% block head_extra %}
+  {{ super() }}
+  <meta name="x-can-write" content="{{ '1' if can_write else '0' }}">
+{% endblock %}
+
 {% block content %}
 
   <div id="customers-grid" class="row g-4">

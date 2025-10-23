@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, render_template, request
 
 # Load .env only for local/dev. In prod, env vars come from the platform.
 if os.getenv("APP_ENV", "development") != "production":
@@ -25,11 +25,6 @@ def create_app():
     limiter.init_app(app)
     mail.init_app(app)
 
-    # Minimal placeholder until real auth is wired
-    @login_manager.user_loader
-    def load_user(user_id):
-        return None
-
     # Blueprints (explicit, consistent prefixes)
     from .blueprints.dashboard import bp as dashboard_bp
     from .blueprints.auth import bp as auth_bp
@@ -53,7 +48,7 @@ def create_app():
     # Admin & API
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(api_bp,   url_prefix="/api")
-
+   
     # Template globals (shared across all templates)
     from datetime import datetime, timezone
     import os
@@ -73,11 +68,27 @@ def create_app():
                     return datetime.fromtimestamp(ts).strftime("%B %d, %Y")
                 except Exception:
                     return datetime.now(timezone.utc).strftime("%B %d, %Y")
+                
+        # Authorization flag for templates (admin/owner can write)
+        can_write = False
+        try:
+            from flask_login import current_user
+            from flask import session as _session
+            from app.models.org_membership import OrgMembership
+            from app.extensions import db as _db
+            if getattr(current_user, "is_authenticated", False):
+                _org_id = _session.get("current_org_id") or getattr(current_user, "org_id", None)
+                if _org_id:
+                    _m = _db.session.query(OrgMembership).filter_by(org_id=_org_id, user_id=current_user.id).one_or_none()
+                    can_write = bool(_m and _m.role in ("admin", "owner"))
+        except Exception:
+            can_write = False
 
         return {
             "current_year": datetime.now(timezone.utc).year,
             "last_updated_terms": mtime_fmt("terms.html"),
             "last_updated_privacy": mtime_fmt("privacy.html"),
+            "can_write": can_write,
         }
 
     # Health
@@ -101,5 +112,17 @@ def create_app():
         # If you have templates/errors/csrf_error.html you can render it instead:
         # return render_template("errors/csrf_error.html", reason=e.description), 400
         return (f"CSRF validation failed: {e.description}", 400)
+    
+    @app.errorhandler(403)
+    def forbidden(e):
+        # For HTML requests, render a page; JSON is handled by policy decorators explicitly.
+        accept = (request.headers.get("Accept") or "").lower()
+        if "application/json" in accept:
+            return {"error": "forbidden", "code": 403}, 403
+        return render_template("errors/403.html"), 403
+    
+    # CLI commands (ops-grade utilities)
+    from .cli import register_cli
+    register_cli(app)
 
     return app

@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, session
 from sqlalchemy.sql import func
 from . import bp
 from flask_login import current_user
@@ -6,12 +6,21 @@ from flask_login import current_user
 from app.extensions import db
 from app.models.app_settings import AppSettings
 from app.services.policy import require_member, role_required
-from app.models.org_membership import ROLE_ADMIN, ROLE_OWNER
+from app.models.org_membership import OrgMembership,  ROLE_ADMIN, ROLE_OWNER
 
 @bp.get("/settings")
 def settings():
-    # Render the page (JS will GET/PUT /admin/settings.json)
-    return render_template("admin/settings.html")
+    def _can_write_settings():
+        if not current_user.is_authenticated:
+            return False
+        org_id = session.get("current_org_id") or getattr(current_user, "org_id", None)
+        if not org_id:
+            return False
+        m = db.session.query(OrgMembership).filter_by(org_id=org_id, user_id=current_user.id).one_or_none()
+        return bool(m and m.role in (ROLE_ADMIN, ROLE_OWNER))
+
+    return render_template("admin/settings.html", settings=settings, can_write=_can_write_settings())
+
 
 @bp.get("/settings.json")
 @require_member
