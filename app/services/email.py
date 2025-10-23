@@ -6,6 +6,8 @@ from app.extensions import db, mail
 from app.models import EmailLog
 from . import tokens
 from datetime import datetime, timedelta
+import json
+import time
 
 # NEW: suppression lookback window
 SUPPRESSION_WINDOW_DAYS = 90
@@ -39,6 +41,15 @@ def _log_email(*, user_id, to_email, template, subject, status, provider_msg_id=
     db.session.commit()
     return entry
 
+def _log_structured(event: str, **fields):
+    """
+    Minimal structured log: one JSON object per line.
+    (No PII beyond recipient email; keep values simple.)
+    """
+    payload = {"event": event, **fields}
+    # INFO for success, WARNING for failures/suppressions decided by caller
+    current_app.logger.info(json.dumps(payload))
+
 def absolute_url(path: str) -> str:
     base = current_app.config["APP_BASE_URL"].rstrip("/") + "/"
     path = path.lstrip("/")
@@ -59,6 +70,21 @@ def send_email(to_email: str, subject: str, template: str, context: Optional[Dic
     )
     msg.body = text_body
     msg.html = html_body
+    
+    # Do-not-send suppression gate (derived from recent EmailLog events)
+    if is_suppressed(to_email):
+        db.session.add(
+            EmailLog(
+                user_id=user_id,
+                to_email=to_email.lower(),
+                template=template,
+                subject=subject,
+                status="failed",
+                meta={"reason": "suppressed"},
+            )
+        )
+        db.session.commit()
+        return None
 
     # Persist an initial log
     elog = EmailLog(
@@ -72,19 +98,39 @@ def send_email(to_email: str, subject: str, template: str, context: Optional[Dic
     db.session.add(elog)
     db.session.commit()
 
-    try:
-        resp = mail.send(msg)  # Flask-Mail returns None; provider_id capture varies by backend
-        provider_id = None
-        elog.status = "sent"
-        elog.provider_msg_id = provider_id
-        db.session.commit()
-        return provider_id
-    except Exception as ex:
-        elog.status = "failed"
-        elog.meta = {"error": str(ex)}
-        db.session.commit()
-        # Re-raise or swallow? We'll swallow—to keep UX consistent.
-        return None
+        start = time.perf_counter()
+        try:
+            resp = mail.send(msg)  # Flask-Mail returns None; provider capture varies by backend
+            latency_ms = int((time.perf_counter() - start) * 1000)
+            provider_id = None
+            elog.status = "sent"
+            elog.provider_msg_id = provider_id
+            db.session.commit()
+            current_app.logger.info(json.dumps({
+                "event": "mail_send",
+                "template": template,
+                "to": to_email.lower(),
+                "subject": subject,
+                "outcome": "sent",
+                "provider_msg_id": provider_id,
+                "latency_ms": latency_ms
+            }))
+            return provider_id
+        except Exception as ex:
+            latency_ms = int((time.perf_counter() - start) * 1000)
+            elog.status = "failed"
+            elog.meta = {"error": str(ex)}
+            db.session.commit()
+            current_app.logger.warning(json.dumps({
+                "event": "mail_send",
+                "template": template,
+                "to": to_email.lower(),
+                "subject": subject,
+                "outcome": "smtp_error",
+                "latency_ms": latency_ms,
+                "smtp_error": str(ex)
+            }))
+            return None
 
 def send_verification_email(user, token_ttl_minutes: int = 30) -> None:
     token = tokens.generate("verify", user.email.lower())
