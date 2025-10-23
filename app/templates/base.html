@@ -62,6 +62,12 @@
                 >Fast Estimate</a
               >
             </li>
+            <li class="nav-item">
+              <a
+                class="nav-link{% if request.path.startswith('/billing') %} active{% endif %}"
+                href="{{ url_for('billing.index') }}"
+                >Billing</a>
+            </li>
           </ul>
         </div>
       </div>
