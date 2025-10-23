@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime
 from flask import request, jsonify, abort
 from . import bp
-from app.extensions import db
+from app.extensions import db, csrf
 from app.models import EmailLog
 
 def _valid_signature(raw_body: bytes, timestamp: str, sig: str) -> bool:
@@ -17,6 +17,7 @@ def _valid_signature(raw_body: bytes, timestamp: str, sig: str) -> bool:
     except Exception:
         return False
 
+@csrf.exempt
 @bp.post("/email")
 def email_events():
     # Generic HMAC: X-Timestamp, X-Signature

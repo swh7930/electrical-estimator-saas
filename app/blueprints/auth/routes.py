@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session
+from flask import render_template, request, redirect, url_for, session, jsonify
 from flask_login import login_user, logout_user, current_user
 from sqlalchemy import func
 from app.extensions import db, limiter
@@ -8,6 +8,7 @@ from app.models.org_membership import OrgMembership, ROLE_OWNER, ROLE_MEMBER
 from . import bp
 from app.services import tokens
 from app.services.email import send_verification_email, send_password_reset_email
+from flask_wtf.csrf import generate_csrf
 
 def _login_email_scope():
     data_json = request.get_json(silent=True) or {}
@@ -120,3 +121,8 @@ def reset_request():
             send_password_reset_email(user)  # TTL default is 120 minutes in email.py
     # Always respond the same way
     return redirect(url_for("auth.login_get"))
+
+@bp.get("/csrf-token")
+def csrf_token():
+    token = generate_csrf()
+    return jsonify({"csrf_token": token})
