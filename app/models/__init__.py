@@ -8,3 +8,6 @@ from .user import User
 from .org import Org
 from .org_membership import OrgMembership
 from .email_log import EmailLog
+from .billing_customer import BillingCustomer
+from .subscription import Subscription
+from .billing_event import BillingEventLog
