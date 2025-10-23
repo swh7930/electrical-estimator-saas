@@ -5,6 +5,39 @@ from flask_mail import Message
 from app.extensions import db, mail
 from app.models import EmailLog
 from . import tokens
+from datetime import datetime, timedelta
+
+# NEW: suppression lookback window
+SUPPRESSION_WINDOW_DAYS = 90
+
+# NEW: derive suppression from recent EmailLog rows
+def is_suppressed(to_email: str) -> bool:
+    """
+    Return True if the address should be suppressed due to a recent bounce/complaint.
+    """
+    cutoff = datetime.utcnow() - timedelta(days=SUPPRESSION_WINDOW_DAYS)
+    q = EmailLog.query.filter(
+        EmailLog.to_email == to_email,
+        EmailLog.created_at >= cutoff,
+        EmailLog.status.in_(("bounced", "complaint")),
+    )
+    # Using EXISTS for efficiency
+    return db.session.query(q.exists()).scalar()
+
+# NEW (only if missing): small helper to persist EmailLog
+def _log_email(*, user_id, to_email, template, subject, status, provider_msg_id=None, meta=None):
+    entry = EmailLog(
+        user_id=user_id,
+        to_email=to_email,
+        template=template,
+        subject=subject,
+        provider_msg_id=provider_msg_id,
+        status=status,
+        meta=meta or {},
+    )
+    db.session.add(entry)
+    db.session.commit()
+    return entry
 
 def absolute_url(path: str) -> str:
     base = current_app.config["APP_BASE_URL"].rstrip("/") + "/"
@@ -66,6 +99,19 @@ def send_verification_email(user, token_ttl_minutes: int = 30) -> None:
     send_email(
         to_email=user.email,
         subject="Verify your email",
+        to_email = getattr(user, "email", None)
+        if to_email and is_suppressed(to_email):
+            # Minimal log; structured logs come in 03b.4b
+            current_app.logger.info("mail suppressed to %s (recent bounce/complaint)", to_email)
+            _log_email(
+                user_id=getattr(user, "id", None),
+                to_email=to_email,
+                template="verify",
+                subject=subject,
+                status="failed",
+                meta={"reason": "suppressed"},
+            )
+            return {"suppressed": True}
         template="verify",
         context=ctx,
         user_id=getattr(user, "id", None),
@@ -84,6 +130,19 @@ def send_password_reset_email(user, token_ttl_minutes: int = 120) -> None:
     send_email(
         to_email=user.email,
         subject="Reset your password",
+        # Do-not-send gate
+        to_email = getattr(user, "email", None)
+        if to_email and is_suppressed(to_email):
+            current_app.logger.info("mail suppressed to %s (recent bounce/complaint)", to_email)
+            _log_email(
+                user_id=getattr(user, "id", None),
+                to_email=to_email,
+                template="reset",
+                subject=subject,
+                status="failed",
+                meta={"reason": "suppressed"},
+            )
+            return {"suppressed": True}
         template="reset",
         context=ctx,
         user_id=getattr(user, "id", None),
