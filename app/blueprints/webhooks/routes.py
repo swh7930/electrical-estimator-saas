@@ -8,6 +8,7 @@ from app.extensions import db, csrf
 from app.models import EmailLog, BillingEventLog, Subscription, BillingCustomer
 import json
 import stripe
+from app.billing.entitlements import resolve_entitlements
 
 def _valid_signature(raw_body: bytes, timestamp: str, sig: str) -> bool:
     secret = os.getenv("EMAIL_WEBHOOK_SECRET")
@@ -198,6 +199,7 @@ def stripe_webhook():
                 quantity=(first.get("quantity") or 1),
             )
             db.session.add(s)
+             s.entitlements_json = resolve_entitlements(product_id=product_id, price_id=price_id)
         else:
             s.stripe_subscription_id = sub_obj.get("id")
             s.product_id = product_id
@@ -207,6 +209,7 @@ def stripe_webhook():
             s.cancel_at = _to_dt(sub_obj.get("cancel_at"))
             s.cancel_at_period_end = bool(sub_obj.get("cancel_at_period_end"))
             s.quantity = (first.get("quantity") or s.quantity or 1)
+            s.entitlements_json = resolve_entitlements(product_id=product_id, price_id=price_id)
 
         db.session.commit()
 
