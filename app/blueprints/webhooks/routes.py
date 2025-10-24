@@ -199,7 +199,7 @@ def stripe_webhook():
                 quantity=(first.get("quantity") or 1),
             )
             db.session.add(s)
-             s.entitlements_json = resolve_entitlements(product_id=product_id, price_id=price_id)
+            s.entitlements_json = resolve_entitlements(product_id=product_id, price_id=price_id)
         else:
             s.stripe_subscription_id = sub_obj.get("id")
             s.product_id = product_id

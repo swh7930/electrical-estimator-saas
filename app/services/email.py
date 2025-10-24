@@ -98,39 +98,39 @@ def send_email(to_email: str, subject: str, template: str, context: Optional[Dic
     db.session.add(elog)
     db.session.commit()
 
-        start = time.perf_counter()
-        try:
-            resp = mail.send(msg)  # Flask-Mail returns None; provider capture varies by backend
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            provider_id = None
-            elog.status = "sent"
-            elog.provider_msg_id = provider_id
-            db.session.commit()
-            current_app.logger.info(json.dumps({
-                "event": "mail_send",
-                "template": template,
-                "to": to_email.lower(),
-                "subject": subject,
-                "outcome": "sent",
-                "provider_msg_id": provider_id,
-                "latency_ms": latency_ms
-            }))
-            return provider_id
-        except Exception as ex:
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            elog.status = "failed"
-            elog.meta = {"error": str(ex)}
-            db.session.commit()
-            current_app.logger.warning(json.dumps({
-                "event": "mail_send",
-                "template": template,
-                "to": to_email.lower(),
-                "subject": subject,
-                "outcome": "smtp_error",
-                "latency_ms": latency_ms,
-                "smtp_error": str(ex)
-            }))
-            return None
+    start = time.perf_counter()
+    try:
+        resp = mail.send(msg)  # Flask-Mail returns None; provider capture varies by backend
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        provider_id = None
+        elog.status = "sent"
+        elog.provider_msg_id = provider_id
+        db.session.commit()
+        current_app.logger.info(json.dumps({
+            "event": "mail_send",
+            "template": template,
+            "to": to_email.lower(),
+            "subject": subject,
+            "outcome": "sent",
+            "provider_msg_id": provider_id,
+            "latency_ms": latency_ms
+        }))
+        return provider_id
+    except Exception as ex:
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        elog.status = "failed"
+        elog.meta = {"error": str(ex)}
+        db.session.commit()
+        current_app.logger.warning(json.dumps({
+            "event": "mail_send",
+            "template": template,
+            "to": to_email.lower(),
+            "subject": subject,
+            "outcome": "smtp_error",
+            "latency_ms": latency_ms,
+            "smtp_error": str(ex)
+        }))
+        return None
 
 def send_verification_email(user, token_ttl_minutes: int = 30) -> None:
     token = tokens.generate("verify", user.email.lower())
@@ -145,19 +145,6 @@ def send_verification_email(user, token_ttl_minutes: int = 30) -> None:
     send_email(
         to_email=user.email,
         subject="Verify your email",
-        to_email = getattr(user, "email", None)
-        if to_email and is_suppressed(to_email):
-            # Minimal log; structured logs come in 03b.4b
-            current_app.logger.info("mail suppressed to %s (recent bounce/complaint)", to_email)
-            _log_email(
-                user_id=getattr(user, "id", None),
-                to_email=to_email,
-                template="verify",
-                subject=subject,
-                status="failed",
-                meta={"reason": "suppressed"},
-            )
-            return {"suppressed": True}
         template="verify",
         context=ctx,
         user_id=getattr(user, "id", None),
@@ -176,19 +163,6 @@ def send_password_reset_email(user, token_ttl_minutes: int = 120) -> None:
     send_email(
         to_email=user.email,
         subject="Reset your password",
-        # Do-not-send gate
-        to_email = getattr(user, "email", None)
-        if to_email and is_suppressed(to_email):
-            current_app.logger.info("mail suppressed to %s (recent bounce/complaint)", to_email)
-            _log_email(
-                user_id=getattr(user, "id", None),
-                to_email=to_email,
-                template="reset",
-                subject=subject,
-                status="failed",
-                meta={"reason": "suppressed"},
-            )
-            return {"suppressed": True}
         template="reset",
         context=ctx,
         user_id=getattr(user, "id", None),

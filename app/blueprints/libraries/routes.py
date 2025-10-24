@@ -18,6 +18,7 @@ from app.utils.validators import (
 from . import bp
 from flask_login import current_user
 from app.services.policy import require_member, role_required
+from app.security.entitlements import enforce_active_subscription
 
 @bp.before_request
 def _acl_libraries_readonly_for_members():
@@ -36,12 +37,17 @@ def _acl_libraries_readonly_for_members():
     if request.method not in ("GET", "HEAD", "OPTIONS") and m.role not in (ROLE_ADMIN, ROLE_OWNER):
         abort(403)
 
-
 @bp.before_request
 def _require_login_libraries():
     if current_user.is_authenticated:
         return None
     return redirect(url_for("auth.login_get", next=request.url))
+
+@bp.before_request
+def _require_active_subscription_libraries():
+    resp = enforce_active_subscription()
+    if resp is not None:
+        return resp
 
 @require_member
 @bp.get("/materials")
