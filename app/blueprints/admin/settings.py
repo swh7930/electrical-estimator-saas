@@ -19,7 +19,19 @@ def settings():
         m = db.session.query(OrgMembership).filter_by(org_id=org_id, user_id=current_user.id).one_or_none()
         return bool(m and m.role in (ROLE_ADMIN, ROLE_OWNER))
 
-    return render_template("admin/settings.html", settings=settings, can_write=_can_write_settings())
+    # Billing: detect presence of a Stripe customer for this org
+    org_id = session.get("current_org_id") or getattr(current_user, "org_id", None)
+    has_stripe_customer = False
+    if org_id:
+        from app.models.billing_customer import BillingCustomer
+        has_stripe_customer = db.session.query(BillingCustomer.id).filter_by(org_id=org_id).first() is not None
+    
+    return render_template(
+        "admin/settings.html",
+        settings=settings,
+        can_write=_can_write_settings(),
+        has_stripe_customer=has_stripe_customer,
+    )
 
 @bp.get("/settings.json")
 @require_member
