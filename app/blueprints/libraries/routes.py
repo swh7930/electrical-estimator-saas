@@ -1,5 +1,6 @@
 from flask import render_template, request, jsonify, url_for, redirect, request, abort, session
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, and_, exists
+from sqlalchemy.orm import aliased
 from app.models.material import Material
 from app.models.dje_item import DjeItem
 from app.models.customer import Customer
@@ -56,8 +57,26 @@ def materials():
     q = (request.args.get("q") or "").strip()
     mat_type = (request.args.get("type") or "").strip()
 
-    query = Material.query
-    query = query.filter(Material.org_id == current_user.org_id)
+    # Overlay: org overrides OR global (not overridden by this org)
+    O = aliased(Material)
+    query = (
+        db.session.query(Material)
+        .filter(Material.is_active.is_(True))
+        .filter(
+            or_(
+                Material.org_id == current_user.org_id,
+                and_(
+                    Material.org_id.is_(None),
+                    ~exists().where(and_(
+                        O.is_active.is_(True),
+                        O.org_id == current_user.org_id,
+                        func.lower(func.trim(O.material_type)) == func.lower(func.trim(Material.material_type)),
+                        func.lower(func.trim(O.item_description)) == func.lower(func.trim(Material.item_description)),
+                    ))
+                ),
+            )
+        )
+    )
 
     if mat_type:
         query = query.filter(Material.material_type == mat_type)
@@ -81,7 +100,9 @@ def materials():
         row[0]
         for row in (
             db.session.query(Material.material_type)
-            .filter(Material.org_id == current_user.org_id, Material.material_type.isnot(None))
+            .filter(Material.is_active.is_(True))
+            .filter(or_(Material.org_id == current_user.org_id, Material.org_id.is_(None)))
+            .filter(Material.material_type.isnot(None))
             .distinct()
             .order_by(Material.material_type.asc())
             .all()
@@ -197,24 +218,68 @@ def materials_delete(material_id: int):
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.route("/materials/<int:material_id>", methods=["PUT"])
 def materials_update(material_id: int):
-    m = Material.query.filter_by(id=material_id, org_id=current_user.org_id).first_or_404()
-    if not m:
-        return jsonify(ok=False, errors={"__all__": "Material not found."}), 404
+    # Allow editing a global row by forking it into an org override
+    m = Material.query.get_or_404(material_id)
+
+    # Anti-enumeration: block edits across orgs
+    if m.org_id is not None and m.org_id != current_user.org_id:
+        abort(404)
 
     data = request.get_json(silent=True) or {}
-    # Only updating fields present in the modal
-    m.item_description = (data.get("item_description") or "").strip()
-    m.price = data.get("price")
-    m.labor_unit = data.get("labor_unit")
-    m.unit_quantity_size = data.get("unit_quantity_size")
+    desc = (data.get("item_description") or "").strip()
+    price_raw = data.get("price")
+    labor_raw = data.get("labor_unit")
+    unit_raw  = data.get("unit_quantity_size")
 
-    # simple validation
-    if not m.item_description:
+    # Validate incoming fields (same behavior as your original)
+    if not desc:
         return jsonify(ok=False, errors={"item_description": "Description is required."}), 400
-    if m.unit_quantity_size not in (1, 100, 1000):
+    try:
+        unit_q = int(unit_raw)
+        if unit_q not in (1, 100, 1000):
+            raise ValueError()
+    except Exception:
         return jsonify(ok=False, errors={"unit_quantity_size": "Unit Qty Size must be 1, 100, or 1000."}), 400
+    try:
+        price = round(float(price_raw), 2)
+        if price < 0:
+            raise ValueError()
+    except Exception:
+        return jsonify(ok=False, errors={"price": "Price must be a non-negative number with 2 decimals."}), 400
+    try:
+        labor = round(float(labor_raw), 2)
+        if labor < 0:
+            raise ValueError()
+    except Exception:
+        return jsonify(ok=False, errors={"labor_unit": "Labor Unit must be a non-negative number with 2 decimals."}), 400
 
     try:
+        if m.org_id is None:
+            # GLOBAL → fork to ORG override, then apply edits
+            clone = Material(
+                org_id=current_user.org_id,
+                material_type=m.material_type,
+                item_description=desc,
+                price=price,
+                labor_unit=labor,
+                unit_quantity_size=unit_q,
+                sku=m.sku,
+                manufacturer=m.manufacturer,
+                vendor=m.vendor,
+                material_cost_code=m.material_cost_code,
+                mat_cost_code_desc=m.mat_cost_code_desc,
+                labor_cost_code=m.labor_cost_code,
+                labor_cost_code_desc=m.labor_cost_code_desc,
+                is_active=True,
+            )
+            db.session.add(clone)
+        else:
+            # ORG row → edit in place
+            m.item_description = desc
+            m.price = price
+            m.labor_unit = labor
+            m.unit_quantity_size = unit_q
+
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
@@ -228,9 +293,27 @@ def materials_update(material_id: int):
 @require_member
 @bp.get("/dje")
 def dje():
+    # Overlay: org overrides OR global (not overridden by this org)
+    O = aliased(DjeItem)
     items = (
-        DjeItem.query
-        .filter(DjeItem.org_id == current_user.org_id)
+        db.session.query(DjeItem)
+        .filter(DjeItem.is_active.is_(True))
+        .filter(
+            or_(
+                DjeItem.org_id == current_user.org_id,
+                and_(
+                    DjeItem.org_id.is_(None),
+                    ~exists().where(and_(
+                        O.is_active.is_(True),
+                        O.org_id == current_user.org_id,
+                        func.lower(func.trim(O.category)) == func.lower(func.trim(DjeItem.category)),
+                        func.lower(func.trim(O.description)) == func.lower(func.trim(DjeItem.description)),
+                        func.coalesce(func.lower(func.trim(O.vendor)), "") ==
+                        func.coalesce(func.lower(func.trim(DjeItem.vendor)), "")
+                    ))
+                ),
+            )
+        )
         .order_by(
             func.lower(DjeItem.category).asc(),
             func.lower(DjeItem.subcategory).asc(),
@@ -243,7 +326,9 @@ def dje():
      # DISTINCT first (subquery), then ORDER BY LOWER(...) on the outer query (DB-side)
     cat_subq = (
         db.session.query(DjeItem.category.label("category"))
-        .filter(DjeItem.org_id == current_user.org_id, DjeItem.category.isnot(None))
+        .filter(DjeItem.is_active.is_(True))
+        .filter(or_(DjeItem.org_id == current_user.org_id, DjeItem.org_id.is_(None)))
+        .filter(DjeItem.category.isnot(None))
         .distinct()
         .subquery()
     )
@@ -259,11 +344,9 @@ def dje():
             DjeItem.category.label("category"),
             DjeItem.subcategory.label("subcategory"),
         )
-        .filter(
-            DjeItem.org_id == current_user.org_id,
-            DjeItem.category.isnot(None),
-            DjeItem.subcategory.isnot(None),
-        )
+        .filter(DjeItem.is_active.is_(True))
+        .filter(or_(DjeItem.org_id == current_user.org_id, DjeItem.org_id.is_(None)))
+        .filter(DjeItem.category.isnot(None), DjeItem.subcategory.isnot(None))
         .distinct()
         .subquery()
     )
@@ -364,7 +447,13 @@ def create_dje():
 @bp.put("/dje/<int:item_id>")
 @limiter.limit("120 per minute")
 def update_dje(item_id):
-    item = DjeItem.query.filter_by(id=item_id, org_id=current_user.org_id).first_or_404()
+    # Allow editing a global row by forking it into an org override
+    item = DjeItem.query.get_or_404(item_id)
+
+    # Anti-enumeration: block edits across orgs
+    if item.org_id is not None and item.org_id != current_user.org_id:
+        abort(404)
+
     data = request.get_json(silent=True) or {}
     errors = []
 
@@ -383,14 +472,30 @@ def update_dje(item_id):
     if errors:
         return jsonify({"message": "Validation error", "errors": errors}), 400
 
-    # Category/Subcategory locked (match Materials behavior)
-    item.description = description
-    item.default_unit_cost = unit_cost
-    item.cost_code = cost_code or None
-    item.is_active = is_active
-
     try:
-        db.session.commit()
+        if item.org_id is None:
+            # GLOBAL → fork to ORG override, then apply edits
+            clone = DjeItem(
+                org_id=current_user.org_id,
+                category=item.category,
+                subcategory=item.subcategory,
+                description=description,
+                vendor=item.vendor,
+                default_unit_cost=unit_cost,
+                cost_code=cost_code or None,
+                is_active=is_active,
+            )
+            db.session.add(clone)
+            db.session.commit()
+            target = clone
+        else:
+            # ORG row → edit in place
+            item.description = description
+            item.default_unit_cost = unit_cost
+            item.cost_code = cost_code or None
+            item.is_active = is_active
+            db.session.commit()
+            target = item
     except IntegrityError:
         db.session.rollback()
         return jsonify({
@@ -401,15 +506,16 @@ def update_dje(item_id):
     return jsonify({
         "message": "Updated",
         "item": {
-            "id": item.id,
-            "category": item.category,
-            "subcategory": item.subcategory,
-            "description": item.description,
-            "default_unit_cost": float(item.default_unit_cost or 0),
-            "cost_code": item.cost_code,
-            "is_active": item.is_active,
+            "id": target.id,
+            "category": target.category,
+            "subcategory": target.subcategory,
+            "description": target.description,
+            "default_unit_cost": float(target.default_unit_cost or 0),
+            "cost_code": target.cost_code,
+            "is_active": target.is_active,
         }
     }), 200
+
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.delete("/dje/<int:item_id>")
