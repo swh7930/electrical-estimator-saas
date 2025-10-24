@@ -1,12 +1,19 @@
 from flask import render_template, request, redirect, url_for
 from . import bp
 from flask_login import current_user
+from app.security.entitlements import enforce_active_subscription
 
 @bp.before_request
 def _require_login_estimator():
     if current_user.is_authenticated:
         return None
     return redirect(url_for("auth.login_get", next=request.url))
+
+@bp.before_request
+def _require_active_subscription_estimator():
+    resp = enforce_active_subscription()
+    if resp is not None:
+        return resp
 
 
 def _default_percent_ranges():

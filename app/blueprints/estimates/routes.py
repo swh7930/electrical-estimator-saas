@@ -10,7 +10,7 @@ from datetime import datetime
 from . import bp
 from .validators import validate_fast_export_payload
 from flask_login import login_required, current_user
-from app.security.entitlements import require_entitlement
+from app.security.entitlements import require_entitlement, enforce_active_subscription
 from app.extensions import db, limiter
 from app.models.estimate import Estimate
 from app.models.app_settings import AppSettings
@@ -24,6 +24,11 @@ def _require_login_estimates():
         return None
     return redirect(url_for("auth.login_get", next=request.url))
 
+@bp.before_request
+def _require_active_subscription_estimates():
+    resp = enforce_active_subscription()
+    if resp is not None:
+        return resp
 
 @bp.get("/")
 def index():
