@@ -70,7 +70,7 @@ def to_decimal(value, default=Decimal("0")):
         return default
 
 
-SEED_PATH = Path(os.getenv("MATERIALS_SEED_PATH", "data/Materials DB Seed.xlsx"))
+SEED_PATH = Path(os.getenv("MATERIALS_SEED_PATH", "data/Materials_DB_Seed.xlsx"))
 
 # Load your Excel file
 df = pd.read_excel(SEED_PATH)
@@ -220,7 +220,7 @@ def _upsert_materials(
                 "Run: flask --app app:create_app db upgrade"
             )
         before = conn.execute(
-            text("SELECT COUNT(*) FROM materials WHERE is_active = true")
+            text("SELECT COUNT(*) FROM materials WHERE is_active = true AND org_id IS NULL")
         ).scalar_one()
         # psycopg2 cursor for fast bulk upsert
         raw = conn.connection
@@ -244,6 +244,7 @@ def _upsert_materials(
         if rows:
             sql = """
                 INSERT INTO materials (
+                    org_id,
                     material_type, sku, manufacturer, item_description, vendor,
                     price, labor_unit, unit_quantity_size,
                     material_cost_code, mat_cost_code_desc, labor_cost_code, labor_cost_code_desc,
@@ -269,16 +270,16 @@ def _upsert_materials(
             """
             with raw.cursor() as cur:
                 # Append constant is_active=True as a separate column value
-                rows_with_active = [tuple(list(t) + [True]) for t in rows]
+                rows_with_global_and_active = [tuple([None] + list(t) + [True]) for t in rows]
                 try:
-                    execute_values(cur, sql, rows_with_active, page_size=1000)
+                    execute_values(cur, sql, rows_with_global_and_active, page_size=1000)
                 except Exception as e:
                     if fail_fast:
                         raise
                     logger.error("upsert_failed error=%s", e)
                     raise SystemExit(2)
         after = conn.execute(
-            text("SELECT COUNT(*) FROM materials WHERE is_active = true")
+            text("SELECT COUNT(*) FROM materials WHERE is_active = true AND org_id IS NULL")
         ).scalar_one()
         inserted = max(0, (after - before))
         logger.info(
