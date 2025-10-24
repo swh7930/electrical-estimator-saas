@@ -79,6 +79,12 @@ def logout():
         logout_user()
     return redirect(url_for("main.home"))
 
+@bp.post("/logout")
+def logout_post():
+    if current_user.is_authenticated:
+        logout_user()
+    return redirect(url_for("main.home"))
+
 @bp.post("/verify/resend")
 @limiter.limit("3 per hour")
 def resend_verification():
