@@ -62,17 +62,11 @@
                 >Fast Estimate</a
               >
             </li>
-            <li class="nav-item">
-              <a
-                class="nav-link{% if request.path.startswith('/billing') %} active{% endif %}"
-                href="{{ url_for('billing.index') }}"
-                >Billing</a>
-            </li>
           </ul>
         </div>
       </div>
     </nav>
-
+    {% include "partials/_subscription_banner.html" %}
     <!-- Flash messages -->
     <div class="container mt-3">
       {% with msgs = get_flashed_messages(with_categories=true) %} {% if msgs %}

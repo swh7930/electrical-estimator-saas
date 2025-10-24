@@ -111,11 +111,42 @@ def create_app():
         except Exception:
             can_write = False
 
+        # Subscription banner (contextual)
+        billing_banner = {"show": False}
+        try:
+            from flask_login import current_user  # already imported above; safe to repeat locally
+            from flask import session as _session, url_for as _url_for
+            from app.models.subscription import Subscription as _Sub
+            if getattr(current_user, "is_authenticated", False):
+                _org_id = _session.get("current_org_id") or getattr(current_user, "org_id", None)
+                if _org_id:
+                    _s = _Sub.query.filter_by(org_id=_org_id).first()
+                    is_active = bool(_s and (_s.status in {"active","trialing"}))
+                    if not is_active:
+                        # Admins (can_write) get CTA to plans; non-admins get a heads-up only.
+                        if can_write:
+                            billing_banner = {
+                                "show": True,
+                                "message": "Unlock Estimator with Pro to use the app.",
+                                "cta_url": _url_for("billing.index"),
+                                "cta_text": "View plans",
+                            }
+                        else:
+                            billing_banner = {
+                                "show": True,
+                                "message": "Your organization doesn’t have an active subscription. Please contact an admin.",
+                                "cta_url": None,
+                                "cta_text": None,
+                            }
+        except Exception:
+            billing_banner = {"show": False}
+        
         return {
             "current_year": datetime.now(timezone.utc).year,
             "last_updated_terms": mtime_fmt("terms.html"),
             "last_updated_privacy": mtime_fmt("privacy.html"),
             "can_write": can_write,
+            "billing_banner": billing_banner,
         }
 
     @limiter.exempt

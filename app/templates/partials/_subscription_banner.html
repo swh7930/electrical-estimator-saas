@@ -1,0 +1,10 @@
+{% if billing_banner.show %}
+<div class="container-xxl mt-2">
+  <div class="alert alert-warning d-flex justify-content-between align-items-center" role="alert">
+    <span>{{ billing_banner.message }}</span>
+    {% if billing_banner.cta_url and billing_banner.cta_text %}
+      <a class="btn btn-sm btn-primary ms-3" href="{{ billing_banner.cta_url }}">{{ billing_banner.cta_text }}</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
