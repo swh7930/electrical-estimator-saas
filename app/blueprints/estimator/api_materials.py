@@ -3,6 +3,8 @@ from . import bp
 from flask_login import current_user
 from app.extensions import db
 from app.models.material import Material
+from sqlalchemy import func, or_, and_, exists
+from sqlalchemy.orm import aliased
 
 
 @bp.get("/api/material-types")
@@ -12,7 +14,7 @@ def get_material_types():
         rows = (
         db.session.query(Material.material_type)
         .filter(Material.is_active.is_(True))
-        .filter(Material.org_id == current_user.org_id)
+        .filter(or_(Material.org_id == current_user.org_id, Material.org_id.is_(None)))
         .distinct()
         .order_by(Material.material_type)
         .all()
@@ -22,15 +24,15 @@ def get_material_types():
         current_app.logger.exception("GET /api/material-types failed")
         return jsonify({"error": "server_error", "detail": str(e)}), 500
 
-
 @bp.get("/api/material-descriptions")
 def get_material_descriptions():
-    """Return item details for a given material type."""
+    """Return item details for a given material type (org overrides > global)."""
     try:
         mat_type = (request.args.get("type") or "").strip()
         if not mat_type:
-            return jsonify([])
+            return jsonify([]), 200
 
+        O = aliased(Material)
         rows = (
             db.session.query(
                 Material.id,
@@ -40,16 +42,28 @@ def get_material_descriptions():
                 Material.unit_quantity_size,
             )
             .filter(Material.is_active.is_(True))
-            .filter(Material.org_id == current_user.org_id)
             .filter(Material.material_type == mat_type)
-            .order_by(Material.item_description)
+            .filter(
+                or_(
+                    Material.org_id == current_user.org_id,                        # org row (override or org-only)
+                    and_(
+                        Material.org_id.is_(None),                                 # global row
+                        ~exists().where(and_(                                      # not overridden by this org
+                            O.is_active.is_(True),
+                            O.org_id == current_user.org_id,
+                            func.lower(func.trim(O.material_type)) == func.lower(func.trim(Material.material_type)),
+                            func.lower(func.trim(O.item_description)) == func.lower(func.trim(Material.item_description)),
+                        ))
+                    ),
+                )
+            )
+            .order_by(func.lower(Material.item_description).asc())
             .all()
         )
 
         def per_each(price, labor, unit):
-            u = unit or 1
             try:
-                u = int(u)
+                u = int(unit or 1)
                 if u <= 0:
                     u = 1
             except Exception:
@@ -78,4 +92,3 @@ def get_material_descriptions():
     except Exception as e:
         current_app.logger.exception("GET /api/material-descriptions failed")
         return jsonify({"error": "server_error", "detail": str(e)}), 500
-

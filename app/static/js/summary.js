@@ -9,9 +9,48 @@ const EE_SETTINGS_VERSION_KEY = 'ee.settings.version.applied';
 const EE_RESET_FLAG = 'ee.reset.applyFromSettings';
 
 // ====== Per-estimate namespace (strict) ======
-const EID = new URLSearchParams(window.location.search).get('eid') || null;
-const __NS = EID ? `ee.${EID}.` : 'ee.__global__.';
-const TOTALS_KEY = `${__NS}totals`;
+const { eid: EID, totalsKey: TOTALS_KEY, estimateDataKey: ESTIMATE_DATA_KEY } = nsKeys();
+// ---- Step 2: Summary hydration order & safety ----
+// If we're on an EID-backed page but its namespace is empty, and there is residual FAST data,
+// migrate it forward exactly once so the page never paints blank or from the wrong store.
+(function migrateFastToEidOnce() {
+  if (!EID) return; // only meaningful for real estimates
+
+  const FAST_TOTALS_KEY = 'ee.FAST.totals';
+  const FAST_ED_KEY     = 'ee.FAST.estimateData';
+
+  try {
+    const eidTotals = localStorage.getItem(TOTALS_KEY);
+    const eidED     = localStorage.getItem(ESTIMATE_DATA_KEY);
+    const fastTotals = localStorage.getItem(FAST_TOTALS_KEY);
+    const fastED     = localStorage.getItem(FAST_ED_KEY);
+
+    // Migrate only when EID store is empty and FAST has data (no overwrite)
+    if (!eidTotals && fastTotals) {
+      localStorage.setItem(TOTALS_KEY, fastTotals);
+      // dev-hint only; harmless in production
+      try { console.info('[summary] migrated FAST.totals ->', TOTALS_KEY); } catch {}
+    }
+    if (!eidED && fastED) {
+      localStorage.setItem(ESTIMATE_DATA_KEY, fastED);
+      try { console.info('[summary] migrated FAST.estimateData ->', ESTIMATE_DATA_KEY); } catch {}
+    }
+  } catch (_) {
+    // no-op
+  }
+})();
+
+// Dev guardrail: if we're editing an EID but still have FAST blobs around,
+// emit a console warning so regressions are obvious during testing.
+(function devGuardrail() {
+  if (!EID) return;
+  if (localStorage.getItem('ee.FAST.totals') || localStorage.getItem('ee.FAST.estimateData')) {
+    try {
+      console.warn('[summary] FAST namespace still present while editing EID=', EID,
+                   '— ensure all pages read/write via nsKeys() only.');
+    } catch {}
+  }
+})();
 
 function eeFetchAppSettings() {
   return fetch('/admin/settings.json').then(r => (r.ok ? r.json() : {}));
@@ -118,6 +157,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     laborRateInput.addEventListener("blur", () => {
       laborRateInput.value = formatToCurrency(laborRateInput.value);
+      // Guard: if still showing $0.00, hydrate from snapshot/admin now
+      try {
+        const isZero = /^\$?0+(\.0+)?$/.test(String(laborRateInput.value).trim());
+        if (isZero) {
+          if (EID) {
+            eeHydrateFromEstimateSnapshot(EID)
+              .catch(() => eeFetchAppSettings().then(doc => eeApplySettingsToSummary(doc.settings || {})));
+          } else {
+            eeFetchAppSettings().then(doc => eeApplySettingsToSummary(doc.settings || {}));
+          }
+        }
+      } catch (_) {}
       const rate = parseFloat(laborRateInput.value.replace(/[^0-9.]/g, ""));
       estimateData.totals.laborRate = isNaN(rate) ? 0 : rate;
       saveEstimateData();
@@ -161,9 +212,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // Otherwise, fall back to Admin Settings (versioned).
   (function hydrateDefaults() {
     if (EID) {
-      eeHydrateFromEstimateSnapshot(EID).catch(err => {
-        console.error('[Summary] Snapshot hydrate failed:', err);
-      });
+      eeHydrateFromEstimateSnapshot(EID)
+        .then(() => {
+          // Fallback: if labor rate is still not set (empty or non-numeric), apply Admin Settings.
+          try {
+            const labor = document.getElementById('laborRateInput');
+            const hasRate = !!(labor && /\d/.test(String(labor.value || '')));
+            if (!hasRate) {
+              return eeFetchAppSettings()
+                .then(doc => eeApplySettingsToSummary(doc.settings || {}))
+                .catch(e => console.warn('[Summary] Admin settings hydrate failed (fallback):', e));
+            }
+          } catch (_) {}
+        })
+        .catch(err => {
+          console.error('[Summary] Snapshot hydrate failed:', err);
+          // Fallback to Admin Settings on error
+          eeFetchAppSettings()
+            .then(doc => eeApplySettingsToSummary(doc.settings || {}))
+            .catch(e => console.warn('[Summary] Admin settings hydrate failed (fallback):', e));
+        });
       return;
     }
 
@@ -182,6 +250,8 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch(err => console.warn('[Summary] Admin settings hydrate failed:', err));
   })();
+
+
 
 });
 
@@ -362,7 +432,8 @@ function syncSummaryFromStorage() {
 document.addEventListener("DOMContentLoaded", syncSummaryFromStorage);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) syncSummaryFromStorage(); });
 window.addEventListener("storage", (e) => {
-  if (e.key === "ee.totals" || e.key === "estimateData") syncSummaryFromStorage();
+  const k = e.key || '';
+  if (k === TOTALS_KEY || k === __ED_KEY) syncSummaryFromStorage();
 });
 
 
@@ -407,7 +478,7 @@ function resetAllFromSummary() {
     // FAST (unsaved) reset: clear only fast working state and signal other pages
     try { localStorage.removeItem('ee.FAST.grid.v1'); } catch (_) {}
     try { localStorage.removeItem('ee.FAST.totals'); } catch (_) {}
-    try { localStorage.removeItem('estimateData'); } catch (_) {}
+    try { localStorage.removeItem('ee.FAST.estimateData'); } catch (_) {}
     try { localStorage.setItem('ee.reset', String(Date.now())); } catch (_) {}
 
     // Reload Summary — other pages will hydrate clean on next visit

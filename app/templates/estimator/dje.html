@@ -91,6 +91,7 @@ container-fluid (full width) #} {% block container_class
   </section>
 </div>
 {% endblock %} {% block scripts %} {{ super() }}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/estimateData.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dje.js') }}"></script>
 {% endblock %}
