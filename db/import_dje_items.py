@@ -169,7 +169,7 @@ def _upsert_dje(df_local, *, dry_run: bool, verbose: bool, fail_fast: bool) -> N
         # Guardrail: require the DJE unique index before importing
         _assert_guardrail(conn)
         before = conn.execute(
-            text("SELECT COUNT(*) FROM dje_items WHERE is_active = true")
+            text("SELECT COUNT(*) FROM dje_items WHERE is_active = true AND org_id IS NULL")
         ).scalar_one()
         raw = conn.connection
         rows = [
@@ -186,6 +186,7 @@ def _upsert_dje(df_local, *, dry_run: bool, verbose: bool, fail_fast: bool) -> N
         if rows:
             sql = """
                 INSERT INTO dje_items (
+                    org_id,
                     category, subcategory, description, vendor,
                     default_unit_cost, cost_code, is_active
                 ) VALUES %s
@@ -202,16 +203,16 @@ def _upsert_dje(df_local, *, dry_run: bool, verbose: bool, fail_fast: bool) -> N
                     updated_at = NOW()
             """
             with raw.cursor() as cur:
-                rows_with_active = [tuple(list(t) + [True]) for t in rows]
+                rows_with_global_and_active = [tuple([None] + list(t) + [True]) for t in rows]
                 try:
-                    execute_values(cur, sql, rows_with_active, page_size=1000)
+                    execute_values(cur, sql, rows_with_global_and_active, page_size=1000)
                 except Exception as e:
                     if fail_fast:
                         raise
                     logger.error("upsert_failed error=%s", e)
                     raise SystemExit(2)
         after = conn.execute(
-            text("SELECT COUNT(*) FROM dje_items WHERE is_active = true")
+            text("SELECT COUNT(*) FROM dje_items WHERE is_active = true AND org_id IS NULL")
         ).scalar_one()
         inserted = max(0, (after - before))
         logger.info(

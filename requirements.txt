@@ -45,3 +45,6 @@ zopfli==0.2.3.post1
 psycopg2==2.9.9
 redis==5.0.8
 stripe==13.0.1
+numpy>=2.0,<3
+pandas>=2.2,<3
+openpyxl>=3.1,<4
