@@ -3,10 +3,7 @@ let eeBooted = false;
 
 // ===== Row persistence — SAVE only (Bite 1) =====
 // ====== Per-estimate namespace (strict) ======
-const EID = new URLSearchParams(window.location.search).get('eid') || null;
-const __NS = EID ? `ee.${EID}.` : 'ee.__global__.';
-const GRID_KEY = `${__NS}grid.v1`;
-const TOTALS_KEY = `${__NS}totals`;
+const { eid: EID, gridKey: GRID_KEY, totalsKey: TOTALS_KEY } = nsKeys();
 let eeSaveTimer = null;
 let eeHydrating = false; // will be used in next bite (restore). harmless for now.
 

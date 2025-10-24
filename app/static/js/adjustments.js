@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Use the same per-estimate totals key as Estimator/Summary
+    // Use the same per-estimate totals key as Estimator/Summary
+    const { eid: EID, totalsKey: TOTALS_KEY, estimateDataKey: ESTIMATE_DATA_KEY } = nsKeys();
     const defaultLabels = [
         "Building Conditions", "Change Orders", "Embedded and exposed Wiring",
         "Construction Schedule", "Job Location", "Safety", "Teamwork",
@@ -62,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Quietly no-ops if data is missing/bad to keep console clean.
     function syncEstimatedLaborFromSummary() {
         try {
-            const raw = localStorage.getItem('ee.totals');
+            const raw = localStorage.getItem(TOTALS_KEY);
             if (!raw) return;
             const data = JSON.parse(raw);
 
@@ -515,7 +518,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // When Summary clears/rewrites localStorage, update immediately
     window.addEventListener("storage", (e) => {
-        if (e.key === "ee.totals" || e.key === "estimateData") __eeRecalcFromStorage();
+        const k = e.key || '';
+        if (k === TOTALS_KEY || k === ESTIMATE_DATA_KEY) __eeRecalcFromStorage();
     });
 
     // When you switch back to this tab/page, ensure it’s fresh
@@ -526,14 +530,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Mirror Estimator: paint header numbers straight from storage (no recompute needed) ---
     function paintAdjustmentsFromStorage() {
         let ed = {};
-        try { ed = JSON.parse(localStorage.getItem('estimateData') || '{}'); } catch { }
+        try { ed = JSON.parse(localStorage.getItem(ESTIMATE_DATA_KEY) || '{}'); } catch { }
         const t = ed.totals || {};
 
         // Base (Estimator hours)
         let base = Number(t.estimated) || 0;
         if (!base) {
             try {
-                const raw = localStorage.getItem('ee.totals');
+                const raw = localStorage.getItem(TOTALS_KEY);
                 if (raw) base = Number(JSON.parse(raw).labor_hours_pricing_sheet) || 0;
             } catch { }
         }
@@ -568,7 +572,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Paint on return / storage change, just like Estimator’s header paint
     document.addEventListener("visibilitychange", () => { if (!document.hidden) paintAdjustmentsFromStorage(); });
     window.addEventListener("storage", (e) => {
-        if (e.key === "ee.totals" || e.key === "estimateData") paintAdjustmentsFromStorage();
+        const k = e.key || '';
+        if (k === TOTALS_KEY || k === ESTIMATE_DATA_KEY) paintAdjustmentsFromStorage();
     });
     window.addEventListener("pageshow", (e) => { if (e.persisted) paintAdjustmentsFromStorage(); });
 

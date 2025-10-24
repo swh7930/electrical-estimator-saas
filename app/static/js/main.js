@@ -80,12 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function nsKeys() {
-    var params = new URLSearchParams(window.location.search);
-    var eid = params.get('eid');
-    var ns = eid ? ("ee." + eid + ".") : "ee.__global__.";
-    return { eid: eid, gridKey: ns + "grid.v1", totalsKey: ns + "totals" };
-  }
+  function nsKeys() { return window.nsKeys(); }
 
   function capturePayload() {
     var k = nsKeys();
@@ -93,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try { payload.grid = JSON.parse(localStorage.getItem(k.gridKey) || "null"); } catch (_) {}
     try { payload.totals = JSON.parse(localStorage.getItem(k.totalsKey) || "null"); } catch (_) {}
-    try { payload.estimateData = JSON.parse(localStorage.getItem("estimateData") || "null"); } catch (_) {}
+    try { payload.estimateData = JSON.parse(localStorage.getItem(k.estimateDataKey) || "null"); } catch (_) {}
 
     // Snapshot Summary visible values (cells)
     payload.cells = captureSummaryCells();
@@ -581,4 +576,28 @@ function harvestControlsFallback() {
       }, true);
     } catch (_) { /* silent */ }
   });
+})();
+
+// Global hard reset click delegate.
+// Triggers when a control has any of these hooks:
+// - [data-ee-hard-reset]  (preferred)
+// - [data-action="reset-estimate"]  (compat)
+// - #btnResetEstimate      (compat)
+(function attachHardResetDelegate() {
+  try {
+    document.addEventListener('click', function (e) {
+      const el = e.target.closest('[data-ee-hard-reset],[data-action="reset-estimate"],#btnResetEstimate');
+      if (!el) return;
+      if (el.matches('.disabled, [disabled]')) return;
+
+      // Optional confirm to prevent accidental nukes.
+      const ok = window.confirm('Reset this estimate? This will clear both draft (FAST) and this estimate\u2019s local data in this browser.');
+      if (!ok) return;
+
+      try { window.ee.hardReset(); } catch {}
+      // Reload so every page re-hydrates from authoritative sources.
+      try { location.reload(); } catch {}
+      e.preventDefault();
+    }, { passive: false });
+  } catch {}
 })();

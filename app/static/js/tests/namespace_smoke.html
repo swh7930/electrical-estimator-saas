@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Namespace Smoke Tests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto; margin: 24px; }
+    .ok { color: #0a7; } .fail { color: #c02; } code { background:#f6f6f6; padding:2px 4px; }
+    #results { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Estimator Namespace Smoke Tests</h1>
+  <p>Open console for details. This page runs quick checks against <code>nsKeys()</code> and <code>localStorage</code>.</p>
+
+  <div id="results"></div>
+
+  <script src="/static/js/keys.js"></script>
+  <script src="/static/tests/smoke_runner.js"></script>
+  <script src="/static/tests/test_namespace_smoke.js"></script>
+</body>
+</html>

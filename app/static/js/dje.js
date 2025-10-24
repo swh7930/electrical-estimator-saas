@@ -137,7 +137,10 @@
     try {
       saveEstimateData?.();
     } catch {
-      localStorage.setItem("estimateData", JSON.stringify(estimateData));
+      try {
+        const { estimateDataKey } = nsKeys();
+        localStorage.setItem(estimateDataKey, JSON.stringify(estimateData));
+      } catch (_) {}
     }
     // === END ADD ===
   }
@@ -185,7 +188,10 @@
     try {
       saveEstimateData?.();
     } catch {
-      localStorage.setItem("estimateData", JSON.stringify(estimateData));
+      try {
+        const { estimateDataKey } = nsKeys();
+        localStorage.setItem(estimateDataKey, JSON.stringify(estimateData));
+      } catch (_) {}
     }
 
     // S3-02b — emit after persisting DJE data

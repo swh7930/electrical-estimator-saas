@@ -57,9 +57,11 @@ def create():
     except Exception:
         customer_id = None
 
-    # Snapshot Admin → Settings at creation time
-    srow = db.session.get(AppSettings, 1)
-    snapshot = (srow.settings if srow and isinstance(srow.settings, dict) else {})
+    # Snapshot Admin → Settings at creation time (org-scoped)
+    row = db.session.execute(
+        db.select(AppSettings).where(AppSettings.org_id == current_user.org_id)
+    ).scalar_one_or_none()
+    snapshot = (row.settings if row and isinstance(row.settings, dict) else {})
 
     est = Estimate(
         name=name,

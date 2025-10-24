@@ -46,7 +46,6 @@ def get_settings_json():
 
     return jsonify(row.to_dict())
 
-
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.put("/settings.json")
 @limiter.limit("15 per minute")
@@ -104,6 +103,7 @@ def put_settings_json():
     if not row:
         row = AppSettings(org_id=current_user.org_id, settings=coerced, settings_version=1)
         db.session.add(row)
+        db.session.commit()
     else:
         row.settings = coerced
         row.settings_version = (row.settings_version or 1) + 1

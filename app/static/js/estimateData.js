@@ -2,9 +2,20 @@
 (function () {
     const FLAG = "ee.session.booted";
     if (!sessionStorage.getItem(FLAG)) {
-        ["ee.grid.v1", "ee.totals", "estimateData"].forEach(k => localStorage.removeItem(k));
+        ["ee.FAST.grid.v1", "ee.FAST.totals", "ee.FAST.estimateData"].forEach(k => localStorage.removeItem(k));
         sessionStorage.setItem(FLAG, "1");
     }
+})();
+
+// Per-estimate storage key for estimateData (EID or FAST)
+const __ED_KEY = (function () {
+  try {
+    const p = new URLSearchParams(location.search);
+    const eid = p.get('eid');
+    return (eid ? `ee.${eid}.` : 'ee.FAST.') + 'estimateData';
+  } catch (_) {
+    return 'ee.FAST.estimateData';
+  }
 })();
 
 let estimateData = {
@@ -30,15 +41,17 @@ estimateData.materials = {
 
 // Load from localStorage if it exists
 const loadEstimateData = () => {
-    const saved = localStorage.getItem("estimateData");
-    if (saved) {
-        estimateData = JSON.parse(saved);
-    }
+  const { estimateDataKey } = nsKeys();
+  const saved = localStorage.getItem(estimateDataKey);
+  if (saved) {
+    estimateData = JSON.parse(saved);
+  }
 };
 
 // Save current state to localStorage
 const saveEstimateData = () => {
-    localStorage.setItem("estimateData", JSON.stringify(estimateData));
+  const { estimateDataKey } = nsKeys();
+  localStorage.setItem(estimateDataKey, JSON.stringify(estimateData));
 };
 
 // --- Shared currency helpers (global, idempotent) ---
