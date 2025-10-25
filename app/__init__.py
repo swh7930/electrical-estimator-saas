@@ -10,6 +10,8 @@ if os.getenv("APP_ENV", "development") != "production":
 
 from .config import get_config
 from .extensions import db, migrate, csrf, login_manager, limiter, mail
+from .security import init_security
+from .observability import init_logging, init_sentry
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -30,6 +32,12 @@ def create_app():
     
     # Config: clean, explicit, class-based
     app.config.from_object(get_config())
+    
+     # --- M3: Observability & Security ---
+    init_logging(app)
+    init_sentry(app)
+    # Apply HTTPS, HSTS & CSP (kept simple and Stripe-friendly)
+    init_security(app)
 
     # Init extensions
     db.init_app(app)

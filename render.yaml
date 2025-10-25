@@ -1,0 +1,38 @@
+# Infrastructure-as-code for Render staging
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: eesaas-staging
+    runtime: python
+    region: oregon
+    plan: starter
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt && flask db upgrade
+    startCommand: gunicorn -w 3 -b 0.0.0.0:$PORT wsgi:app
+    healthCheckPath: /api/ping
+    envVars:
+      - key: APP_ENV
+        value: staging
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: eesaas-staging-db
+          property: connectionString
+      - key: APP_BASE_URL
+        value: https://eesaas-staging.onrender.com
+      # Secrets: set values in Render dashboard at first sync
+      - key: SECRET_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+databases:
+  - name: eesaas-staging-db
+    plan: starter
