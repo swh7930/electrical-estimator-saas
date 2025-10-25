@@ -154,18 +154,17 @@
     </footer>
 
     {% block scripts %}
-    <!-- CSRF: attach token to fetch() by default -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <!-- Bootstrap 5 (JS bundle) -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-    <script src="{{ url_for('static', filename='js/notify.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/keys.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+      <!-- Bootstrap 5 (JS bundle, vendored) -->
+      <script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+
+      <!-- Global client config & helpers -->
+      <script src="{{ url_for('static', filename='js/keys.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/notify.js') }}"></script>
+
+      <!-- CSRF + base behaviors (depends on keys.js) -->
+      <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% endblock %}
+
 
     <!-- Global Toast Stack -->
     <div id="toastStack" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1200;"></div>
