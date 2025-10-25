@@ -1,4 +1,5 @@
 import os
+os.environ.setdefault("EMAIL_WEBHOOK_SECRET", "testsecret")
 import pytest
 from app import create_app
 from app.extensions import db
