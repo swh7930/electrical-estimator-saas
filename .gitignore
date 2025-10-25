@@ -11,6 +11,8 @@ __pycache__/
 
 # Environment files
 .env
+.env.*
+!.env.example
 
 # OS-specific files
 .DS_Store
@@ -33,6 +35,7 @@ migrations/__pycache__/
 
 # Local instance files
 instance/
+*.sqlite
 *.sqlite3
 *.db
 
