@@ -33,11 +33,14 @@ def create_app():
     # Config: clean, explicit, class-based
     app.config.from_object(get_config())
     
-     # --- M3: Observability & Security ---
+    # --- M3: Observability & Security ---
     init_logging(app)
     init_sentry(app)
-    # Apply HTTPS, HSTS & CSP (kept simple and Stripe-friendly)
-    init_security(app)
+
+    # Apply HTTPS, HSTS & CSP only in staging/production
+    app_env = app.config.get("APP_ENV", os.getenv("APP_ENV", "development")).lower()
+    if app_env in ("staging", "production"):
+        init_security(app)
 
     # Init extensions
     db.init_app(app)
