@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, current_app, abort
 from flask_login import login_required, current_user
 from app.extensions import limiter
-from app.models import Subscription, BillingCustomer
+from app.models import Subscription, BillingCustomer, Org
 from app.services.billing import create_checkout_session, create_portal_session
 from app.services import billing as billing_service
 
@@ -9,10 +9,14 @@ billing_bp = Blueprint("billing", __name__, template_folder="../../templates/bil
 
 
 def create_checkout_session(price_id: str, org_id: int):
+    org = Org.query.get(org_id)
+    if not org:
+        abort(400, description="Org not found")
+    # pass the Org object; the service can use org.id safely
     return billing_service.create_checkout_session(
         price_id=price_id,
-        org_id=org_id,
-        user_id=current_user.id,   # still pass user_id in prod
+        org=org,
+        user_id=current_user.id,
     )
 
 @billing_bp.get("")
