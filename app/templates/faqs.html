@@ -5,29 +5,35 @@
 {% block content %}
 <div id="faqs-grid" class="row g-4">
 
-  <!-- Page Header -->
+    <!-- Page Header -->
   <div class="col-12">
     <header class="text-center border-bottom py-3 mb-3">
       <div>
         <h1 class="h3 mb-1">Frequently Asked Questions</h1>
-        <div class="text-muted">Quick answers about workflow, libraries, estimator, summary & pricing, and more.</div>
+        <div class="text-muted">
+          Last updated: October 24, 2025 · Welcome! This page answers the most common questions about using Electrical Estimator.
+          If you don’t see what you need, email <a href="mailto:support@electriciansmentor.com">support@electriciansmentor.com</a>.
+        </div>
       </div>
     </header>
   </div>
 
-  <!-- Category Filter (non-functional stub, mirrors your button style) -->
+  <!-- Category Filter -->
   <div class="col-12">
     <section class="card">
       <div class="card-body">
         <div class="d-flex flex-wrap gap-2">
           <a class="btn btn-outline-secondary btn-sm" href="#cat-getting-started">Getting Started</a>
-          <a class="btn btn-outline-secondary btn-sm" href="#cat-estimator">Estimator</a>
-          <a class="btn btn-outline-secondary btn-sm" href="#cat-summary-pricing">Summary &amp; Pricing</a>
-          <a class="btn btn-outline-secondary btn-sm" href="#cat-libraries">Libraries</a>
-          <a class="btn btn-outline-secondary btn-sm" href="#cat-settings">Settings &amp; Defaults</a>
-          <a class="btn btn-outline-secondary btn-sm" href="#cat-saving-exporting">Saving &amp; Exporting</a>
-          <a class="btn btn-outline-secondary btn-sm" href="#cat-admin">Accounts &amp; Admin</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-estimates-workflow">Estimates &amp; Workflow</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-mda">Materials, DJE &amp; Assemblies</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-summary-totals">Summary &amp; Totals</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-exports">Exports (PDF &amp; CSV)</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-billing">Billing &amp; Plans</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-accounts">Accounts, Organizations &amp; Roles</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-data-security">Data, Security &amp; Privacy</a>
           <a class="btn btn-outline-secondary btn-sm" href="#cat-troubleshooting">Troubleshooting</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-roadmap">Roadmap &amp; Feedback</a>
+          <a class="btn btn-outline-secondary btn-sm" href="#cat-contact">Contact</a>
         </div>
       </div>
     </section>
@@ -43,14 +49,14 @@
             <h2 class="accordion-header" id="q-gs-1">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                       data-bs-target="#a-gs-1" aria-expanded="false" aria-controls="a-gs-1">
-                What’s the quickest way to get a working estimate?
+                What is Electrical Estimator?
               </button>
             </h2>
             <div id="a-gs-1" class="accordion-collapse collapse" aria-labelledby="q-gs-1"
                  data-bs-parent="#faqAccordionGettingStarted">
               <div class="accordion-body">
-                1) Set defaults in <em>Admin → Settings</em>. 2) Verify your <em>Libraries</em>. 3) Add rows in <em>Estimator</em>.
-                4) Review &amp; adjust in <em>Summary</em>. 5) Export (when enabled) or copy values into your proposal.
+                A web app for building accurate, professional electrical estimates fast—materials, labor (units &amp; adjustments),
+                assemblies, and one-click PDF/CSV exports.
               </div>
             </div>
           </div>
@@ -58,14 +64,41 @@
             <h2 class="accordion-header" id="q-gs-2">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                       data-bs-target="#a-gs-2" aria-expanded="false" aria-controls="a-gs-2">
-                Do I have to set up data before estimating?
+                Who is it for?
               </button>
             </h2>
             <div id="a-gs-2" class="accordion-collapse collapse" aria-labelledby="q-gs-2"
                  data-bs-parent="#faqAccordionGettingStarted">
               <div class="accordion-body">
-                No, you can start immediately with existing catalog items. For best results, confirm key items and defaults first so
-                pricing and hours are consistent across estimates.
+                Contractors, estimators, and small teams that need a fast, consistent way to price jobs and produce clean outputs.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-gs-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-gs-3" aria-expanded="false" aria-controls="a-gs-3">
+                Do I need to install anything?
+              </button>
+            </h2>
+            <div id="a-gs-3" class="accordion-collapse collapse" aria-labelledby="q-gs-3"
+                 data-bs-parent="#faqAccordionGettingStarted">
+              <div class="accordion-body">
+                No. It runs in your browser. For the best experience, use the latest Chrome, Edge, Safari, or Firefox.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-gs-4">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-gs-4" aria-expanded="false" aria-controls="a-gs-4">
+                Can I use it on mobile or tablet?
+              </button>
+            </h2>
+            <div id="a-gs-4" class="accordion-collapse collapse" aria-labelledby="q-gs-4"
+                 data-bs-parent="#faqAccordionGettingStarted">
+              <div class="accordion-body">
+                Yes for quick reviews; desktop is recommended for full estimating.
               </div>
             </div>
           </div>
@@ -74,37 +107,68 @@
     </section>
   </div>
 
-  <!-- Estimator -->
-  <div class="col-12" id="cat-estimator">
+  <!-- Estimates & Workflow -->
+  <div class="col-12" id="cat-estimates-workflow">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Estimator</h2>
-        <div class="accordion" id="faqAccordionEstimator">
+        <h2 class="h5 mb-3">Estimates &amp; Workflow</h2>
+        <div class="accordion" id="faqAccordionWorkflow">
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-est-1">
+            <h2 class="accordion-header" id="q-wf-1">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-est-1" aria-expanded="false" aria-controls="a-est-1">
-                How do rows “auto-grow”?
+                      data-bs-target="#a-wf-1" aria-expanded="false" aria-controls="a-wf-1">
+                How do I create a new estimate?
               </button>
             </h2>
-            <div id="a-est-1" class="accordion-collapse collapse" aria-labelledby="q-est-1"
-                 data-bs-parent="#faqAccordionEstimator">
+            <div id="a-wf-1" class="accordion-collapse collapse" aria-labelledby="q-wf-1"
+                 data-bs-parent="#faqAccordionWorkflow">
               <div class="accordion-body">
-                A new blank row appears when you start typing in <em>Notes</em> or pick a <em>Material Type</em>. This keeps you moving without manually adding rows.
+                From the <em>Estimates</em> page, click <strong>New Estimate</strong>, add project details, then work through
+                <em>Materials → Adjustments → DJE → Summary</em>. Save any time; export when you’re ready.
               </div>
             </div>
           </div>
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-est-2">
+            <h2 class="accordion-header" id="q-wf-2">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-est-2" aria-expanded="false" aria-controls="a-est-2">
-                What do “Labor Adj” values represent?
+                      data-bs-target="#a-wf-2" aria-expanded="false" aria-controls="a-wf-2">
+                How do I edit, duplicate, or delete an estimate?
               </button>
             </h2>
-            <div id="a-est-2" class="accordion-collapse collapse" aria-labelledby="q-est-2"
-                 data-bs-parent="#faqAccordionEstimator">
+            <div id="a-wf-2" class="accordion-collapse collapse" aria-labelledby="q-wf-2"
+                 data-bs-parent="#faqAccordionWorkflow">
               <div class="accordion-body">
-                A multiplier for install difficulty (e.g., 0.25, 0.5, 1, 1.5, 2). It scales the base labor unit for that row to reflect conditions like height or access.
+                Open the estimate from the list and choose <em>Edit</em>, <em>Clone/Duplicate</em>, or <em>Delete</em>.
+                Cloning is great for similar jobs.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-wf-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-wf-3" aria-expanded="false" aria-controls="a-wf-3">
+                What carries into a new estimate?
+              </button>
+            </h2>
+            <div id="a-wf-3" class="accordion-collapse collapse" aria-labelledby="q-wf-3"
+                 data-bs-parent="#faqAccordionWorkflow">
+              <div class="accordion-body">
+                Defaults from <em>Settings</em> (e.g., rates, markup) apply; line items do not. Each estimate is separate so
+                projects don’t bleed into each other.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-wf-4">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-wf-4" aria-expanded="false" aria-controls="a-wf-4">
+                Does the app autosave?
+              </button>
+            </h2>
+            <div id="a-wf-4" class="accordion-collapse collapse" aria-labelledby="q-wf-4"
+                 data-bs-parent="#faqAccordionWorkflow">
+              <div class="accordion-body">
+                You can save at any time. For exports and reports, the estimate should be saved first so outputs reflect the latest data.
               </div>
             </div>
           </div>
@@ -152,37 +216,54 @@
     </section>
   </div>
 
-  <!-- Libraries -->
-  <div class="col-12" id="cat-libraries">
+  <!-- Materials, DJE & Assemblies -->
+  <div class="col-12" id="cat-mda">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Libraries</h2>
-        <div class="accordion" id="faqAccordionLibraries">
+        <h2 class="h5 mb-3">Materials, DJE &amp; Assemblies</h2>
+        <div class="accordion" id="faqAccordionMDA">
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-lib-1">
+            <h2 class="accordion-header" id="q-mda-1">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-lib-1" aria-expanded="false" aria-controls="a-lib-1">
-                What’s the difference between Materials and DJE?
+                      data-bs-target="#a-mda-1" aria-expanded="false" aria-controls="a-mda-1">
+                What’s the difference between Materials, DJE, and Assemblies?
               </button>
             </h2>
-            <div id="a-lib-1" class="accordion-collapse collapse" aria-labelledby="q-lib-1"
-                 data-bs-parent="#faqAccordionLibraries">
+            <div id="a-mda-1" class="accordion-collapse collapse" aria-labelledby="q-mda-1"
+                 data-bs-parent="#faqAccordionMDA">
               <div class="accordion-body">
-                <strong>Materials</strong> are items with units, costs, and labor units. <strong>DJE</strong> are non-material job expenses (permits, rentals, fees).
+                <strong>Materials</strong>: Individual items with cost, unit, labor unit, and unit of measure.<br>
+                <strong>DJE (Direct Job Expense)</strong>: Non-material costs (e.g., permits, equipment, travel).<br>
+                <strong>Assemblies</strong>: Groupings of items/tasks used together, so you can add a bundle in one click.
               </div>
             </div>
           </div>
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-lib-2">
+            <h2 class="accordion-header" id="q-mda-2">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-lib-2" aria-expanded="false" aria-controls="a-lib-2">
-                Can I edit library data yet?
+                      data-bs-target="#a-mda-2" aria-expanded="false" aria-controls="a-mda-2">
+                What are Labor Units and Labor Adjustments?
               </button>
             </h2>
-            <div id="a-lib-2" class="accordion-collapse collapse" aria-labelledby="q-lib-2"
-                 data-bs-parent="#faqAccordionLibraries">
+            <div id="a-mda-2" class="accordion-collapse collapse" aria-labelledby="q-mda-2"
+                 data-bs-parent="#faqAccordionMDA">
               <div class="accordion-body">
-                Screens are design-complete stubs; editing hooks will be enabled in upcoming steps alongside save/load and validation.
+                Each item has a Labor Unit (hours per unit). Labor Adjustments apply multipliers for conditions
+                (e.g., tight spaces, height, schedule). The app totals <em>quantity × labor unit × any adjustment</em>.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-mda-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-mda-3" aria-expanded="false" aria-controls="a-mda-3">
+                Can I add my own items?
+              </button>
+            </h2>
+            <div id="a-mda-3" class="accordion-collapse collapse" aria-labelledby="q-mda-3"
+                 data-bs-parent="#faqAccordionMDA">
+              <div class="accordion-body">
+                Yes. Use the <em>Libraries</em> pages to add or edit Materials, DJE items, and Assemblies, then pull them into estimates.
               </div>
             </div>
           </div>
@@ -191,38 +272,52 @@
     </section>
   </div>
 
-  <!-- Settings & Defaults -->
-  <div class="col-12" id="cat-settings">
+  <!-- Data, Security & Privacy -->
+  <div class="col-12" id="cat-data-security">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Settings &amp; Defaults</h2>
-        <div class="accordion" id="faqAccordionSettings">
+        <h2 class="h5 mb-3">Data, Security &amp; Privacy</h2>
+        <div class="accordion" id="faqAccordionData">
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-set-1">
+            <h2 class="accordion-header" id="q-dat-1">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-set-1" aria-expanded="false" aria-controls="a-set-1">
-                Which defaults flow into Summary?
+                      data-bs-target="#a-dat-1" aria-expanded="false" aria-controls="a-dat-1">
+                How do you protect my data?
               </button>
             </h2>
-            <div id="a-set-1" class="accordion-collapse collapse" aria-labelledby="q-set-1"
-                 data-bs-parent="#faqAccordionSettings">
+            <div id="a-dat-1" class="accordion-collapse collapse" aria-labelledby="q-dat-1"
+                 data-bs-parent="#faqAccordionData">
               <div class="accordion-body">
-                Labor Rate, Misc %, Small Tools %, Large Tools %, Waste/Theft %, Sales Tax %, Overhead %, Profit Margin %,
-                and app behavior like rounding/materials taxable (when wiring is enabled).
+                Encryption in transit (TLS), access controls, monitored infrastructure, and regular backups.
+                No system is 100% secure, but we apply practical safeguards throughout.
               </div>
             </div>
           </div>
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-set-2">
+            <h2 class="accordion-header" id="q-dat-2">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-set-2" aria-expanded="false" aria-controls="a-set-2">
-                Will company info autofill proposals?
+                      data-bs-target="#a-dat-2" aria-expanded="false" aria-controls="a-dat-2">
+                How long do you keep my data?
               </button>
             </h2>
-            <div id="a-set-2" class="accordion-collapse collapse" aria-labelledby="q-set-2"
-                 data-bs-parent="#faqAccordionSettings">
+            <div id="a-dat-2" class="accordion-collapse collapse" aria-labelledby="q-dat-2"
+                 data-bs-parent="#faqAccordionData">
               <div class="accordion-body">
-                Yes—company identity fields in Settings are designed to populate the proposal builder once that module is enabled.
+                For the life of your account and limited backup periods. You can request deletion; backups expire in the normal course.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-dat-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-dat-3" aria-expanded="false" aria-controls="a-dat-3">
+                Where can I read the legal details?
+              </button>
+            </h2>
+            <div id="a-dat-3" class="accordion-collapse collapse" aria-labelledby="q-dat-3"
+                 data-bs-parent="#faqAccordionData">
+              <div class="accordion-body">
+                See <em>Terms of Service</em> and <em>Privacy Policy</em> (linked in the site footer).
               </div>
             </div>
           </div>
@@ -231,37 +326,66 @@
     </section>
   </div>
 
-  <!-- Saving & Exporting -->
-  <div class="col-12" id="cat-saving-exporting">
+  <!-- Exports (PDF & CSV) -->
+  <div class="col-12" id="cat-exports">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Saving &amp; Exporting</h2>
-        <div class="accordion" id="faqAccordionSaving">
+        <h2 class="h5 mb-3">Exports (PDF &amp; CSV)</h2>
+        <div class="accordion" id="faqAccordionExports">
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-sav-1">
+            <h2 class="accordion-header" id="q-exp-1">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-sav-1" aria-expanded="false" aria-controls="a-sav-1">
-                Can I save and reload estimates?
+                      data-bs-target="#a-exp-1" aria-expanded="false" aria-controls="a-exp-1">
+                What does the PDF include?
               </button>
             </h2>
-            <div id="a-sav-1" class="accordion-collapse collapse" aria-labelledby="q-sav-1"
-                 data-bs-parent="#faqAccordionSaving">
+            <div id="a-exp-1" class="accordion-collapse collapse" aria-labelledby="q-exp-1"
+                 data-bs-parent="#faqAccordionExports">
               <div class="accordion-body">
-                Save/Load is on the near-term roadmap. The UI will allow naming, versioning, and duplication for alternates.
+                A clean, client-ready summary with your company details, project info, and estimate totals.
+                You can choose whether to show certain breakdowns.
               </div>
             </div>
           </div>
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-sav-2">
+            <h2 class="accordion-header" id="q-exp-2">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-sav-2" aria-expanded="false" aria-controls="a-sav-2">
-                What export formats will be supported?
+                      data-bs-target="#a-exp-2" aria-expanded="false" aria-controls="a-exp-2">
+                What does the CSV include?
               </button>
             </h2>
-            <div id="a-sav-2" class="accordion-collapse collapse" aria-labelledby="q-sav-2"
-                 data-bs-parent="#faqAccordionSaving">
+            <div id="a-exp-2" class="accordion-collapse collapse" aria-labelledby="q-exp-2"
+                 data-bs-parent="#faqAccordionExports">
               <div class="accordion-body">
-                CSV/XLSX for data tables, and proposal exports (PDF/Doc template) are planned. Bluebeam-ready packs are under consideration.
+                A line-level export for your records: item codes/descriptions, quantities, costs, labor units/hours, and totals—handy for audits or import elsewhere.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-exp-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-exp-3" aria-expanded="false" aria-controls="a-exp-3">
+                How do I make sure exports are current?
+              </button>
+            </h2>
+            <div id="a-exp-3" class="accordion-collapse collapse" aria-labelledby="q-exp-3"
+                 data-bs-parent="#faqAccordionExports">
+              <div class="accordion-body">
+                Save your estimate before exporting. Then choose <em>Export PDF</em> or <em>Export CSV</em> from the estimate.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-exp-4">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-exp-4" aria-expanded="false" aria-controls="a-exp-4">
+                Can I add my logo or brand?
+              </button>
+            </h2>
+            <div id="a-exp-4" class="accordion-collapse collapse" aria-labelledby="q-exp-4"
+                 data-bs-parent="#faqAccordionExports">
+              <div class="accordion-body">
+                Yes—set branding in <em>Settings</em> and your exports will use it.
               </div>
             </div>
           </div>
@@ -270,37 +394,120 @@
     </section>
   </div>
 
-  <!-- Accounts & Admin -->
-  <div class="col-12" id="cat-admin">
+  <!-- Accounts, Organizations & Roles -->
+  <div class="col-12" id="cat-accounts">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Accounts &amp; Admin</h2>
-        <div class="accordion" id="faqAccordionAdmin">
+        <h2 class="h5 mb-3">Accounts, Organizations &amp; Roles</h2>
+        <div class="accordion" id="faqAccordionAccounts">
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-adm-1">
+            <h2 class="accordion-header" id="q-acc-1">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-adm-1" aria-expanded="false" aria-controls="a-adm-1">
-                Where are app-wide settings managed?
+                      data-bs-target="#a-acc-1" aria-expanded="false" aria-controls="a-acc-1">
+                What’s an Organization?
               </button>
             </h2>
-            <div id="a-adm-1" class="accordion-collapse collapse" aria-labelledby="q-adm-1"
-                 data-bs-parent="#faqAccordionAdmin">
+            <div id="a-acc-1" class="accordion-collapse collapse" aria-labelledby="q-acc-1"
+                 data-bs-parent="#faqAccordionAccounts">
               <div class="accordion-body">
-                Under <em>Admin → Settings</em>. This is separate from any future user/account profile settings.
+                A company workspace. The Org Owner manages billing and invites team members.
               </div>
             </div>
           </div>
           <div class="accordion-item">
-            <h2 class="accordion-header" id="q-adm-2">
+            <h2 class="accordion-header" id="q-acc-2">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#a-adm-2" aria-expanded="false" aria-controls="a-adm-2">
-                Does this support multi-tenant controls?
+                      data-bs-target="#a-acc-2" aria-expanded="false" aria-controls="a-acc-2">
+                What roles do you support?
               </button>
             </h2>
-            <div id="a-adm-2" class="accordion-collapse collapse" aria-labelledby="q-adm-2"
-                 data-bs-parent="#faqAccordionAdmin">
+            <div id="a-acc-2" class="accordion-collapse collapse" aria-labelledby="q-acc-2"
+                 data-bs-parent="#faqAccordionAccounts">
               <div class="accordion-body">
-                The layout is designed with that in mind; org-level settings can be extended here without changing the page structure.
+                <strong>Owner/Admin</strong>: Billing, settings, invites, libraries, and estimating.<br>
+                <strong>Member</strong>: Estimating and day-to-day work (permissions set by the Org).
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-acc-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-acc-3" aria-expanded="false" aria-controls="a-acc-3">
+                Who owns the estimates—me or the app?
+              </button>
+            </h2>
+            <div id="a-acc-3" class="accordion-collapse collapse" aria-labelledby="q-acc-3"
+                 data-bs-parent="#faqAccordionAccounts">
+              <div class="accordion-body">
+                You do. You own your Estimate Data; we process it to provide the service.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Billing & Plans -->
+  <div class="col-12" id="cat-billing">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Billing &amp; Plans</h2>
+        <div class="accordion" id="faqAccordionBilling">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-bill-1">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-bill-1" aria-expanded="false" aria-controls="a-bill-1">
+                How do subscriptions work?
+              </button>
+            </h2>
+            <div id="a-bill-1" class="accordion-collapse collapse" aria-labelledby="q-bill-1"
+                 data-bs-parent="#faqAccordionBilling">
+              <div class="accordion-body">
+                Choose a monthly or annual plan. Subscriptions auto-renew until you cancel. You can upgrade or downgrade at any time;
+                changes take effect on the next billing cycle.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-bill-2">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-bill-2" aria-expanded="false" aria-controls="a-bill-2">
+                Do you offer refunds?
+              </button>
+            </h2>
+            <div id="a-bill-2" class="accordion-collapse collapse" aria-labelledby="q-bill-2"
+                 data-bs-parent="#faqAccordionBilling">
+              <div class="accordion-body">
+                Fees are generally non-refundable. Cancel any time; access continues through the paid period.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-bill-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-bill-3" aria-expanded="false" aria-controls="a-bill-3">
+                Do you charge taxes?
+              </button>
+            </h2>
+            <div id="a-bill-3" class="accordion-collapse collapse" aria-labelledby="q-bill-3"
+                 data-bs-parent="#faqAccordionBilling">
+              <div class="accordion-body">
+                Where applicable, taxes are added at checkout (prices shown are exclusive of tax).
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-bill-4">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-bill-4" aria-expanded="false" aria-controls="a-bill-4">
+                How do I get invoices and receipts?
+              </button>
+            </h2>
+            <div id="a-bill-4" class="accordion-collapse collapse" aria-labelledby="q-bill-4"
+                 data-bs-parent="#faqAccordionBilling">
+              <div class="accordion-body">
+                We email them to the billing contact and keep a copy in your account billing area.
               </div>
             </div>
           </div>
@@ -319,13 +526,14 @@
             <h2 class="accordion-header" id="q-tr-1">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                       data-bs-target="#a-tr-1" aria-expanded="false" aria-controls="a-tr-1">
-                Dropdowns are empty or not filtering—what should I check?
+                I can’t sign in.
               </button>
             </h2>
             <div id="a-tr-1" class="accordion-collapse collapse" aria-labelledby="q-tr-1"
                  data-bs-parent="#faqAccordionTroubleshooting">
               <div class="accordion-body">
-                Verify DB seed data is present and routes respond. Then check browser console for JS errors and confirm template IDs match the scripts.
+                Check your email and password, reset if needed, and make sure you’re using a supported browser.
+                If problems persist, contact support.
               </div>
             </div>
           </div>
@@ -333,13 +541,42 @@
             <h2 class="accordion-header" id="q-tr-2">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                       data-bs-target="#a-tr-2" aria-expanded="false" aria-controls="a-tr-2">
-                Totals aren’t updating on Summary.
+                I’m seeing unexpected data in a new estimate.
               </button>
             </h2>
             <div id="a-tr-2" class="accordion-collapse collapse" aria-labelledby="q-tr-2"
                  data-bs-parent="#faqAccordionTroubleshooting">
               <div class="accordion-body">
-                Make sure the element IDs and names on Summary match the selectors the JS expects, and that no duplicate IDs exist.
+                Create the estimate from the <em>Estimates</em> page (not by reusing a browser tab), and verify you’re not editing a clone.
+                If something still looks off, save the estimate name, describe the steps you took, and email support so we can investigate.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-tr-3">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-tr-3" aria-expanded="false" aria-controls="a-tr-3">
+                PDF/CSV won’t export.
+              </button>
+            </h2>
+            <div id="a-tr-3" class="accordion-collapse collapse" aria-labelledby="q-tr-3"
+                 data-bs-parent="#faqAccordionTroubleshooting">
+              <div class="accordion-body">
+                Save the estimate first, then export. If the issue continues, share the estimate name, time of attempt, and browser with support.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-tr-4">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-tr-4" aria-expanded="false" aria-controls="a-tr-4">
+                The app feels slow or looks odd.
+              </button>
+            </h2>
+            <div id="a-tr-4" class="accordion-collapse collapse" aria-labelledby="q-tr-4"
+                 data-bs-parent="#faqAccordionTroubleshooting">
+              <div class="accordion-body">
+                Hard-refresh your browser, close other heavy tabs, and update to the latest version. If it continues, contact support with your browser and OS version.
               </div>
             </div>
           </div>
@@ -349,4 +586,68 @@
   </div>
 
 </div>
+<!-- Roadmap & Feedback -->
+  <div class="col-12" id="cat-roadmap">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Roadmap &amp; Feedback</h2>
+        <div class="accordion" id="faqAccordionRoadmap">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-road-1">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-road-1" aria-expanded="false" aria-controls="a-road-1">
+                How can I request a feature or vote on the roadmap?
+              </button>
+            </h2>
+            <div id="a-road-1" class="accordion-collapse collapse" aria-labelledby="q-road-1"
+                 data-bs-parent="#faqAccordionRoadmap">
+              <div class="accordion-body">
+                Email <a href="mailto:support@electriciansmentor.com">support@electriciansmentor.com</a>
+                with a short description, why it matters, and any examples. We prioritize by impact, clarity, and feasibility.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-road-2">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-road-2" aria-expanded="false" aria-controls="a-road-2">
+                Do you have beta features?
+              </button>
+            </h2>
+            <div id="a-road-2" class="accordion-collapse collapse" aria-labelledby="q-road-2"
+                 data-bs-parent="#faqAccordionRoadmap">
+              <div class="accordion-body">
+                Occasionally. Beta features may change or be removed; please send feedback—it directly shapes the product.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Contact -->
+  <div class="col-12" id="cat-contact">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Contact</h2>
+        <div class="accordion" id="faqAccordionContact">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q-contact-1">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#a-contact-1" aria-expanded="false" aria-controls="a-contact-1">
+                Questions, issues, or feature ideas?
+              </button>
+            </h2>
+            <div id="a-contact-1" class="accordion-collapse collapse" aria-labelledby="q-contact-1"
+                 data-bs-parent="#faqAccordionContact">
+              <div class="accordion-body">
+                <a href="mailto:support@electriciansmentor.com">support@electriciansmentor.com</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 {% endblock %}

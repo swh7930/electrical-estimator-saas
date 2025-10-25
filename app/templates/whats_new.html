@@ -27,18 +27,18 @@
     </section>
   </div>
 
-  <!-- Example Release Log -->
+  <!-- Release Notes (public-facing) -->
   <div class="col-12">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Version 0.9.3 · October 2025</h2>
+        <h2 class="h5 mb-3">Latest Release · October 2025</h2>
         <ul class="mb-3">
-          <li><strong>✅ UI Standardization:</strong> All index pages (Materials, DJE, Customers, Assemblies) now share consistent spacing, headers, and table classes.</li>
-          <li><strong>🧭 Navigation:</strong> Added “Instructions” and “FAQs” to main nav with proper active-state logic.</li>
-          <li><strong>⚙️ Admin Settings:</strong> New design-complete page for company info, estimator defaults, and app behavior.</li>
-          <li><strong>💅 CSS Cleanup:</strong> Removed unused blocks (q-a, hero, sticky-top); kept page-scoped rules only.</li>
+          <li><strong>Faster estimating, consistent UI:</strong> Materials, DJE, Customers, and Assemblies use the same clean tables and headers for speed and clarity.</li>
+          <li><strong>Simpler navigation:</strong> “Instructions” and “FAQs” are now in the main nav so new users can get help fast.</li>
+          <li><strong>Company settings that flow into new work:</strong> Enter your company info, labor rate, overhead, margin, and tax once; new estimates pick up these defaults automatically.</li>
+          <li><strong>Polish & stability:</strong> Dozens of refinements to readability, spacing, and reliability across the app.</li>
         </ul>
-        <div class="text-muted small">Release scope: UI polish · structure alignment · pre-production prep</div>
+        <div class="text-muted small">Focus: usability & readiness for production launch.</div>
       </div>
     </section>
   </div>
@@ -46,13 +46,13 @@
   <div class="col-12">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Version 0.9.2 · September 2025</h2>
+        <h2 class="h5 mb-3">September 2025 · Foundations</h2>
         <ul class="mb-3">
-          <li><strong>🏗 Migration:</strong> Completed move from legacy electrical-estimator to electrical-estimator-saas skeleton (App Factory + Blueprint architecture).</li>
-          <li><strong>🧩 Libraries:</strong> Materials and DJE routes working with PostgreSQL via SQLAlchemy models.</li>
-          <li><strong>🧮 Estimator Core:</strong> Dynamic table with live totals (Materials and Labor columns).</li>
-          <li><strong>🧰 Setup & Migrations:</strong> Alembic chain stabilized · .env template standardized · pgAdmin connection verified.</li>
+          <li><strong>Database-powered libraries:</strong> Materials and DJE live in Postgres to keep data accurate for teams.</li>
+          <li><strong>Estimator grid:</strong> Live Material & Labor totals as you type for quick checks while building scope.</li>
+          <li><strong>Stable setup:</strong> Clean migrations and standardized environment configuration under the SaaS skeleton.</li>
         </ul>
+        <div class="text-muted small">Focus: reliability, data consistency, and team readiness.</div>
       </div>
     </section>
   </div>
@@ -60,28 +60,33 @@
   <div class="col-12">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Version 0.9.1 · August 2025</h2>
+        <h2 class="h5 mb-3">August 2025 · First Look</h2>
         <ul class="mb-3">
-          <li><strong>🚀 Initial Launch:</strong> Base Flask SaaS skeleton established with App Factory pattern, .env support, and admin blueprint.</li>
-          <li><strong>🧱 UI Framework:</strong> Introduced Bootstrap 5 layout + shared base.html + page blocks.</li>
-          <li><strong>🗂 Repo Structure:</strong> Clean folders (app/blueprints, models, services, templates, static).</li>
+          <li><strong>Modern base app:</strong> Flask SaaS skeleton with responsive layout and shared components.</li>
+          <li><strong>Clear structure:</strong> Organized blueprints, models, services, templates, and static assets.</li>
         </ul>
+        <div class="text-muted small">Focus: foundation for fast iteration.</div>
       </div>
     </section>
   </div>
 
-  <!-- Upcoming Features -->
+  <!-- Upcoming Features (public roadmap) -->
   <div class="col-12">
     <section class="card">
       <div class="card-body">
-        <h2 class="h5 mb-3">Coming Soon · Roadmap Highlights</h2>
+        <h2 class="h5 mb-3">Coming Soon · Public Roadmap</h2>
         <ul class="mb-3">
-          <li><strong>💼 Proposal Builder:</strong> Branded output tied to Admin Settings and Customers.</li>
-          <li><strong>💾 Save / Load:</strong> Estimate persistence with versioning and revision history.</li>
-          <li><strong>📊 Export Options:</strong> CSV, XLSX, and PDF report packs.</li>
-          <li><strong>🔐 Accounts:</strong> Authentication and role-based access controls.</li>
+          <li><strong>Proposal Generator:</strong> Branded proposals with scope of work, inclusions/exclusions, and terms—ready to send in minutes.</li>
+          <li><strong>Change Order Tracking:</strong> Spin COs from estimate lines, track deltas and status, and keep a clean paper trail.</li>
+          <li><strong>Project Management (lite):</strong> Tasks, due dates, files, and job notes tied back to the estimate.</li>
+          <li><strong>BOM + RFQs:</strong> Vendor-ready bill of materials and one-click RFQ emails; log responses for quick comparisons.</li>
+          <li><strong>Estimate Breakouts:</strong> Phases/areas/alternates with filtered subtotals and client-ready breakouts.</li>
+          <li><strong>Nested Assemblies:</strong> Build multi-level assemblies from components; flatten for total hours and BOM.</li>
+          <li><strong>Multi-user & Roles:</strong> Owner/admin/estimator permissions and feature gating.</li>
+          <li><strong>Save / Load with Versions:</strong> Persist estimates with revision history for edits and what-changed reviews.</li>
+          <li><strong>Export Packs:</strong> PDF/CSV/XLSX report bundles for clients and internal records.</li>
         </ul>
-        <div class="text-muted small">Feature timelines are subject to change as testing completes.</div>
+        <div class="text-muted small">Roadmap order and timing may change as we validate with early users.</div>
       </div>
     </section>
   </div>
