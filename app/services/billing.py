@@ -40,7 +40,7 @@ def create_checkout_session(*, price_id: str, org_id: int, user_id: int) -> Dict
         "subscription_data": {"metadata": {"org_id": str(org_id), "user_id": str(user_id)}},
     }
     idem = make_idempotency_key(org_id, user_id, price_id)
-    session = client.checkout.sessions.create(params, idempotency_key=idem)
+    session = client.checkout.sessions.create(params=params, options={"idempotency_key": idem})
     return {"id": session.id, "url": getattr(session, "url", None)}
 
 
