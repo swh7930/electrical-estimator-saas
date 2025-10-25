@@ -30,6 +30,7 @@ def test_checkout_creates_session_and_redirects(app, client, monkeypatch):
         db.session.commit()
 
         u = User(email="buyer@example.com", org_id=org.id)
+        u.set_password("test")
         db.session.add(u)
         db.session.commit()
 
