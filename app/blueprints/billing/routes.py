@@ -2,11 +2,16 @@ from flask import Blueprint, render_template, request, redirect, current_app, ab
 from flask_login import login_required, current_user
 from app.extensions import limiter
 from app.models import Subscription, BillingCustomer, Org
-from app.services.billing import create_checkout_session, create_portal_session
+from app.services.billing import create_portal_session
 from app.services import billing as billing_service
 
 billing_bp = Blueprint("billing", __name__, template_folder="../../templates/billing")
 
+def _checkout_url(session_obj):
+    # service may return a dict or a Stripe Session object
+    if isinstance(session_obj, dict):
+        return session_obj.get("url")
+    return getattr(session_obj, "url", None)
 
 def create_checkout_session(price_id: str, org_id: int):
     org = Org.query.get(org_id)
@@ -15,7 +20,7 @@ def create_checkout_session(price_id: str, org_id: int):
     # pass the Org object; the service can use org.id safely
     return billing_service.create_checkout_session(
         price_id=price_id,
-        org=org,
+        org_id=org_id,
         user_id=current_user.id,
     )
 
@@ -59,8 +64,19 @@ def checkout():
     if not price_id:
         abort(400, description="price_id is required")
 
-    payload = create_checkout_session(price_id, org_id)
-    url = payload.get("url")
+    try:
+        payload = create_checkout_session(price_id, org_id)
+    except Exception as e:
+        # Log the real error (and surface it in staging so we don't have to hunt in Render)
+        current_app.logger.exception(
+            "billing.checkout.session_create_failed",
+            extra={"org_id": org_id, "price_id": price_id, "user_id": current_user.id},
+        )
+        if current_app.config.get("APP_ENV") in ("staging", "development"):
+            return (f"<pre>{e.__class__.__name__}: {e}</pre>", 500)
+        abort(502, description="Could not create checkout session")
+
+    url = _checkout_url(payload)
     if not url:
         abort(502, description="Could not create checkout session")
     # 303 to allow re-POST safely and follow to Stripe-hosted page
