@@ -47,4 +47,4 @@ services:
 
 databases:
   - name: eesaas-staging-db
-    plan: starter
+    plan: basic-256mb
