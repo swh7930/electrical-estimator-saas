@@ -18,8 +18,8 @@ def _make_org_user(app):
         u.set_password("testpass")
         db.session.add(u)
         db.session.commit()
-        return org, u
-
+        return org.id, u.id
+    
 def _make_estimate(app, org_id: int):
     with app.app_context():
         est = Estimate(name="Test Estimate", org_id=org_id)
@@ -27,43 +27,41 @@ def _make_estimate(app, org_id: int):
         est.work_payload = {}
         db.session.add(est)
         db.session.commit()
-        return est
+        return est.id
 
 def test_saved_export_csv_blocks_without_entitlement(app, client):
-    org, u = _make_org_user(app)
-    est = _make_estimate(app, org.id)
-
-    _login(client, u.id)
-    resp = client.get(f"/estimates/{est.id}/export/summary.csv")
+    org_id, u_id = _make_org_user(app)
+    est_id = _make_estimate(app, org_id)
+    _login(client, u_id)
+    resp = client.get(f"/estimates/{est_id}/export/summary.csv")
     assert resp.status_code == 403
 
 def test_saved_export_csv_allows_with_entitlement(app, client):
-    org, u = _make_org_user(app)
-    est = _make_estimate(app, org.id)
-
+    org_id, u_id = _make_org_user(app)
+    est_id = _make_estimate(app, org_id)                 # <-- use est_id
     with app.app_context():
         sub = Subscription(
-            org_id=org.id,
+            org_id=org_id,
             stripe_subscription_id="sub_test_1",
             product_id="prod_test",
             price_id="price_test",
             status="active",
             entitlements_json=["exports.csv", "exports.pdf"],
         )
-        db.session.add(sub)
-        db.session.commit()
+        db.session.add(sub); db.session.commit()
 
-    _login(client, u.id)
-    resp = client.get(f"/estimates/{est.id}/export/summary.csv")
+    _login(client, u_id)
+    resp = client.get(f"/estimates/{est_id}/export/summary.csv")   # <-- use est_id
     assert resp.status_code == 200
     assert resp.headers.get("Content-Type", "").startswith("text/csv")
 
 def test_fast_export_csv_blocks_without_entitlement(app, client):
-    org, u = _make_org_user(app)
+    org_id, u_id = _make_org_user(app)
 
-    _login(client, u.id)
+    _login(client, u_id)
     resp = client.post(
         "/estimates/exports/summary.csv",
         json={"summary_export": {"controls": {}}},  # minimal valid shape
+        headers={"Accept": "application/json"}
     )
     assert resp.status_code == 403

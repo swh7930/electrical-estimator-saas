@@ -8,6 +8,7 @@ from app.extensions import db, csrf
 from app.models import EmailLog, BillingEventLog, Subscription, BillingCustomer
 import json
 import stripe
+from stripe import StripeClient
 from app.billing.entitlements import resolve_entitlements
 
 def _valid_signature(raw_body: bytes, timestamp: str, sig: str) -> bool:
@@ -129,7 +130,6 @@ def stripe_webhook():
     db.session.commit()
 
     # 4) Reconcile helpers
-    from stripe import StripeClient  # local import to avoid global dependency at import time
 
     def _client() -> StripeClient:
         key = current_app.config.get("STRIPE_SECRET_KEY")

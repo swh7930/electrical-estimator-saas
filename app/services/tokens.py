@@ -15,6 +15,9 @@ def generate(kind: str, identity: str) -> str:
     return _serializer().dumps({"k": kind, "i": identity})
 
 def verify(kind: str, token: str, max_age_seconds: int) -> Optional[str]:
+    # Treat non-positive TTL as immediately expired (clear, testable semantics)
+    if max_age_seconds is None or max_age_seconds <= 0:
+        return None
     try:
         data = _serializer().loads(token, max_age=max_age_seconds)
     except (BadSignature, SignatureExpired):

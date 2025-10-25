@@ -26,7 +26,7 @@ def app():
     )
     with app.app_context():
         db.create_all()
-         db.session.expire_on_commit = False
+        db.session.expire_on_commit = False
     yield app
     with app.app_context():
         db.drop_all()

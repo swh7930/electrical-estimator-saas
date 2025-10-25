@@ -52,3 +52,4 @@ gunicorn
 flask-talisman
 sentry-sdk[flask]
 python-json-logger
+pytest

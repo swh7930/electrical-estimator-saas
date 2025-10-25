@@ -16,6 +16,7 @@ def test_entitlement_guard_allows_when_active_and_feature_present(app):
 
         # minimal user record
         u = User(email="user@example.com", org_id=org.id)
+        u.set_password("x")
         db.session.add(u)
         db.session.commit()
 
@@ -44,6 +45,7 @@ def test_entitlement_guard_blocks_when_missing_feature(app):
         db.session.commit()
 
         u = User(email="user2@example.com", org_id=org.id)
+        u.set_password("x")
         db.session.add(u)
         db.session.commit()
 

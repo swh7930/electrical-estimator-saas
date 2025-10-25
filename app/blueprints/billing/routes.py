@@ -3,10 +3,19 @@ from flask_login import login_required, current_user
 from app.extensions import limiter
 from app.models import Subscription, BillingCustomer
 from app.services.billing import create_checkout_session, create_portal_session
+from app.services import billing as billing_service
 
 billing_bp = Blueprint("billing", __name__, template_folder="../../templates/billing")
 
 
+def create_checkout_session(price_id: str, org_id: int):
+    return billing_service.create_checkout_session(
+        price_id=price_id,
+        org_id=org_id,
+        user_id=current_user.id,   # still pass user_id in prod
+    )
+
+@billing_bp.get("")
 @billing_bp.get("/")
 @login_required
 def index():
@@ -46,7 +55,7 @@ def checkout():
     if not price_id:
         abort(400, description="price_id is required")
 
-    payload = create_checkout_session(price_id=price_id, org_id=org_id, user_id=current_user.id)
+    payload = create_checkout_session(price_id, org_id)
     url = payload.get("url")
     if not url:
         abort(502, description="Could not create checkout session")

@@ -52,6 +52,7 @@ def enforce_active_subscription():
         "application/json" in (request.headers.get("Accept") or "").lower()
         or request.is_json
         or request.path.endswith(".json")
+        or request.path.endswith(".csv")
     )
     if wants_json:
         return ({"error": "entitlement_required", "missing": "active_subscription"}, 403)
