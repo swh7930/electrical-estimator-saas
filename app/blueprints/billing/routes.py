@@ -110,17 +110,24 @@ def checkout_json():
     success_url = url_for("billing.success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = url_for("billing.index", _external=True)
 
-    # Carry over any existing options you already set in the 303 route
-    session = stripe.checkout.Session.create(
-        mode="subscription",
-        line_items=[{"price": price_id, "quantity": 1}],
-        customer_email=(getattr(current_user, "email", None) or None),
-        success_url=success_url,
-        cancel_url=cancel_url,
-        allow_promotion_codes=True,
-        automatic_tax={"enabled": True} if current_app.config.get("STRIPE_AUTOMATIC_TAX", True) else {"enabled": False},
-        # add any subscription_data, tax_id_collection, metadata, etc. you already use
-    )
+     # Respect the project’s env flag (ENABLE_STRIPE_TAX) for exclusive pricing
+    auto_tax_enabled = bool(current_app.config.get("ENABLE_STRIPE_TAX", True))
+
+    try:
+        session = stripe.checkout.Session.create(
+            mode="subscription",
+            line_items=[{"price": price_id, "quantity": 1}],
+            customer_email=(getattr(current_user, "email", None) or None),
+            success_url=success_url,
+            cancel_url=cancel_url,
+            allow_promotion_codes=True,
+            automatic_tax={"enabled": auto_tax_enabled},
+        )
+    except Exception as e:
+        # Return a clean client-visible error instead of a 500 on Stripe 4xx
+        current_app.logger.exception("Stripe checkout Session.create failed")
+        user_msg = getattr(e, "user_message", None) or str(e)
+        return jsonify({"error": user_msg}), 400
 
     return jsonify({"sessionId": session.id})
 
