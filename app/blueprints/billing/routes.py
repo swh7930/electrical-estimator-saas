@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, current_app, abort
+from flask import Blueprint, render_template, request, redirect, current_app, abort, jsonify
 from flask_login import login_required, current_user
 from app.extensions import limiter
 from app.models import Subscription, BillingCustomer, Org
 from app.services.billing import create_portal_session
 from app.services import billing as billing_service
+import stripe
 
 billing_bp = Blueprint("billing", __name__, template_folder="../../templates/billing")
 
@@ -82,6 +83,46 @@ def checkout():
     # 303 to allow re-POST safely and follow to Stripe-hosted page
     return redirect(url, code=303)
 
+@bp.get("/stripe-pk")
+@login_required
+def stripe_publishable_key():
+    """
+    Return the publishable key for Stripe.js initialization (safe to expose).
+    """
+    pk = current_app.config.get("STRIPE_PUBLISHABLE_KEY")
+    return jsonify({"publishable_key": pk})
+
+@bp.post("/checkout.json")
+@login_required
+def checkout_json():
+    """
+    Create a Checkout Session and return its ID for Stripe.js redirect.
+    Mirrors the logic in /billing/checkout but returns JSON instead of 303.
+    """
+    data = request.get_json(silent=True) or {}
+    price_id = data.get("price_id")
+    if not price_id:
+        return jsonify({"error": "Missing price_id"}), 400
+
+    stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
+
+    # Reuse your existing success/cancel URLs (adjust names if different)
+    success_url = url_for("billing.success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = url_for("billing.index", _external=True)
+
+    # Carry over any existing options you already set in the 303 route
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        line_items=[{"price": price_id, "quantity": 1}],
+        customer_email=(getattr(current_user, "email", None) or None),
+        success_url=success_url,
+        cancel_url=cancel_url,
+        allow_promotion_codes=True,
+        automatic_tax={"enabled": True} if current_app.config.get("STRIPE_AUTOMATIC_TAX", True) else {"enabled": False},
+        # add any subscription_data, tax_id_collection, metadata, etc. you already use
+    )
+
+    return jsonify({"sessionId": session.id})
 
 @billing_bp.post("/portal")
 @limiter.limit("10/minute")
