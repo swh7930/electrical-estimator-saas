@@ -83,7 +83,7 @@ def checkout():
     # 303 to allow re-POST safely and follow to Stripe-hosted page
     return redirect(url, code=303)
 
-@bp.get("/stripe-pk")
+@billing_bp.get("/stripe-pk")
 @login_required
 def stripe_publishable_key():
     """
@@ -92,7 +92,7 @@ def stripe_publishable_key():
     pk = current_app.config.get("STRIPE_PUBLISHABLE_KEY")
     return jsonify({"publishable_key": pk})
 
-@bp.post("/checkout.json")
+@billing_bp.post("/checkout.json")
 @login_required
 def checkout_json():
     """
