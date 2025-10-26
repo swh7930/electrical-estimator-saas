@@ -1,243 +1,232 @@
-{% extends "base.html" %} {% block title %}Home · Electrical Estimator{%
-endblock %} {% block container_class %}container-xxl{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %}Home · Electrical Estimator{% endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
 <div class="home-sidebar-page row g-4">
-  <!-- Sidebar -->
-  <aside class="col-12 col-lg-3">
-    <div class="card p-2 sticky-sidebar">
-      <div class="list-group list-group-flush">
-        <button
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          data-bs-toggle="modal"
-          data-bs-target="#newEstimateModeModal"
-        >
-          <span>⚡</span> <span>Start New Estimate</span>
-        </button>
 
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('estimates.index') }}"
-        >
-          <span>📁</span> <span>Open / View Estimates</span>
-        </a>
+  {% if not current_user.is_authenticated %}
+    <!-- Logged-out CTA -->
+    <section class="py-5 text-center w-100">
+      <h1 class="display-6 fw-bold mb-2">Build fast, accurate estimates.</h1>
+      <p class="text-muted mb-4">Start your 3-day trial. No credit card needed.</p>
+      <div class="d-flex gap-2 justify-content-center">
+        <a class="btn btn-primary btn-lg rounded-pill" href="{{ url_for('auth.register_get') }}">Create account</a>
+        <a class="btn btn-outline-secondary btn-lg rounded-pill" href="{{ url_for('auth.login_get') }}">Sign in</a>
+      </div>
+    </section>
 
-        <div class="list-group-item text-uppercase small text-muted">
-          Libraries
+  {% else %}
+    <!-- Sidebar -->
+    <aside class="col-12 col-lg-3">
+      <div class="card p-2 sticky-sidebar">
+        <div class="list-group list-group-flush">
+          <button
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            data-bs-toggle="modal"
+            data-bs-target="#newEstimateModeModal"
+          >
+            <span>⚡</span> <span>Start New Estimate</span>
+          </button>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('estimates.index') }}"
+          >
+            <span>📁</span> <span>Open / View Estimates</span>
+          </a>
+
+          <div class="list-group-item text-uppercase small text-muted">
+            Libraries
+          </div>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('libraries.materials') }}?rt=home"
+          >
+            <span>🧱</span> <span>Material List</span>
+          </a>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('libraries.dje') }}?rt=home"
+          >
+            <span>🛠️</span> <span>DJE Items</span>
+          </a>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('admin.list_assemblies') }}?rt=home"
+          >
+            <span>🧩</span> <span>Assemblies</span>
+          </a>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('libraries.customers') }}"
+          >
+            <span>👤</span> <span>Customers</span>
+          </a>
+
+          <div class="list-group-item text-uppercase small text-muted">
+            System
+          </div>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('admin.settings') }}"
+          >
+            <span>⚙️</span> <span>Settings</span>
+          </a>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('main.instructions') }}"
+          >
+            <span>📘</span> <span>Instructions</span>
+          </a>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('main.faqs') }}"
+          >
+            <span>❓</span> <span>FAQs</span>
+          </a>
+
+          <a
+            class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+            href="{{ url_for('main.whats_new') }}"
+          >
+            <span>📰</span> <span>What's New</span>
+          </a>
         </div>
+      </div>
+    </aside>
 
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('libraries.materials') }}?rt=home"
-        >
-          <span>🧱</span> <span>Material List</span>
-        </a>
+    <!-- Main content -->
+    <main class="col-12 col-lg-9">
+      <!-- Top strip -->
+      <header class="home-header sticky text-center py-3 border-bottom">
+        <h1 class="fw-bold mb-1 display-6">Welcome back</h1>
+        <p class="text-muted mb-0 fs-6">
+          Choose an action on the left, or resume recent work.
+        </p>
+      </header>
 
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('libraries.dje') }}?rt=home"
-        >
-          <span>🛠️</span> <span>DJE Items</span>
-        </a>
-
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('admin.list_assemblies') }}?rt=home"
-        >
-          <span>🧩</span> <span>Assemblies</span>
-        </a>
-
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('libraries.customers') }}"
-        >
-          <span>👤</span> <span>Customers</span>
-        </a>
-
-        <div class="list-group-item text-uppercase small text-muted">
-          System
+      <!-- Tips (moved to top) -->
+      <div class="card mt-4">
+        <div class="card-header"><strong>Tips</strong></div>
+        <div class="card-body">
+          <ul class="mb-0">
+            <li>Use <em>Fast</em> mode to add line items immediately, then fill details later.</li>
+            <li>Inline “Add” bars are at the top of Materials, DJE, Assemblies, and Customers pages.</li>
+            <li>Adjust labor multipliers under Adjustments to see live totals (coming soon).</li>
+          </ul>
         </div>
-
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('admin.settings') }}"
-        >
-          <span>⚙️</span> <span>Settings</span>
-        </a>
-
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('main.instructions') }}"
-        >
-          <span>📘</span> <span>Instructions</span>
-        </a>
-
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('main.faqs') }}"
-        >
-          <span>❓</span> <span>FAQs</span>
-        </a>
-
-        <a
-          class="list-group-item list-group-item-action d-flex align-items-center gap-2"
-          href="{{ url_for('main.whats_new') }}"
-        >
-          <span>📰</span> <span>What's New</span>
-        </a>
       </div>
-    </div>
-  </aside>
 
-  <!-- Main content -->
-  <main class="col-12 col-lg-9">
-    <!-- Top strip -->
-    <header class="home-header sticky text-center py-3 border-bottom">
-      <h1 class="fw-bold mb-1 display-6">Welcome back</h1>
-      <p class="text-muted mb-0 fs-6">
-        Choose an action on the left, or resume recent work.
-      </p>
-    </header>
+      <!-- Recent (visual only) -->
+      <div class="card mt-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong>Recent Estimates</strong>
+          <a class="link-secondary small" href="/estimates">View all</a>
+        </div>
+        <div class="table-responsive">
+          <table id="recentEstimatesTable" class="table table-sm table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Estimate</th>
+                <th>Customer</th>
+                <th>Updated</th>
+                <th class="text-end">Open</th>
+              </tr>
+            </thead>
+            <tbody id="recentEstimatesBody"></tbody>
+          </table>
+        </div>
+      </div>
 
-    <!-- Tips (moved to top) -->
-    <div class="card mt-4">
-      <div class="card-header"><strong>Tips</strong></div>
-      <div class="card-body">
-        <ul class="mb-0">
-          <li>
-            Use <em>Fast</em> mode to add line items immediately, then fill
-            details later.
-          </li>
-          <li>
-            Inline “Add” bars are at the top of Materials, DJE, Assemblies, and
-            Customers pages.
-          </li>
-          <li>
-            Adjust labor multipliers under Adjustments to see live totals
-            (coming soon).
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Recent (visual only) -->
-    <div class="card mt-4">
-      <div
-        class="card-header d-flex align-items-center justify-content-between"
-      >
-        <strong>Recent Estimates</strong>
-        <a class="link-secondary small" href="/estimates">View all</a>
-      </div>
-      <div class="table-responsive">
-        <table id="recentEstimatesTable" class="table table-sm table-hover align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Estimate</th>
-              <th>Customer</th>
-              <th>Updated</th>
-              <th class="text-end">Open</th>
-            </tr>
-          </thead>
-          <tbody id="recentEstimatesBody"></tbody>
-        </table>
-      </div>
-    </div>
-    <!-- Metrics Snapshot -->
-    <div class="row g-3 mt-4">
-      <div class="col-12 col-md-4">
-        <div class="card stat-card h-100">
-          <div class="card-body">
-            <div class="stat-label text-muted">Estimates (coming soon)</div>
-            <div class="stat-value">—</div>
-            <div class="stat-sub text-muted">Total created</div>
+      <!-- Metrics Snapshot -->
+      <div class="row g-3 mt-4">
+        <div class="col-12 col-md-4">
+          <div class="card stat-card h-100">
+            <div class="card-body">
+              <div class="stat-label text-muted">Estimates (coming soon)</div>
+              <div class="stat-value">—</div>
+              <div class="stat-sub text-muted">Total created</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="card stat-card h-100">
+            <div class="card-body">
+              <div class="stat-label text-muted">% Awarded (coming soon)</div>
+              <div class="stat-value">—</div>
+              <div class="stat-sub text-muted">Win rate</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="card stat-card h-100">
+            <div class="card-body">
+              <div class="stat-label text-muted">Avg Profit % (coming soon)</div>
+              <div class="stat-value">—</div>
+              <div class="stat-sub text-muted">Across awarded jobs</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-4">
-        <div class="card stat-card h-100">
-          <div class="card-body">
-            <div class="stat-label text-muted">% Awarded (coming soon)</div>
-            <div class="stat-value">—</div>
-            <div class="stat-sub text-muted">Win rate</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-md-4">
-        <div class="card stat-card h-100">
-          <div class="card-body">
-            <div class="stat-label text-muted">Avg Profit % (coming soon)</div>
-            <div class="stat-value">—</div>
-            <div class="stat-sub text-muted">Across awarded jobs</div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- News / Announcements / Changelog -->
-    <div class="card mt-4">
-      <div
-        class="card-header d-flex align-items-center justify-content-between"
-      >
-        <strong>What’s New</strong>
-        <a class="link-secondary small" href="{{ url_for('main.whats_new') }}">View all</a>
-      </div>
-      <div class="list-group list-group-flush">
-        <div class="list-group-item">
-          <div class="fw-semibold">Proposal Generator</div>
-          <div class="text-muted small">
-            Create custom branded proposals.
-          </div>
+      <!-- News / Announcements / Changelog -->
+      <div class="card mt-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong>What’s New</strong>
+          <a class="link-secondary small" href="{{ url_for('main.whats_new') }}">View all</a>
         </div>
-        <div class="list-group-item">
-          <div class="fw-semibold">Change Order Tracking</div>
-          <div class="text-muted small">
-            Add COs to existing estimates.
+        <div class="list-group list-group-flush">
+          <div class="list-group-item">
+            <div class="fw-semibold">Proposal Generator</div>
+            <div class="text-muted small">Create custom branded proposals.</div>
           </div>
-        </div>
-        <div class="list-group-item">
-          <div class="fw-semibold">Project Management Tools</div>
-          <div class="text-muted small">
-            Track projects from bid to completion.
+          <div class="list-group-item">
+            <div class="fw-semibold">Change Order Tracking</div>
+            <div class="text-muted small">Add COs to existing estimates.</div>
+          </div>
+          <div class="list-group-item">
+            <div class="fw-semibold">Project Management Tools</div>
+            <div class="text-muted small">Track projects from bid to completion.</div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
-</div>
+    </main>
+  {% endif %}
 
+</div> <!-- /.home-sidebar-page -->
+
+{% if current_user.is_authenticated %}
 <!-- Modal: New Estimate Mode (visual only) -->
-<div
-  class="modal fade"
-  id="newEstimateModeModal"
-  tabindex="-1"
-  aria-hidden="true"
->
+<div class="modal fade" id="newEstimateModeModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Start New Estimate</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <p class="text-muted">Choose how you want to begin:</p>
         <div class="d-grid gap-3">
-          <a class="btn btn-primary btn-lg" href="{{ url_for('estimates.new') }}"
-            >Standard Estimate</a
-          >
-          <a class="btn btn-outline-primary btn-lg" href="/estimator"
-            >Fast Estimate</a
-          >
+          <a class="btn btn-primary btn-lg" href="{{ url_for('estimates.new') }}">Standard Estimate</a>
+          <a class="btn btn-outline-primary btn-lg" href="/estimator">Fast Estimate</a>
         </div>
         <div class="form-text mt-3">You can fill or change details later.</div>
       </div>
     </div>
   </div>
 </div>
+{% endif %}
+
 {% endblock %}
+
 {% block scripts %}
   {{ super() }}
   <script src="{{ url_for('static', filename='js/home_index.js') }}"></script>

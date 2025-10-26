@@ -130,6 +130,64 @@ def reset_request():
     # Always respond the same way
     return redirect(url_for("auth.login_get"))
 
+@bp.get("/register")
+def register_get():
+    if current_user.is_authenticated:
+        next_url = request.args.get("next") or url_for("main.home")
+        return redirect(next_url)
+    return render_template("auth/register.html")
+
+@bp.post("/register")
+@limiter.limit("5 per minute; 20 per hour")
+def register_post():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.home"))
+
+    email = (request.form.get("email") or "").strip().lower()
+    password = request.form.get("password") or ""
+    agree = request.form.get("agree") == "on"
+
+    errors = []
+    if not email:
+        errors.append("Email is required.")
+    if not password or len(password) < 8:
+        errors.append("Password must be at least 8 characters.")
+    if not agree:
+        errors.append("You must agree to the Terms of Service to continue.")
+
+    # case-insensitive uniqueness check
+    existing = None
+    if email:
+        existing = db.session.execute(
+            db.select(User).where(func.lower(User.email) == func.lower(email))
+        ).scalar_one_or_none()
+    if existing:
+        errors.append("An account with that email already exists. Try signing in.")
+
+    if errors:
+        return render_template("auth/register.html", errors=errors, email=email), 400
+
+    # Create user + org + membership (owner)
+    user = User(email=email)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.flush()  # get user.id
+
+    org = Org(name=email)  # simple default; user can rename later
+    db.session.add(org)
+    db.session.flush()
+
+    user.org_id = org.id
+    membership = OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER)
+    db.session.add(membership)
+    db.session.commit()
+
+    # set org context and log in
+    session["current_org_id"] = org.id
+    login_user(user)
+
+    return redirect(url_for("billing.index"))
+
 @csrf.exempt
 @bp.get("/csrf-token")
 def csrf_token():

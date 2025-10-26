@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Create account · Electrical Estimator{% endblock %}
+{% block container_class %}container-sm{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <header class="text-center border-bottom py-3 mb-3">
+      <h1 class="h3 mb-1">Create your account</h1>
+      <div class="text-muted">Start your 3-day trial. No credit card required.</div>
+    </header>
+
+    <form class="card p-4" method="post" action="{{ url_for('auth.register_post') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% if errors %}
+        <div class="alert alert-danger" role="alert">
+          <ul class="mb-0">
+            {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label class="form-label" for="email">Email</label>
+        <input id="email" name="email" type="email" class="form-control" value="{{ email or '' }}" required autofocus>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" name="password" type="password" class="form-control" minlength="8" required>
+        <div class="form-text">At least 8 characters.</div>
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="agree" name="agree" required>
+        <label class="form-check-label" for="agree">
+          I agree to the <a href="{{ url_for('main.terms') }}" target="_blank">Terms of Service</a>.
+        </label>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <button type="submit" class="btn btn-primary rounded-pill px-4">Create account</button>
+        <a class="text-decoration-none" href="{{ url_for('auth.login_get') }}">Already have an account? Sign in</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
