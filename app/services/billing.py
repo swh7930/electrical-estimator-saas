@@ -1,8 +1,8 @@
 from typing import Dict, Any
 from urllib.parse import urljoin
 from flask import current_app
-from stripe import StripeClient  # type: ignore
-import hashlib
+from stripe import StripeClient
+import hashlib, json
 
 
 def _client() -> StripeClient:
@@ -39,7 +39,16 @@ def create_checkout_session(*, price_id: str, org_id: int, user_id: int) -> Dict
         "metadata": {"org_id": str(org_id), "user_id": str(user_id)},
         "subscription_data": {"metadata": {"org_id": str(org_id), "user_id": str(user_id)}},
     }
-    idem = make_idempotency_key(org_id, user_id, price_id)
+    # Include the tax flag + mode + URLs so any real change gets a fresh key
+    auto_tax_enabled = bool(params.get("automatic_tax", {}).get("enabled", False))
+    idem = make_idempotency_key(
+        "v2",                     # bump format to avoid old collisions
+        org_id, user_id, price_id,
+        auto_tax_enabled,
+        params.get("mode"),
+        params.get("success_url"),
+        params.get("cancel_url"),
+    )
     session = client.checkout.sessions.create(params=params, options={"idempotency_key": idem})
     return {"id": session.id, "url": getattr(session, "url", None)}
 
