@@ -46,8 +46,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadRecent() {
     try {
-      const res = await fetch("/estimates/recent.json");
-      if (!res.ok) throw new Error("fetch failed");
+      const res = await fetch("/estimates/recent.json", {
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" }
+      });
+      if (!res.ok) {
+        // Make 401/403 explicitly render the same friendly message as before
+        if (res.status === 401 || res.status === 403) {
+          tbody.innerHTML = emptyRow("Failed to load recent estimates.");
+          return;
+        }
+        throw new Error("fetch failed");
+      }
       const data = await res.json();
       const rows = (data && data.rows) || [];
       tbody.innerHTML = rows.length ? rows.map(row).join("") : emptyRow("No estimates yet.");

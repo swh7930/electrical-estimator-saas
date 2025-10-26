@@ -18,10 +18,17 @@
   }
 
   async function createSession(priceId) {
+    // Always send CSRF explicitly (defensive even with main.js wrapper)
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    var csrf = meta ? meta.getAttribute('content') : '';
+
     const resp = await fetch("/billing/checkout.json", {
       method: "POST",
       credentials: "same-origin",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrf
+      },
       body: JSON.stringify({ price_id: priceId })
     });
     if (!resp.ok) {
