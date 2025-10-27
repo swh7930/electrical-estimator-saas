@@ -601,3 +601,49 @@ function harvestControlsFallback() {
     }, { passive: false });
   } catch {}
 })();
+
+// --- Billing: Customer Portal (mirror Checkout JSON pattern) ---
+(function () {
+  function $all(sel, ctx) { return Array.from((ctx || document).querySelectorAll(sel)); }
+  function setDisabled(form, disabled) {
+    $all("button, input[type=submit]", form).forEach(function (el) { el.disabled = !!disabled; });
+  }
+
+  async function onPortalSubmit(ev) {
+    ev.preventDefault(); // avoid CSP form-action; use JSON + JS navigation instead
+    const form = ev.currentTarget;
+    setDisabled(form, true);
+    try {
+      const resp = await fetch("/billing/portal.json", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+        body: "{}"
+      });
+      if (!resp.ok) {
+        // Try to surface Stripe's user_message if any
+        let msg = "Failed to create portal session";
+        try { const j = await resp.json(); if (j && j.error) msg = j.error; } catch(_) {}
+        throw new Error(msg);
+      }
+      const data = await resp.json();
+      if (!data || !data.url) throw new Error("Missing portal URL");
+      window.location.assign(data.url);
+    } catch (err) {
+      console.error("Manage Billing failed:", err);
+      alert("Unable to open Customer Portal: " + err.message);
+      // Optional fallback (non-blocking): try a GET navigation
+      // window.location.assign("/billing/portal");
+    } finally {
+      setDisabled(form, false);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const forms = $all('form[action$="/billing/portal"]');
+    if (!forms.length) return;
+    forms.forEach(function (form) {
+      form.addEventListener("submit", onPortalSubmit, { passive: false });
+    });
+  });
+})();

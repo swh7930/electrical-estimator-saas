@@ -145,6 +145,34 @@ def checkout_json():
         user_msg = getattr(e, "user_message", None) or str(e)
         return jsonify({"error": user_msg}), 400
 
+@billing_bp.post("/portal.json")
+@limiter.limit("10/minute")
+@login_required
+def portal_json():
+    org_id = getattr(current_user, "org_id", None)
+    if not org_id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    bc = BillingCustomer.query.filter_by(org_id=org_id).first()
+    if not bc:
+        return jsonify({"error": "No billing profile for this organization"}), 404
+
+    try:
+        payload = create_portal_session(stripe_customer_id=bc.stripe_customer_id)
+    except Exception as e:
+        current_app.logger.exception(
+            "billing.portal_json.session_create_failed",
+            extra={"org_id": org_id, "user_id": getattr(current_user, "id", None)},
+        )
+        user_msg = getattr(e, "user_message", None) or str(e)
+        return jsonify({"error": user_msg}), 400
+
+    url = payload.get("url")
+    if not url:
+        return jsonify({"error": "Could not create portal session"}), 502
+
+    return jsonify({"url": url})
+
 @billing_bp.get("/portal")
 @billing_bp.post("/portal")
 @limiter.limit("10/minute")
