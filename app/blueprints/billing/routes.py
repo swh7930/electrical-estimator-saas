@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, current_app, abort, jsonify, url_for
+from flask import Blueprint, render_template, request, redirect, current_app, abort, jsonify, url_for, flash
 from flask_login import login_required, current_user
 from app.extensions import limiter
 from app.models import Subscription, BillingCustomer, Org
@@ -118,12 +118,12 @@ def checkout_json():
             mode="subscription",
             line_items=[{"price": price_id, "quantity": 1}],
             customer_email=(getattr(current_user, "email", None) or None),
-            success_url=success_url,
-            cancel_url=cancel_url,
+            success_url=success_url,              # you already build this via url_for("billing.success") + session_id
+            cancel_url=cancel_url,                # you already build this via url_for("billing.index")
             allow_promotion_codes=True,
             automatic_tax={"enabled": auto_tax_enabled},
 
-            # >>> Add these two blocks so the webhook can map events to your org <<<
+            # keep the metadata you added — this is what unlocks via webhook
             metadata={
                 "org_id": str(getattr(current_user, "org_id", "")),
                 "user_id": str(getattr(current_user, "id", "")),
@@ -135,15 +135,17 @@ def checkout_json():
                 }
             },
         )
+        return jsonify({"sessionId": session["id"]})
     except Exception as e:
-        # Return a clean client-visible error instead of a 500 on Stripe 4xx
-        current_app.logger.exception("Stripe checkout Session.create failed")
+        # ensure the frontend gets JSON instead of hanging on an HTML 500
+        current_app.logger.exception(
+            "billing.checkout_json.session_create_failed",
+            extra={"org_id": getattr(current_user, "org_id", None), "price_id": price_id, "user_id": current_user.id},
+        )
         user_msg = getattr(e, "user_message", None) or str(e)
         return jsonify({"error": user_msg}), 400
 
-    return jsonify({"sessionId": session.id})
-
-@billing_bp.post("/portal")
+@billing_bp.post("/portal", methods=["GET", "POST"])
 @limiter.limit("10/minute")
 @login_required
 def portal():
@@ -165,7 +167,16 @@ def portal():
 @billing_bp.get("/success")
 @login_required
 def success():
-    return render_template("billing/success.html")
+    session_id = request.args.get("session_id")
+    if session_id:
+        try:
+            # Optional sanity (keep your existing style if you already do this)
+            stripe.checkout.Session.retrieve(session_id)
+        except Exception as e:
+            current_app.logger.warning("Checkout success: could not retrieve session %s: %s", session_id, e)
+
+    flash("Your organization has an active subscription.", "success")
+    return redirect("/")
 
 
 @billing_bp.get("/cancelled")
