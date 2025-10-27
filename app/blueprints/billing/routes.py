@@ -122,6 +122,18 @@ def checkout_json():
             cancel_url=cancel_url,
             allow_promotion_codes=True,
             automatic_tax={"enabled": auto_tax_enabled},
+
+            # >>> Add these two blocks so the webhook can map events to your org <<<
+            metadata={
+                "org_id": str(getattr(current_user, "org_id", "")),
+                "user_id": str(getattr(current_user, "id", "")),
+            },
+            subscription_data={
+                "metadata": {
+                    "org_id": str(getattr(current_user, "org_id", "")),
+                    "user_id": str(getattr(current_user, "id", "")),
+                }
+            },
         )
     except Exception as e:
         # Return a clean client-visible error instead of a 500 on Stripe 4xx
