@@ -145,7 +145,8 @@ def checkout_json():
         user_msg = getattr(e, "user_message", None) or str(e)
         return jsonify({"error": user_msg}), 400
 
-@billing_bp.post("/portal", methods=["GET", "POST"])
+@billing_bp.get("/portal")
+@billing_bp.post("/portal")
 @limiter.limit("10/minute")
 @login_required
 def portal():
