@@ -12,6 +12,19 @@
   <!-- Header -->
   <div class="col-12">
     <header class="text-center border-bottom py-3 mb-3">
+      {% if can_write %}
+        <form method="post"
+              action="{{ url_for('libraries.import_dje_starter_pack') }}"
+              class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button id="importDjeStarterPack"
+                  type="submit"
+                  class="btn btn-sm btn-outline-primary">
+            Import Starter Pack
+          </button>
+        </form>
+      {% endif %}
+
       <div>
         <h1 class="h3 mb-1">DJE Items</h1>
         <div class="text-muted">Browse, add, and edit DJE items. Inline “Add” bar is at the top.</div>

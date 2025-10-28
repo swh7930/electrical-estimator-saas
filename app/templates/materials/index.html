@@ -13,6 +13,18 @@
   <!-- Header -->
   <div class="col-12">
     <header class="text-center border-bottom py-3 mb-3">
+      {% if can_write %}
+        <form method="post"
+              action="{{ url_for('libraries.import_materials_starter_pack') }}"
+              class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button id="importMaterialsStarterPack"
+                  type="submit"
+                  class="btn btn-sm btn-outline-primary">
+            Import Starter Pack
+          </button>
+        </form>
+      {% endif %}
       <div>
         <h1 class="h3 mb-1">Material List</h1>
         <div class="text-muted">

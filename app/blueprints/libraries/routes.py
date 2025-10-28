@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, url_for, redirect, request, abort, session
+from flask import render_template, request, jsonify, url_for, redirect, request, abort, session, flash
 from sqlalchemy import func, or_, and_, exists
 from sqlalchemy.orm import aliased
 from app.models.material import Material
@@ -20,6 +20,8 @@ from . import bp
 from flask_login import current_user
 from app.services.policy import require_member, role_required
 from app.security.entitlements import enforce_active_subscription
+from app.services.persistence import import_materials_starter_pack, import_dje_starter_pack
+
 
 @bp.before_request
 def _acl_libraries_readonly_for_members():
@@ -212,6 +214,23 @@ def materials_create():
             errors={"__all__": "A material with this Category and Description already exists (active)."}
         ), 409
     return jsonify(ok=True, id=m.id), 201
+
+@role_required(ROLE_ADMIN, ROLE_OWNER)
+@bp.post("/materials/import-starter-pack", endpoint="import_materials_starter_pack")
+@limiter.limit("120 per minute")
+def materials_import_starter_pack_post():
+    try:
+        inserted, updated = import_materials_starter_pack()
+        msg = f"Materials starter pack imported: {inserted} inserted, {updated} updated."
+        if "application/json" in (request.headers.get("Accept") or ""):
+            return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
+        flash(msg, "success")
+        return redirect(url_for("libraries.materials"))
+    except Exception as e:
+        if "application/json" in (request.headers.get("Accept") or ""):
+            return jsonify(ok=False, error=str(e)), 400
+        flash(f"Import failed: {e}", "danger")
+        return redirect(url_for("libraries.materials"))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.route("/materials/<int:material_id>", methods=["DELETE"])
@@ -450,6 +469,23 @@ def create_dje():
     }), 201
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
+@bp.post("/dje/import-starter-pack", endpoint="import_dje_starter_pack")
+@limiter.limit("120 per minute")
+def dje_import_starter_pack_post():
+    try:
+        inserted, updated = import_dje_starter_pack()
+        msg = f"DJE starter pack imported: {inserted} inserted, {updated} updated."
+        if "application/json" in (request.headers.get("Accept") or ""):
+            return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
+        flash(msg, "success")
+        return redirect(url_for("libraries.dje"))
+    except Exception as e:
+        if "application/json" in (request.headers.get("Accept") or ""):
+            return jsonify(ok=False, error=str(e)), 400
+        flash(f"Import failed: {e}", "danger")
+        return redirect(url_for("libraries.dje"))
+
+@role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.put("/dje/<int:item_id>")
 @limiter.limit("120 per minute")
 def update_dje(item_id):
@@ -521,7 +557,6 @@ def update_dje(item_id):
             "is_active": target.is_active,
         }
     }), 200
-
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.delete("/dje/<int:item_id>")
