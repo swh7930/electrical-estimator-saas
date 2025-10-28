@@ -129,7 +129,7 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
             :material_cost_code, :mat_cost_code_desc, :labor_cost_code, :labor_cost_code_desc,
             :is_active, true, :seed_pack, :seed_version, :seed_key, :seeded_at, now(), now()
         )
-        ON CONFLICT (seed_key) DO UPDATE SET
+        ON CONFLICT (seed_key) WHERE (is_seed = true AND org_id IS NULL) DO UPDATE SET
             material_type        = EXCLUDED.material_type,
             item_description     = EXCLUDED.item_description,
             labor_unit           = EXCLUDED.labor_unit,
@@ -229,7 +229,7 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
             :org_id, :category, :subcategory, :description, :default_unit_cost, :vendor, :cost_code,
             :is_active, true, :seed_pack, :seed_version, :seed_key, :seeded_at, now(), now()
         )
-        ON CONFLICT (seed_key) DO UPDATE SET
+        ON CONFLICT (seed_key) WHERE (is_seed = true AND org_id IS NULL) DO UPDATE SET
             category          = EXCLUDED.category,
             subcategory       = EXCLUDED.subcategory,
             description       = EXCLUDED.description,
