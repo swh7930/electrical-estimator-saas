@@ -16,7 +16,7 @@ from .observability import init_logging, init_sentry
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
     
-        # ---- S3-03b.5 Rate Limiting storage configuration ----
+    # ---- S3-03b.5 Rate Limiting storage configuration ----
     app_env = (os.getenv("APP_ENV", "development") or "development").lower()
     use_redis = app_env in ("staging", "production")
     storage_uri = os.environ.get("REDIS_URL") if use_redis else "memory://"
