@@ -139,6 +139,41 @@ def stripe_webhook():
 
     def _to_dt(ts):
         return datetime.utcfromtimestamp(ts) if ts else None
+    
+    def _extract_subscription_current_period_end(sub_obj: dict):
+        """
+        Return a datetime for the subscription's current period end.
+        Priority:
+        1) sub_obj["current_period_end"] (legacy / older API surface)
+        2) min(item["current_period_end"] for item in sub_obj["items"]["data"])
+            Rationale: the earliest item period end is the soonest renewal/cancel boundary.
+        """
+        # 1) Top-level (legacy)
+        ts = (sub_obj or {}).get("current_period_end")
+        if ts:
+            try:
+                return _to_dt(int(ts))
+            except Exception:
+                pass
+
+        # 2) Subscription items
+        items = ((sub_obj or {}).get("items") or {}).get("data") or []
+        ends = []
+        for item in items:
+            d = item.to_dict_recursive() if hasattr(item, "to_dict_recursive") else item
+            if not isinstance(d, dict):
+                continue
+            it_ts = d.get("current_period_end")
+            if it_ts:
+                try:
+                    ends.append(int(it_ts))
+                except Exception:
+                    continue
+
+        if ends:
+            return _to_dt(min(ends))  # earliest upcoming boundary
+
+        return None
 
     def _upsert_customer_and_subscription_from_sub(sub_obj: dict, org_from_meta: int | None = None):
         """
@@ -193,7 +228,7 @@ def stripe_webhook():
                 product_id=product_id,
                 price_id=price_id,
                 status=sub_obj.get("status") or "incomplete",
-                current_period_end=_to_dt(sub_obj.get("current_period_end")),
+                current_period_end=_extract_subscription_current_period_end(sub_obj),
                 cancel_at=_to_dt(sub_obj.get("cancel_at")),
                 cancel_at_period_end=bool(sub_obj.get("cancel_at_period_end")),
                 quantity=(first.get("quantity") or 1),
@@ -205,7 +240,7 @@ def stripe_webhook():
             s.product_id = product_id
             s.price_id = price_id
             s.status = sub_obj.get("status") or s.status
-            s.current_period_end = _to_dt(sub_obj.get("current_period_end"))
+            s.current_period_end = _extract_subscription_current_period_end(sub_obj)
             s.cancel_at = _to_dt(sub_obj.get("cancel_at"))
             s.cancel_at_period_end = bool(sub_obj.get("cancel_at_period_end"))
             s.quantity = (first.get("quantity") or s.quantity or 1)

@@ -131,3 +131,135 @@ def test_webhook_invoice_payment_failed_sets_past_due(app, client, monkeypatch):
     with app.app_context():
         sub = Subscription.query.filter_by(org_id=99).first()
         assert sub.status == "past_due"
+
+def test_webhook_checkout_uses_item_level_current_period_end_when_missing_on_sub(app, client, monkeypatch):
+    from datetime import datetime, timedelta
+    import json, stripe
+    app.config["STRIPE_SECRET_KEY"] = "sk_test_x"
+    app.config["STRIPE_WEBHOOK_SECRET"] = "whsec_test_x"
+    app.config["STRIPE_PRICE_PRO_MONTHLY"] = "price_pro_monthly"
+
+    # Seed Org
+    from app.extensions import db
+    from app.models import Org, Subscription, BillingCustomer
+    with app.app_context():
+        org = Org(id=2, name="ItemCP Org")
+        db.session.add(org); db.session.commit()
+
+    # Trust payload signature
+    def _fake_construct_event(payload, sig_header, secret):
+        return json.loads(payload)
+    monkeypatch.setattr(stripe.Webhook, "construct_event", staticmethod(_fake_construct_event))
+
+    def _ts(minutes_from_now=30):
+        return int((datetime.utcnow() + timedelta(minutes=minutes_from_now)).timestamp())
+
+    # StripeClient.subscriptions.retrieve returns NO top-level current_period_end, but item-level has it
+    class _FakeSubs:
+        def retrieve(self, sub_id):
+            assert sub_id == "sub_itemcp"
+            return {
+                "id": "sub_itemcp",
+                "status": "active",
+                "customer": "cus_itemcp",
+                "metadata": {"org_id": "2"},
+                # intentionally omit "current_period_end" at top level
+                "cancel_at": None,
+                "cancel_at_period_end": False,
+                "items": {
+                    "data": [
+                        {
+                            "quantity": 1,
+                            "current_period_end": _ts(60 * 24 * 15),  # 15 days
+                            "price": {"id": "price_pro_monthly", "product": "prod_pro"},
+                        }
+                    ]
+                },
+            }
+
+    class _FakeClient:
+        def __init__(self, key): pass
+        @property
+        def subscriptions(self): return _FakeSubs()
+    monkeypatch.setattr("app.blueprints.webhooks.routes.StripeClient", _FakeClient)
+
+    event = {
+        "id": "evt_itemcp_1",
+        "type": "checkout.session.completed",
+        "data": {"object": {"subscription": "sub_itemcp", "metadata": {"org_id": "2"}}},
+    }
+    body = json.dumps(event)
+    headers = {"Stripe-Signature": "t=1,v1=fake"}
+
+    resp = client.post("/webhooks/stripe", data=body, headers=headers)
+    assert resp.status_code == 200
+
+    with app.app_context():
+        sub = Subscription.query.filter_by(org_id=2).first()
+        assert sub is not None
+        assert sub.status == "active"
+        assert sub.current_period_end is not None  # item-level timestamp was used
+        bc = BillingCustomer.query.filter_by(stripe_customer_id="cus_itemcp").first()
+        assert bc is not None and bc.org_id == 2
+
+
+def test_webhook_subscription_updated_uses_item_level_current_period_end(app, client, monkeypatch):
+    from datetime import datetime, timedelta
+    import json, stripe
+    app.config["STRIPE_SECRET_KEY"] = "sk_test_x"
+    app.config["STRIPE_WEBHOOK_SECRET"] = "whsec_test_x"
+    app.config["STRIPE_PRICE_PRO_MONTHLY"] = "price_pro_monthly"
+
+    # Prepare Org
+    from app.extensions import db
+    from app.models import Org, Subscription, BillingCustomer
+    with app.app_context():
+        org = Org(id=3, name="ItemCP Org 2")
+        db.session.add(org); db.session.commit()
+
+    # Trust payload signature
+    def _fake_construct_event(payload, sig_header, secret):
+        return json.loads(payload)
+    monkeypatch.setattr(stripe.Webhook, "construct_event", staticmethod(_fake_construct_event))
+
+    def _ts(minutes_from_now=45):
+        return int((datetime.utcnow() + timedelta(minutes=minutes_from_now)).timestamp())
+
+    # Event with ONLY item-level current_period_end
+    event = {
+        "id": "evt_itemcp_2",
+        "type": "customer.subscription.updated",
+        "data": {
+            "object": {
+                "id": "sub_itemcp_2",
+                "status": "active",
+                "customer": "cus_itemcp_2",
+                "metadata": {"org_id": "3"},
+                # No top-level current_period_end here
+                "cancel_at": None,
+                "cancel_at_period_end": False,
+                "items": {
+                    "data": [
+                        {
+                            "quantity": 1,
+                            "current_period_end": _ts(60 * 24 * 20),  # 20 days
+                            "price": {"id": "price_pro_monthly", "product": "prod_pro"},
+                        }
+                    ]
+                },
+            }
+        },
+    }
+    body = json.dumps(event)
+    headers = {"Stripe-Signature": "t=1,v1=fake"}
+
+    resp = client.post("/webhooks/stripe", data=body, headers=headers)
+    assert resp.status_code == 200
+
+    with app.app_context():
+        sub = Subscription.query.filter_by(org_id=3).first()
+        assert sub is not None
+        assert sub.status == "active"
+        assert sub.current_period_end is not None
+        bc = BillingCustomer.query.filter_by(stripe_customer_id="cus_itemcp_2").first()
+        assert bc is not None and bc.org_id == 3
