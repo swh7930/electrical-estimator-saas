@@ -53,6 +53,12 @@ class DjeItem(db.Model):
 
     # Lifecycle — server-side defaults
     is_active = db.Column(db.Boolean, nullable=False, server_default=text("TRUE"))
+    # Seed provenance (global + per‑org overlays)
+    is_seed = db.Column(db.Boolean, nullable=False, server_default=text("FALSE"))
+    seed_pack = db.Column(db.String, nullable=True)
+    seed_version = db.Column(db.Integer, nullable=True)
+    seed_key = db.Column(db.String, nullable=True)
+    seeded_at = db.Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = db.Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
     )
@@ -80,6 +86,20 @@ class DjeItem(db.Model):
             vendor,
             unique=True,
             postgresql_where=text("(is_active = true)"),
+        ),
+        # Seed idempotency — enforce uniqueness for global and per‑org seed rows
+        Index(
+            "ux_dje_items_seed_key_global_true",
+            seed_key,
+            unique=True,
+            postgresql_where=text("(is_seed = true) AND (org_id IS NULL)"),
+        ),
+        Index(
+            "ux_dje_items_org_seed_key_seeded_true",
+            org_id,
+            seed_key,
+            unique=True,
+            postgresql_where=text("(is_seed = true) AND (org_id IS NOT NULL)"),
         ),
     )
 
