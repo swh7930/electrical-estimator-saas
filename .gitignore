@@ -21,7 +21,7 @@ Thumbs.db
 # Data files (ignore general, but not seed files)
 *.xlsx
 *.csv
-!data/Materials DB Seed.xlsx
+!data/Materials_DB_Seed.xlsx
 !data/dje_items.xlsx
 
 # Logs
