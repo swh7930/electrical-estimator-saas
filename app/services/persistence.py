@@ -150,11 +150,13 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
         """
     )
 
-    with db.session.begin():
-        db.session.execute(sql, to_params)
-
-    return inserted, updated
-
+    try:
+        db.session.execute(sql, to_params)  # implicit transaction (autobegin)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+        return inserted, updated
 
 def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -> Tuple[int, int]:
     """
@@ -242,7 +244,11 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
         """
     )
 
-    with db.session.begin():
-        db.session.execute(sql, to_params)
+    try:
+        db.session.execute(sql, to_params)  # implicit transaction (autobegin)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
     return inserted, updated
