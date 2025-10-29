@@ -222,7 +222,20 @@ def materials_import_starter_pack_post():
     try:
         inserted, updated = import_materials_starter_pack()
         rt = (request.args.get("rt") or request.form.get("rt") or "").strip()
-        msg = f"Materials starter pack imported: {inserted} inserted, {updated} updated."
+        total = (inserted or 0) + (updated or 0)
+        if total == 0:
+            msg = "Import complete — no changes (already up to date)."
+            category = "info"
+        elif inserted and updated:
+            msg = f"Import complete — {inserted} added, {updated} updated."
+            category = "success"
+        elif inserted:
+            msg = f"Import complete — {inserted} item{'s' if inserted != 1 else ''} added."
+            category = "success"
+        else:
+            msg = f"Import complete — {updated} item{'s' if updated != 1 else ''} updated."
+            category = "success"
+        flash(msg, category)
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
         flash(msg, "success")
@@ -230,7 +243,7 @@ def materials_import_starter_pack_post():
     except Exception as e:
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=False, error=str(e)), 400
-        flash(f"Import failed: {e}", "danger")
+        flash("Import failed — please try again.", "danger")
         return redirect(url_for("libraries.materials", rt=rt))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
@@ -478,7 +491,20 @@ def dje_import_starter_pack_post():
     try:
         rt = (request.args.get("rt") or request.form.get("rt") or "").strip()
         inserted, updated = import_dje_starter_pack()
-        msg = f"DJE starter pack imported: {inserted} inserted, {updated} updated."
+        total = (inserted or 0) + (updated or 0)
+        if total == 0:
+            msg = "Import complete — no changes (already up to date)."
+            category = "info"
+        elif inserted and updated:
+            msg = f"Import complete — {inserted} added, {updated} updated."
+            category = "success"
+        elif inserted:
+            msg = f"Import complete — {inserted} item{'s' if inserted != 1 else ''} added."
+            category = "success"
+        else:
+            msg = f"Import complete — {updated} item{'s' if updated != 1 else ''} updated."
+            category = "success"
+        flash(msg, category)
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
         flash(msg, "success")
@@ -486,7 +512,7 @@ def dje_import_starter_pack_post():
     except Exception as e:
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=False, error=str(e)), 400
-        flash(f"Import failed: {e}", "danger")
+        flash("Import failed — please try again.", "danger")
         return redirect(url_for("libraries.dje", rt=rt))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
