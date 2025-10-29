@@ -79,13 +79,24 @@ class DjeItem(db.Model):
         Index("ix_dje_items_lower_description", func.lower(description)),
         Index("ix_dje_items_lower_description_pattern", func.lower(description)),
         # Partial-unique across active catalog
+        # Per‑org uniqueness for active DJE items (tenant‑scoped)
         Index(
-            "ux_dje_items_cat_desc_vendor_active_true",
+            "ux_dje_items_org_cat_desc_vendor_active_true",
+            org_id,
             category,
             description,
             vendor,
             unique=True,
-            postgresql_where=text("(is_active = true)"),
+            postgresql_where=text("(is_active = true) AND (org_id IS NOT NULL)"),
+        ),
+        # Optional: keep clean uniqueness for any future global rows
+        Index(
+            "ux_dje_items_cat_desc_vendor_active_true_global",
+            category,
+            description,
+            vendor,
+            unique=True,
+            postgresql_where=text("(is_active = true) AND (org_id IS NULL)"),
         ),
         # Seed idempotency — enforce uniqueness for global and per‑org seed rows
         Index(
