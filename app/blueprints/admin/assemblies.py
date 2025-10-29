@@ -171,7 +171,10 @@ def create_assembly():
         asm.org_id = current_user.org_id  # ← stamp owner org
         db.session.commit()
         flash("Assembly created.", "success")
-        return redirect(url_for("admin.list_assemblies"))
+        return redirect(url_for(
+            "admin.list_assemblies",
+            rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+        ))
     except ServiceError as e:
         db.session.rollback()
         flash(str(e), "error")
@@ -345,7 +348,10 @@ def edit_assembly(assembly_id: int):
     assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     if not assembly:
         flash("Assembly not found.", "error")
-        return redirect(url_for("admin.list_assemblies"))
+        return redirect(url_for(
+            "admin.list_assemblies",
+            rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+        ))
 
     materials = (
         db.session.query(Material.id, Material.item_description)
@@ -446,7 +452,10 @@ def add_component(assembly_id: int):
     if errs:
         for m in errs:
             flash(m, "error")
-        return redirect(url_for("admin.list_assemblies"))
+        return redirect(url_for(
+            "admin.list_assemblies",
+            rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+        ))
 
     try:
         svc_add_component(
@@ -465,7 +474,10 @@ def add_component(assembly_id: int):
         db.session.rollback()
         flash("Database error adding component.", "error")
 
-    return redirect(url_for("admin.list_assemblies"))
+    return redirect(url_for(
+        "admin.list_assemblies",
+        rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+    ))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/delete")
@@ -474,7 +486,10 @@ def delete_assembly(assembly_id: int):
     a = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first_or_404()
     if not a:
         flash("Assembly not found.", "error")
-        return redirect(url_for("admin.list_assemblies"))
+        return redirect(url_for(
+            "admin.list_assemblies",
+            rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+        ))
 
     try:
         # 1) Remove all components for this assembly so hard delete can proceed
@@ -496,7 +511,10 @@ def delete_assembly(assembly_id: int):
         db.session.rollback()
         flash("Database error while deleting.", "error")
 
-    return redirect(url_for("admin.list_assemblies"))
+    return redirect(url_for(
+        "admin.list_assemblies",
+        rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+    ))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/deactivate")
@@ -506,12 +524,18 @@ def deactivate_component(assembly_id: int, component_id: int):
     assembly = Assembly.query.filter_by(id=assembly_id, org_id=current_user.org_id).first()
     if not assembly:
         flash("Assembly not found.", "error")
-        return redirect(url_for("admin.list_assemblies"))
+        return redirect(url_for(
+            "admin.list_assemblies",
+            rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+        ))
 
     comp = db.session.get(AssemblyComponent, component_id)
     if not comp or comp.assembly_id != assembly_id:
         flash("Component not found.", "error")
-        return redirect(url_for("admin.list_assemblies"))
+        return redirect(url_for(
+            "admin.list_assemblies",
+            rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+        ))
     try:
         svc_set_component_active(db.session, component_id=component_id, active=False)
         db.session.commit()
@@ -523,7 +547,12 @@ def deactivate_component(assembly_id: int, component_id: int):
         db.session.rollback()
         flash("Database error updating component.", "error")
     show = request.args.get("show") or ""
-    return redirect(url_for("admin.list_assemblies", assembly_id=assembly_id, show=show))
+    return redirect(url_for(
+        "admin.list_assemblies",
+        assembly_id=assembly_id,
+        show=show,
+        rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+    ))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.post("/assemblies/<int:assembly_id>/components/<int:component_id>/activate")
@@ -550,5 +579,10 @@ def activate_component(assembly_id: int, component_id: int):
         db.session.rollback()
         flash("Database error updating component.", "error")
     show = request.args.get("show") or ""
-    return redirect(url_for("admin.list_assemblies", assembly_id=assembly_id, show=show))
+    return redirect(url_for(
+        "admin.list_assemblies",
+        assembly_id=assembly_id,
+        show=show,
+        rt=(request.args.get("rt") or request.form.get("rt") or "").strip()
+    ))
 

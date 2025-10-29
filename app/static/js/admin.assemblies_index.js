@@ -602,7 +602,7 @@
           showErr(data?.errors || data?.message || 'Create failed.');
           return;
         }
-        window.location.assign('/admin/assemblies');
+        window.location.assign('/admin/assemblies' + window.location.search);
       } catch {
         showErr('Network error. Please try again.');
       }
@@ -630,7 +630,7 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { showErr(data?.errors || data?.message || 'Update failed.'); return; }
-      window.location.assign('/admin/assemblies');
+      window.location.assign('/admin/assemblies' + window.location.search);
     } catch {
       showErr('Network error.');
     }
