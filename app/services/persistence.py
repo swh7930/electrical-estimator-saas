@@ -9,6 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy import text
 
 from app.extensions import db
+from flask_login import current_user
 
 
 def _norm(val: object) -> str:
@@ -70,11 +71,16 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
         bad = df[invalid_units].iloc[0]
         raise ValueError(f"Invalid Unit Qty Size for seed_key={bad['seed_key']!r}; must be one of 1, 100, 1000.")
 
-    # Preload existing global seed_keys to compute inserted vs updated
+    # Require an organization context
+    org_id = getattr(current_user, "org_id", None)
+    if not org_id:
+        raise ValueError("Import requires an organization context (current_user.org_id is missing).")
+
     existing = {
         row[0]
         for row in db.session.execute(
-            text("SELECT seed_key FROM materials WHERE is_seed = true AND org_id IS NULL")
+            text("SELECT seed_key FROM materials WHERE is_seed = true AND org_id = :org_id"),
+            {"org_id": org_id},
         ).all()
     }
 
@@ -95,7 +101,7 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
 
         to_params.append(
             {
-                "org_id": None,  # global seed
+                "org_id": org_id,  # per‑org seed
                 "material_type": (r.get("material_type") or "").strip() or None,
                 "item_description": (r.get("item_description") or "").strip() or None,
                 "labor_unit": float(r.get("labor_unit") or 0),
@@ -132,7 +138,7 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
             :material_cost_code, :mat_cost_code_desc, :labor_cost_code, :labor_cost_code_desc,
             :is_active, true, :seed_pack, :seed_version, :seed_key, :seeded_at, now(), now()
         )
-        ON CONFLICT (seed_key) WHERE (is_seed = true AND org_id IS NULL) DO UPDATE SET
+        ON CONFLICT (org_id, seed_key) WHERE (is_seed = true AND org_id IS NOT NULL) DO UPDATE SET
             material_type        = EXCLUDED.material_type,
             item_description     = EXCLUDED.item_description,
             labor_unit           = EXCLUDED.labor_unit,
@@ -185,11 +191,16 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
     df["is_active"] = df.get("is_active", True).fillna(True).astype(bool)
     df["default_unit_cost"] = pd.to_numeric(df.get("default_unit_cost"), errors="coerce").fillna(0).round(2)
 
-    # Preload existing global seed_keys
+    # Require an organization context
+    org_id = getattr(current_user, "org_id", None)
+    if not org_id:
+        raise ValueError("Import requires an organization context (current_user.org_id is missing).")
+
     existing = {
         row[0]
         for row in db.session.execute(
-            text("SELECT seed_key FROM dje_items WHERE is_seed = true AND org_id IS NULL")
+            text("SELECT seed_key FROM dje_items WHERE is_seed = true AND org_id = :org_id"),
+            {"org_id": org_id},
         ).all()
     }
 
@@ -209,7 +220,7 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
 
         to_params.append(
             {
-                "org_id": None,
+                "org_id": org_id,
                 "category": (r.get("category") or "").strip(),
                 "subcategory": (r.get("subcategory") or None),
                 "description": (r.get("description") or "").strip(),
@@ -236,7 +247,7 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
             :org_id, :category, :subcategory, :description, :default_unit_cost, :vendor, :cost_code,
             :is_active, true, :seed_pack, :seed_version, :seed_key, :seeded_at, now(), now()
         )
-        ON CONFLICT (seed_key) WHERE (is_seed = true AND org_id IS NULL) DO UPDATE SET
+        ON CONFLICT (org_id, seed_key) WHERE (is_seed = true AND org_id IS NOT NULL) DO UPDATE SET
             category          = EXCLUDED.category,
             subcategory       = EXCLUDED.subcategory,
             description       = EXCLUDED.description,
