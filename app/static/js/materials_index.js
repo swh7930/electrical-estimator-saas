@@ -95,7 +95,7 @@
       resetForm(!!keepCategory);
 
       // Redirect so server re-renders list and we can highlight the new row
-      window.location.href = `/libraries/materials`;
+      window.location.href = `/libraries/materials` + window.location.search;
     } catch (e) {
       alert(e.message || "Failed to add material.");
     }
@@ -243,7 +243,7 @@
       }
       // Close modal and do a clean reload (keeps list rendering consistent)
       bootstrap.Modal.getInstance(document.getElementById("materialEditModal"))?.hide();
-      window.location.href = `/libraries/materials`;
+      window.location.href = `/libraries/materials` + window.location.search;
     } catch (err) {
       alert(err.message || "Failed to update material.");
     } finally {

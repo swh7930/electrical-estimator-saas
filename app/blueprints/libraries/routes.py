@@ -221,16 +221,17 @@ def materials_create():
 def materials_import_starter_pack_post():
     try:
         inserted, updated = import_materials_starter_pack()
+        rt = (request.args.get("rt") or request.form.get("rt") or "").strip()
         msg = f"Materials starter pack imported: {inserted} inserted, {updated} updated."
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
         flash(msg, "success")
-        return redirect(url_for("libraries.materials"))
+        return redirect(url_for("libraries.materials", rt=rt))
     except Exception as e:
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=False, error=str(e)), 400
         flash(f"Import failed: {e}", "danger")
-        return redirect(url_for("libraries.materials"))
+        return redirect(url_for("libraries.materials", rt=rt))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.route("/materials/<int:material_id>", methods=["DELETE"])
