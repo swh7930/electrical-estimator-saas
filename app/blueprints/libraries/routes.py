@@ -305,6 +305,8 @@ def materials_update(material_id: int):
             m.price = price
             m.labor_unit = labor
             m.unit_quantity_size = unit_q
+            # Mark as user-edited to protect from future seed refresh
+            m.updated_at = func.now()
 
         db.session.commit()
     except IntegrityError:
@@ -538,6 +540,8 @@ def update_dje(item_id):
             item.default_unit_cost = unit_cost
             item.cost_code = cost_code or None
             item.is_active = is_active
+            # Mark as user-edited to protect from future seed refresh
+            item.updated_at = func.now()
             db.session.commit()
             target = item
     except IntegrityError:

@@ -156,6 +156,7 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
             seed_version         = EXCLUDED.seed_version,
             seeded_at            = EXCLUDED.seeded_at,
             updated_at           = now()
+        WHERE (materials.seeded_at IS NULL OR materials.updated_at <= materials.seeded_at)
         """
     )
 
@@ -259,6 +260,7 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
             seed_version      = EXCLUDED.seed_version,
             seeded_at         = EXCLUDED.seeded_at,
             updated_at        = now()
+         WHERE (dje_items.seeded_at IS NULL OR dje_items.updated_at <= dje_items.seeded_at)
         """
     )
 
