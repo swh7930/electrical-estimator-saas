@@ -90,13 +90,22 @@ class Material(db.Model):
         Index(
             "ix_materials_type_active_desc", material_type, is_active, item_description
         ),
-        # Partial-unique: prevent dup (type, description) among active rows
+        # Per‑org uniqueness for active materials (tenant‑scoped)
         Index(
-            "ux_materials_type_desc_active_true",
+            "ux_materials_org_type_desc_active_true",
+            org_id,
             material_type,
             item_description,
             unique=True,
-            postgresql_where=text("(is_active = true)"),
+            postgresql_where=text("(is_active = true) AND (org_id IS NOT NULL)"),
+        ),
+        # Optional: preserve clean uniqueness for any future global rows
+        Index(
+            "ux_materials_type_desc_active_true_global",
+            material_type,
+            item_description,
+            unique=True,
+            postgresql_where=text("(is_active = true) AND (org_id IS NULL)"),
         ),
         # Seed idempotency — enforce uniqueness for global and per‑org seed rows
         Index(
