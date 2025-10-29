@@ -28,6 +28,9 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
     Returns: (inserted_count, updated_count)
     """
     df = pd.read_excel("data/Materials_DB_Seed.xlsx")
+    # Return a proper tuple even when the sheet is empty
+    if df is None or df.empty:
+        return 0, 0
 
     # Map workbook columns -> DB columns
     df = df.rename(
@@ -151,12 +154,13 @@ def import_materials_starter_pack(seed_pack: str = "starter", seed_version: int 
     )
 
     try:
-        db.session.execute(sql, to_params)  # implicit transaction (autobegin)
+        if to_params:
+            db.session.execute(sql, to_params)  # vectorized params; safe when non-empty
         db.session.commit()
+        return int(inserted), int(updated)
     except Exception:
         db.session.rollback()
         raise
-        return inserted, updated
 
 def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -> Tuple[int, int]:
     """
@@ -164,6 +168,9 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
     Returns: (inserted_count, updated_count)
     """
     df = pd.read_excel("data/dje_items.xlsx")
+    # Return a proper tuple even when the sheet is empty
+    if df is None or df.empty:
+        return 0, 0
 
     # Compute seed_key if not provided or missing
     if "seed_key" not in df.columns:
@@ -245,10 +252,10 @@ def import_dje_starter_pack(seed_pack: str = "starter", seed_version: int = 1) -
     )
 
     try:
-        db.session.execute(sql, to_params)  # implicit transaction (autobegin)
+        if to_params:
+            db.session.execute(sql, to_params)
         db.session.commit()
+        return int(inserted), int(updated)
     except Exception:
         db.session.rollback()
         raise
-
-    return inserted, updated
