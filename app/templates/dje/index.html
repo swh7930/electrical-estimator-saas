@@ -17,6 +17,7 @@
               action="{{ url_for('libraries.import_dje_starter_pack') }}"
               class="d-inline">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="rt" value="{{ (request.args.get('rt') or '') }}">
           <button id="importDjeStarterPack"
                   type="submit"
                   class="btn btn-sm btn-outline-primary">

@@ -205,7 +205,7 @@
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { showErrors(addErrorsEl, data?.errors || data?.message || 'Failed to add DJE item.'); return; }
 
-      if (redirectAfter) window.location.assign('/libraries/dje');
+      if (redirectAfter) window.location.assign('/libraries/dje' + window.location.search);
       else {
         if (descEl) descEl.value = '';
         if (unitCostEl) unitCostEl.value = '';
@@ -260,7 +260,7 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { showErrors(editErrorsEl, data?.errors || data?.message || 'Update failed.'); return; }
-      window.location.assign('/libraries/dje');
+      window.location.assign('/libraries/dje' + window.location.search);
     } catch { showErrors(editErrorsEl, 'Network error.'); }
   }
 

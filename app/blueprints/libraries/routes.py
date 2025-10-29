@@ -474,17 +474,18 @@ def create_dje():
 @limiter.limit("120 per minute")
 def dje_import_starter_pack_post():
     try:
+        rt = (request.args.get("rt") or request.form.get("rt") or "").strip()
         inserted, updated = import_dje_starter_pack()
         msg = f"DJE starter pack imported: {inserted} inserted, {updated} updated."
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
         flash(msg, "success")
-        return redirect(url_for("libraries.dje"))
+        return redirect(url_for("libraries.dje", rt=rt))
     except Exception as e:
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=False, error=str(e)), 400
         flash(f"Import failed: {e}", "danger")
-        return redirect(url_for("libraries.dje"))
+        return redirect(url_for("libraries.dje", rt=rt))
 
 @role_required(ROLE_ADMIN, ROLE_OWNER)
 @bp.put("/dje/<int:item_id>")
