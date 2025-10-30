@@ -6,21 +6,9 @@
       {% if estimate %}Estimate {{ estimate.id }} — {% endif %}Summary ({{ mode or 'PDF' }})
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-      /* Print-safe spacing; WeasyPrint will also load site.css + pdf.css */
-      @page { size: A4; margin: 16mm 14mm; }
-      h1 { margin: 0 0 .6rem 0; }
-      .meta { font-size: 0.9rem; margin-bottom: 1rem; }
-      table { width: 100%; border-collapse: collapse; margin-bottom: .6rem; }
-      th, td { border: 1px solid #ddd; padding: .35rem .5rem; font-size: .9rem; }
-      th { text-align: left; }
-      .right { text-align: right; }
-      .center { text-align: center; }
-      .bold { font-weight: 600; }
-      .step-label { width: 80px; white-space: nowrap; font-weight: 600; text-align: center; }
-    </style>
+    
   </head>
-  <body>
+  <body class="pdf-summary">
 
     <h1>Estimate Summary</h1>
     <div class="meta">

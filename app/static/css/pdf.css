@@ -1,5 +1,26 @@
 /* === Electrical Estimator — WeasyPrint stylesheet === */
 
+/* Summary PDF (scoped) — moved from inline <style> in exports/summary_pdf.html */
+@page summary {
+  size: A4;
+  margin: 16mm 14mm;  /* top/both-sides */
+}
+/* Apply the named page to this template only */
+body.pdf-summary { page: summary; }
+
+/* Scoped element rules */
+body.pdf-summary h1 { margin: 0 0 .6rem 0; }
+body.pdf-summary .meta { font-size: 0.9rem; margin-bottom: 1rem; }
+body.pdf-summary table { width: 100%; border-collapse: collapse; margin-bottom: .6rem; }
+body.pdf-summary th,
+body.pdf-summary td { border: 1px solid #ddd; padding: .35rem .5rem; font-size: .9rem; }
+body.pdf-summary th { text-align: left; }
+body.pdf-summary .right { text-align: right; }
+body.pdf-summary .center { text-align: center; }
+body.pdf-summary .bold { font-weight: 600; }
+body.pdf-summary .step-label { width: 80px; white-space: nowrap; font-weight: 600; text-align: center; }
+
+
 /* Page & footer */
 @page {
   size: Letter;                     /* Use A4 if preferred */
