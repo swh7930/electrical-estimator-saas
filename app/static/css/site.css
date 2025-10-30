@@ -1041,3 +1041,5 @@ header.border-bottom + .card {
 .add_new_btn {
   margin-top: .5rem;
 }
+
+#toastStack { z-index: 1200; }
