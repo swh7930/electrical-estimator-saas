@@ -51,6 +51,29 @@ services:
     plan: starter
     ipAllowList: []   # empty list = internal connections only
 
+  # Nightly logical backup of the staging database to S3 at 03:00 UTC
+  - type: cron
+    name: eesaas-staging-db-backup
+    runtime: docker
+    repo: https://github.com/render-examples/postgres-s3-backups
+    schedule: "0 3 * * *"
+    envVars:
+      # Postgres major version shown in your note: 17
+      - key: POSTGRES_VERSION
+        value: "17"
+      # Use the **External Database URL** (do not commit the value; set in dashboard on first sync)
+      - key: DATABASE_URL
+        sync: false
+      # Bucket region (Oregon = us-west-2). Set values in dashboard.
+      - key: AWS_REGION
+        value: "us-west-2"
+      - key: S3_BUCKET_NAME
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
 databases:
   - name: eesaas-staging-db
     plan: basic-256mb
