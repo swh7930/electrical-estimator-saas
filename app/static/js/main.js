@@ -200,13 +200,13 @@ document.addEventListener('DOMContentLoaded', function () {
       })
       .then(function (res) {
         if (!res || !res.ok) throw new Error("save_failed");
-        try { showToast("Estimate saved", "success"); } catch (_) {}
+        try { EM_NOTIFY.show({ body: "Estimate saved", variant: "success", delay: 2200 }); } catch (_) {}
       })
       .catch(function () {
-        try { showToast("Save failed", "danger"); } catch (_) {}
+        try { EM_NOTIFY.show({ body: "Save failed", variant: "danger", delay: 2200 }); } catch (_) {}
       });
     } catch (_) {
-      try { showToast("Save failed", "danger"); } catch (__){ }
+      try { EM_NOTIFY.show({ body: "Save failed", variant: "danger", delay: 2200 }); } catch (__){ }
     }
   }
 
@@ -436,7 +436,7 @@ function exportSummaryPdfSmart(e, eid) {
   })
   .then(function (r) { if (!r.ok) throw new Error('export_failed'); return r.blob(); })
   .then(function (b) { var u = URL.createObjectURL(b); window.open(u, '_blank'); })
-  .catch(function () { try { showToast('Export PDF failed', 'danger'); } catch(_) {} });
+  .catch(function () { try { EM_NOTIFY.show({ body: 'Export PDF failed', variant: 'danger', delay: 2200 }); } catch(_) {} });
 }
 
 
@@ -483,7 +483,7 @@ function exportSummaryCsvSmart(e, eid) {
       URL.revokeObjectURL(a.href); a.remove();
     }, 500);
   })
-  .catch(function () { try { showToast('Export CSV failed', 'danger'); } catch(_) {} });
+  .catch(function () { try { EM_NOTIFY.show({ body: 'Export CSV failed', variant: 'danger', delay: 2200 }); } catch(_) {} });
 }
 
 // --- Fallback harvesters (used when captureSummary* are not defined) ---
