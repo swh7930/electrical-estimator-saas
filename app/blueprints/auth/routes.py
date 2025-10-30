@@ -18,11 +18,17 @@ def _login_email_scope():
     # Keep a stable scope even if email is blank
     return f"login-email:{email or 'missing'}"
 
+# Only allow internal paths like "/estimates" (no external URLs or "//" protocol-relative).
+def _safe_next_path(next_raw: str) -> str:
+    next_raw = (next_raw or "").strip()
+    if next_raw.startswith("/") and not next_raw.startswith("//"):
+        return next_raw
+    return url_for("main.home")
 @bp.get("/login")
 def login_get():
     if current_user.is_authenticated:
-        next_url = request.args.get("next") or url_for("main.home")
-        return redirect(next_url)
+        next_raw = request.args.get("next")
+        return redirect(_safe_next_path(next_raw))
     return render_template("auth/login.html")
 
 @bp.post("/login")
@@ -70,8 +76,8 @@ def login_post():
     # --- /S3-03b.3a ---
 
     login_user(user)
-    next_url = request.args.get("next") or url_for("main.home")
-    return redirect(next_url)
+    next_raw = request.args.get("next")
+    return redirect(_safe_next_path(next_raw))
 
 @bp.get("/logout")
 def logout():
@@ -133,8 +139,8 @@ def reset_request():
 @bp.get("/register")
 def register_get():
     if current_user.is_authenticated:
-        next_url = request.args.get("next") or url_for("main.home")
-        return redirect(next_url)
+        next_raw = request.args.get("next")
+        return redirect(_safe_next_path(next_raw))
     return render_template("auth/register.html")
 
 @bp.post("/register")
