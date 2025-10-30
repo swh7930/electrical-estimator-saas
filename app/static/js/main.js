@@ -369,45 +369,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Uses existing #toastStack container in base.html
-function showToast(message, type, delay) {
-  var stack = document.getElementById('toastStack');
-  if (!stack) { try { alert(message); } catch (_) {} return; }
-
-  var theme = (type === 'danger' || type === 'error') ? 'text-bg-danger'
-            : (type === 'warning') ? 'text-bg-warning'
-            : 'text-bg-success';
-
-  var el = document.createElement('div');
-  el.className = 'toast ' + theme + ' border-0';
-  el.setAttribute('role', 'status');
-  el.setAttribute('aria-live', 'polite');
-  el.setAttribute('aria-atomic', 'true');
-  el.innerHTML =
-    '<div class="d-flex">' +
-      '<div class="toast-body">' + message + '</div>' +
-      '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
-    '</div>';
-
-  stack.appendChild(el);
-
-  // Prefer Bootstrap if present; fallback to simple show/hide
-  try {
-    var Toast = window.bootstrap && window.bootstrap.Toast;
-    if (Toast) {
-      var t = new Toast(el, { delay: delay || 2200, autohide: true });
-      el.addEventListener('hidden.bs.toast', function () { el.remove(); });
-      t.show();
-    } else {
-      el.classList.add('show');
-      setTimeout(function () { el.remove(); }, (delay || 2200) + 400);
-    }
-  } catch (_) {
-    el.classList.add('show');
-    setTimeout(function () { el.remove(); }, (delay || 2200) + 400);
-  }
-}
-
 // Smart export: if eid present -> Saved GET; else -> Fast POST with summary_export
 function exportSummaryPdfSmart(e, eid) {
   try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch(_) {}
