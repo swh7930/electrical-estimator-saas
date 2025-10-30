@@ -237,7 +237,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Legacy path (no eid): use Admin Settings with version flag
     const applied = localStorage.getItem(EE_SETTINGS_VERSION_KEY);
-    const forced = sessionStorage.getItem(EE_RESET_FLAG) === '1';
+    const forced =
+      sessionStorage.getItem(EE_RESET_FLAG) === '1' ||
+      (function needsDefaults() {
+        try {
+          const raw = localStorage.getItem(ESTIMATE_DATA_KEY);
+          const ed = raw ? JSON.parse(raw) : null;
+          const m = (ed && ed.materials) || {};
+          const t = (ed && ed.totals) || {};
+          const hasLabor = Number.isFinite(Number(t.laborRate)) && Number(t.laborRate) > 0;
+          const keys = ['misc_percent','small_tools_percent','large_tools_percent','waste_theft_percent','sales_tax_percent'];
+          const haveAdders = keys.every(k => Number.isFinite(Number(m[k])));
+          return !hasLabor || !haveAdders;     // if missing, force applying Admin Settings
+        } catch (_) { return true; }
+      })();
 
     eeFetchAppSettings()
       .then(doc => {
@@ -482,6 +495,7 @@ function resetAllFromSummary() {
     try { localStorage.setItem('ee.reset', String(Date.now())); } catch (_) {}
 
     // Reload Summary — other pages will hydrate clean on next visit
+    try { sessionStorage.setItem(EE_RESET_FLAG, '1'); } catch (_) {}
     location.reload();
   }
 
