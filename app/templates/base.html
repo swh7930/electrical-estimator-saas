@@ -16,6 +16,15 @@
       <script defer data-domain="{{ config['PLAUSIBLE_DOMAIN'] }}" src="https://plausible.io/js/script.js"></script>
     {% endif %}
 
+    <!-- SEO basics -->
+    <meta name="description" content="{{ config['SITE_DESCRIPTION'] }}">
+    <link rel="canonical" href="{{ config['APP_BASE_URL'] }}{{ request.path }}">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}{{ config['SITE_NAME'] }}{% endblock %}">
+    <meta property="og:description" content="{{ config['SITE_DESCRIPTION'] }}">
+    <meta property="og:url" content="{{ config['APP_BASE_URL'] }}{{ request.path }}">
+
     {% block head_extra %}{% endblock %}
   </head>
   <body class="bg-light" data-enter-as-tab>

@@ -41,8 +41,14 @@ class BaseConfig:
     
     # --- Analytics (M4: SEO & Analytics) ---
     PLAUSIBLE_DOMAIN = os.getenv("PLAUSIBLE_DOMAIN", "")
-
     
+    # --- SEO (titles/descriptions used in base template) ---
+    SITE_NAME = os.getenv("SITE_NAME", "KMT Electrical Estimator")
+    SITE_DESCRIPTION = os.getenv(
+        "SITE_DESCRIPTION",
+        "Fast, accurate electrical estimating — libraries & assemblies, PDF/CSV exports, and Pro billing."
+    )
+
     # --- Stripe (Billing) ---
     STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
     STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")

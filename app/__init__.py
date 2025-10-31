@@ -99,13 +99,14 @@ def create_app():
             """Return 'Month D, YYYY' from a template's mtime; fallback to current date."""
             try:
                 ts = os.path.getmtime(os.path.join(root, "templates", rel_path))
-                return datetime.fromtimestamp(ts).strftime("%B %-d, %Y")  # *nix day format
             except Exception:
-                # Windows strftime doesn't support %-d; try a portable format:
-                try:
-                    return datetime.fromtimestamp(ts).strftime("%B %d, %Y")
-                except Exception:
-                    return datetime.now(timezone.utc).strftime("%B %d, %Y")
+                return datetime.now(timezone.utc).strftime("%B %d, %Y")
+            try:
+                # Linux-friendly day format:
+                return datetime.fromtimestamp(ts).strftime("%B %-d, %Y")
+            except Exception:
+                # Windows fallback:
+                return datetime.fromtimestamp(ts).strftime("%B %d, %Y")
                 
         # Authorization flag for templates (admin/owner can write)
         can_write = False
@@ -162,7 +163,29 @@ def create_app():
             "APP_ENV": app.config.get("APP_ENV", os.getenv("APP_ENV", "development")),
             "PLAUSIBLE_DOMAIN": app.config.get("PLAUSIBLE_DOMAIN", ""),
         }
+        
+    # --- SEO endpoints: robots.txt and sitemap.xml (M4: S3‑03d.3) ---
+    @app.get("/robots.txt")
+    def robots_txt():
+        from flask import current_app, Response
+        base = current_app.config.get("APP_BASE_URL", "").rstrip("/")
+        body = f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n"
+        return Response(body, mimetype="text/plain")
 
+    @app.get("/sitemap.xml")
+    def sitemap_xml():
+        from flask import current_app, Response
+        base = current_app.config.get("APP_BASE_URL", "").rstrip("/")
+        # Keep to public, always-available paths; we'll add /pricing when that page ships.
+        paths = ["/", "/auth/login", "/auth/register"]
+        urls = "\n".join(f"  <url><loc>{base}{p}</loc></url>" for p in paths)
+        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{urls}
+</urlset>
+"""
+        return Response(xml, mimetype="application/xml")
+    
     @limiter.exempt
     # Health
     @app.get("/healthz")
