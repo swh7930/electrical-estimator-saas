@@ -1,9 +1,10 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify, current_app
-from flask_login import current_user
+from flask import render_template, request, redirect, url_for, flash, jsonify, current_app, abort
+from flask_login import current_user, login_required
 from flask import session
 from urllib.parse import urlparse
 from app.extensions import db
 from app.models.feedback import Feedback
+from app.models import ROLE_ADMIN
 from . import bp
 
 @bp.get("/")
@@ -80,3 +81,12 @@ def feedback_post():
     flash("Thanks for your feedback!", "success")
     return redirect(path or url_for("main.home"))
 
+@bp.get("/admin/feedback")
+@login_required
+def admin_feedback_index():
+    """Admin-only list of feedback (newest first)."""
+    # Simple role gate; avoids exposing feedback to non-admins.
+    if getattr(current_user, "role", None) != ROLE_ADMIN:
+        abort(403)
+    items = Feedback.query.order_by(Feedback.created_at.desc()).all()
+    return render_template("admin/feedback_index.html", items=items)

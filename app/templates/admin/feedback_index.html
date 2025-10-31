@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Feedback (Admin) · Electrical Estimator{% endblock %}
+{% block content %}
+<div class="container-xxl py-4">
+  <header class="mb-3 border-bottom pb-2">
+    <h1 class="h4 mb-1">Feedback (Admin)</h1>
+    <div class="text-muted">{{ items|length }} total</div>
+  </header>
+
+  <div class="table-responsive table-scroll">
+    <table class="table table-sm table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width: 160px;">Created</th>
+          <th style="width: 90px;">User</th>
+          <th style="width: 90px;">Org</th>
+          <th style="width: 30%;">Path</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in items %}
+        <tr>
+          <td>{{ f.created_at.strftime('%Y-%m-%d %H:%M') if f.created_at else '—' }}</td>
+          <td>{{ f.user_id or '—' }}</td>
+          <td>{{ f.org_id or '—' }}</td>
+          <td class="text-truncate">
+            {% set p = f.path or '/' %}
+            <a href="{{ p }}" class="text-decoration-none">{{ p }}</a>
+          </td>
+          <td style="white-space: pre-wrap;">{{ f.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
