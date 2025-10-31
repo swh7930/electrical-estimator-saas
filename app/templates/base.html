@@ -70,6 +70,14 @@
                 >Fast Estimate</a
               >
             </li>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="{{ url_for('main.feedback_get') }}"
+                data-feedback-modal="1"
+                >Feedback</a
+              >
           </ul>
           <!-- Auth menu (right) -->
           <ul class="navbar-nav ms-auto">
@@ -172,11 +180,38 @@
       <!-- Global client config & helpers -->
       <script src="{{ url_for('static', filename='js/keys.js') }}"></script>
       <script src="{{ url_for('static', filename='js/notify.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/feedback.js') }}"></script>
 
       <!-- CSRF + base behaviors (depends on keys.js) -->
       <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% endblock %}
 
+    <!-- Feedback Modal (global; opens from navbar link) -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="feedbackModalLabel">Send Feedback</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="feedbackForm" novalidate>
+            <div class="modal-body">
+              <input type="hidden" id="feedbackPath" />
+              <div class="mb-3">
+                <label class="form-label" for="feedbackMessage">What’s on your mind?</label>
+                <textarea id="feedbackMessage" class="form-control" rows="4" required></textarea>
+                <div class="form-text">We read every note. Please avoid sharing sensitive information.</div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <a href="{{ url_for('main.feedback_get') }}" class="btn btn-link text-muted p-0 me-auto">Open full page</a>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button id="feedbackSubmitBtn" type="submit" class="btn btn-primary">Submit Feedback</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <!-- Global Toast Stack -->
     <div id="toastStack" class="toast-container position-fixed top-0 end-0 p-3"></div>

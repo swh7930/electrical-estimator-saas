@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Feedback · Electrical Estimator{% endblock %}
+{% block content %}
+  <div class="container-xxl py-4">
+    <header class="mb-3 border-bottom pb-2">
+      <h1 class="h4 mb-1">Send Feedback</h1>
+      <div class="text-muted">We read every note. Please avoid sharing sensitive information.</div>
+    </header>
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <form id="feedbackPageForm" method="post" action="{{ url_for('main.feedback_post') }}" class="needs-validation" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="path" value="{{ from_path or (request.referrer or request.path) }}" />
+          <div class="mb-3">
+            <label for="feedbackMessagePage" class="form-label">Your feedback</label>
+            <textarea id="feedbackMessagePage" name="message" class="form-control" rows="6" required></textarea>
+            <div class="invalid-feedback">Please enter a message.</div>
+          </div>
+          <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url_for('main.home') }}">Cancel</a>
+            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
