@@ -214,5 +214,16 @@ def create_app():
     # CLI commands (ops-grade utilities)
     from .cli import register_cli
     register_cli(app)
+    
+    # Ensure the Stripe SDK is initialized for every worker/process.
+    import stripe  # keep with other top-level imports if that's your style
+
+    key = app.config.get("STRIPE_SECRET_KEY")
+    if key:
+        stripe.api_key = key
+    else:
+        app.logger.warning(
+            "Stripe secret key missing; billing features will not work"
+        )
 
     return app
