@@ -194,12 +194,15 @@
             <h5 class="modal-title" id="feedbackModalLabel">Send Feedback</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <form id="feedbackForm" novalidate>
+          <form id="feedbackForm" method="post" action="{{ url_for('main.feedback_post') }}" class="needs-validation" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="path" id="feedbackPath" />
             <div class="modal-body">
               <input type="hidden" id="feedbackPath" />
               <div class="mb-3">
                 <label class="form-label" for="feedbackMessage">What’s on your mind?</label>
-                <textarea id="feedbackMessage" class="form-control" rows="4" required></textarea>
+                <textarea id="feedbackMessage" name="message" class="form-control" rows="4" required></textarea>
+                <div class="invalid-feedback">Please enter a message.</div>
                 <div class="form-text">We read every note. Please avoid sharing sensitive information.</div>
               </div>
             </div>

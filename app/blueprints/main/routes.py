@@ -24,14 +24,14 @@ def feedback_get():
 @bp.post("/feedback")
 def feedback_post():
     """Accept feedback from modal (JSON) or fallback form (HTML)."""
-    if request.is_json:
-        data = request.get_json(silent=True) or {}
-    else:
-        data = request.form or {}
+    accepts = (request.headers.get("Accept") or "")
+    wants_json = ("application/json" in accepts) or request.is_json
+
+    data = (request.get_json(silent=True) or {}) if request.is_json else (request.form or {})
 
     message = (data.get("message") or "").strip()
     if not message:
-        if "application/json" in (request.headers.get("Accept") or ""):
+        if wants_json:
             return jsonify({"ok": False, "error": "Message is required"}), 400
         flash("Please enter a message.", "warning")
         return redirect(url_for("main.feedback_get"))
@@ -42,22 +42,16 @@ def feedback_post():
         path = (u.path or "/") + (f"?{u.query}" if u.query else "")
     except Exception:
         path = "/"
-    path = path[:255]  # DB column max
+    path = path[:255]
 
-    uid = None
-    oid = None
-    try:
-        if getattr(current_user, "is_authenticated", False):
-            uid = getattr(current_user, "id", None)
-            oid = session.get("current_org_id") or getattr(current_user, "org_id", None)
-    except Exception:
-        pass
+    uid = getattr(current_user, "id", None) if getattr(current_user, "is_authenticated", False) else None
+    oid = session.get("current_org_id") or getattr(current_user, "org_id", None) if getattr(current_user, "is_authenticated", False) else None
 
     fb = Feedback(user_id=uid, org_id=oid, path=path, message=message)
     db.session.add(fb)
     db.session.commit()
 
-    # Structured JSON log (no message content for privacy)
+    # Structured log for observability (no message body to avoid PII)
     try:
         current_app.logger.info(
             "feedback_submitted",
@@ -66,10 +60,11 @@ def feedback_post():
     except Exception:
         pass
 
-    if "application/json" in (request.headers.get("Accept") or ""):
+    if wants_json:
         return jsonify({"ok": True})
     flash("Thanks for your feedback!", "success")
     return redirect(path or url_for("main.home"))
+
 
 
 # --- TEMPORARY PREVIEW ROUTES (visual only) ---
