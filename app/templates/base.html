@@ -12,6 +12,10 @@
     <!-- Project overrides (optional) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
 
+    {% if APP_ENV == 'production' and PLAUSIBLE_DOMAIN %}
+      <script defer data-domain="{{ PLAUSIBLE_DOMAIN }}" src="https://plausible.io/js/script.js"></script>
+    {% endif %}
+
     {% block head_extra %}{% endblock %}
   </head>
   <body class="bg-light" data-enter-as-tab>

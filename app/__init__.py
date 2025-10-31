@@ -158,6 +158,9 @@ def create_app():
             "last_updated_privacy": mtime_fmt("privacy.html"),
             "can_write": can_write,
             "billing_banner": billing_banner,
+            # --- Analytics flags for templates (prod‑only include; no inline JS) ---
+            "APP_ENV": app.config.get("APP_ENV", os.getenv("APP_ENV", "development")),
+            "PLAUSIBLE_DOMAIN": app.config.get("PLAUSIBLE_DOMAIN", ""),
         }
 
     @limiter.exempt

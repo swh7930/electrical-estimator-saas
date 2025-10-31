@@ -39,7 +39,11 @@ class BaseConfig:
     # Used for absolute links in emails (must be https in prod)
     APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:5000")
     
-        # --- Stripe (Billing) ---
+    # --- Analytics (M4: SEO & Analytics) ---
+    PLAUSIBLE_DOMAIN = os.getenv("PLAUSIBLE_DOMAIN", "")
+
+    
+    # --- Stripe (Billing) ---
     STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
     STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
     STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")

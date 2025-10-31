@@ -7,11 +7,13 @@ def init_security(app):
     """
     csp = {
         "default-src": ["'self'"],
-        "script-src":  ["'self'", "https://js.stripe.com"],
+        # Allow Plausible's loader
+        "script-src":  ["'self'", "https://js.stripe.com", "https://plausible.io"],
         "style-src":   ["'self'", "'unsafe-inline'"],  # allow print CSS in PDF templates
         "img-src":     ["'self'", "data:", "blob:"],
         "font-src":    ["'self'", "data:"],
-        "connect-src": ["'self'", "https://api.stripe.com"],
+        # Allow Plausible's event beacon
+        "connect-src": ["'self'", "https://api.stripe.com", "https://plausible.io"],
         "frame-src":   ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
         "frame-ancestors": ["'self'"],
         "base-uri":    ["'self'"],
