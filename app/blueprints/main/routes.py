@@ -30,6 +30,21 @@ def feedback_post():
     data = (request.get_json(silent=True) or {}) if request.is_json else (request.form or {})
 
     message = (data.get("message") or "").strip()
+    # Debug (non-PII): help confirm what the server received without logging the message
+    try:
+        current_app.logger.info(
+            "feedback_debug",
+            extra={
+                "event": "feedback_debug",
+                "is_json": bool(request.is_json),
+                "accept": accepts,
+                "keys": list(data.keys()),
+                "message_len": len(message),
+            },
+        )
+    except Exception:
+        pass
+
     if not message:
         if wants_json:
             return jsonify({"ok": False, "error": "Message is required"}), 400
@@ -65,14 +80,3 @@ def feedback_post():
     flash("Thanks for your feedback!", "success")
     return redirect(path or url_for("main.home"))
 
-
-
-# --- TEMPORARY PREVIEW ROUTES (visual only) ---
-
-@bp.get("/home-cards")
-def home_cards():
-    return render_template("home_alt_cards.html")
-
-@bp.get("/home-sidebar")
-def home_sidebar():
-    return render_template("home_alt_sidebar.html")

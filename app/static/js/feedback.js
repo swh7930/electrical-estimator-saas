@@ -24,8 +24,7 @@
   if (!form) return;
 
   form.addEventListener('submit', async (e) => {
-    // If the form has method+action+csrf+names (it does), HTML POST works;
-    // we enhance to JSON+toast here.
+    // HTML POST works as-is; we enhance to JSON + toast here.
     e.preventDefault();
 
     const msgEl = $('feedbackMessage');
@@ -37,10 +36,9 @@
       window.EM_NOTIFY && EM_NOTIFY.warn('Please enter a message.');
       return;
     }
-
     if (btn) btn.disabled = true;
 
-    // Ensure CSRF header per collaboration rules (main.js also injects this). :contentReference[oaicite:3]{index=3}
+    // CSRF header (main.js also injects this).
     const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).getAttribute?.('content');
 
     try {
@@ -57,10 +55,9 @@
 
       if (res.ok) {
         try { window.plausible && window.plausible('feedback:submitted'); } catch (_) {}
-
         window.EM_NOTIFY && EM_NOTIFY.success('Thanks for your feedback!');
         if (msgEl) msgEl.value = '';
-        const modal = document.getElementById('feedbackModal');
+        const modal = $('feedbackModal');
         if (modal && window.bootstrap && window.bootstrap.Modal) {
           window.bootstrap.Modal.getOrCreateInstance(modal).hide();
         }
