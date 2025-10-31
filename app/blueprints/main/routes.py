@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, current_app, abort
 from flask_login import current_user, login_required
+import os
 from flask import session
 from urllib.parse import urlparse
 from app.extensions import db
@@ -84,9 +85,19 @@ def feedback_post():
 @bp.get("/admin/feedback")
 @login_required
 def admin_feedback_index():
-    """Admin-only list of feedback (newest first)."""
-    # Simple role gate; avoids exposing feedback to non-admins.
+    """Owner-only feedback list (newest first)."""
+    # 1) Require admin role (existing entitlement).
     if getattr(current_user, "role", None) != ROLE_ADMIN:
         abort(403)
+
+    # 2) Owner allow-list (comma-separated) from env; if set, only listed emails may access.
+    owner_csv = (os.getenv("EESAAS_OWNER_EMAILS") or "").strip()
+    if owner_csv:
+        allowed = {e.strip().lower() for e in owner_csv.split(",") if e.strip()}
+        cur_email = (getattr(current_user, "email", "") or "").lower()
+        if cur_email not in allowed:
+            abort(403)
+
     items = Feedback.query.order_by(Feedback.created_at.desc()).all()
     return render_template("admin/feedback_index.html", items=items)
+
