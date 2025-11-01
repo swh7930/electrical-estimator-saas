@@ -6,7 +6,6 @@ import os
 
 from app.extensions import db
 from app.models.feedback import Feedback
-from app.models import ROLE_ADMIN
 from . import bp
 
 @bp.get("/")
@@ -86,18 +85,16 @@ def feedback_post():
 @bp.get("/admin/feedback")
 @login_required
 def admin_feedback_index():
-    """Owner-only feedback list (newest first)."""
-    # 1) Require admin role (existing entitlement).
-    if getattr(current_user, "role", None) != ROLE_ADMIN:
-        abort(403)
-
-    # 2) Owner allow-list (comma-separated) from env; if set, only listed emails may access.
+    """App OWNER only (env allow-list). Org/account owners are NOT allowed."""
     owner_csv = (os.getenv("EESAAS_OWNER_EMAILS") or "").strip()
-    if owner_csv:
-        allowed = {e.strip().lower() for e in owner_csv.split(",") if e.strip()}
-        cur_email = (getattr(current_user, "email", "") or "").lower()
-        if cur_email not in allowed:
-            abort(403)
+    if not owner_csv:
+        abort(403)  # explicit: if owner list isn't set, nobody gets in
+
+    allowed = {e.strip().lower() for e in owner_csv.split(",") if e.strip()}
+    cur_email = (getattr(current_user, "email", "") or getattr(current_user, "username", "") or "").lower()
+
+    if cur_email not in allowed:
+        abort(403)
 
     items = Feedback.query.order_by(Feedback.created_at.desc()).all()
     return render_template("admin/feedback_index.html", items=items)
