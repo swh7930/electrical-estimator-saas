@@ -1,8 +1,9 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, current_app, abort
 from flask_login import current_user, login_required
-import os
 from flask import session
 from urllib.parse import urlparse
+import os
+
 from app.extensions import db
 from app.models.feedback import Feedback
 from app.models import ROLE_ADMIN
