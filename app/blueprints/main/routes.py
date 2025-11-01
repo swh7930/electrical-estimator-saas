@@ -5,12 +5,37 @@ from urllib.parse import urlparse
 import os
 
 from app.extensions import db
+from app.models import Subscription
 from app.models.feedback import Feedback
 from . import bp
 
 @bp.get("/")
 def home():
     return render_template("home.html")
+
+@bp.get("/pricing")
+def pricing():
+    """Public pricing page (state-aware CTAs; no inline JS)."""
+    # Determine active subscription for current org (mirrors billing/index logic)
+    is_active = False
+    try:
+        if getattr(current_user, "is_authenticated", False):
+            org_id = getattr(current_user, "org_id", None) or session.get("current_org_id")
+            if org_id:
+                s = Subscription.query.filter_by(org_id=org_id).first()
+                is_active = bool(s and (s.status in {"active","trialing"}))
+    except Exception:
+        is_active = False
+
+    cfg = current_app.config
+    ctx = {
+        "is_active": is_active,
+        "price_pro_monthly": cfg.get("STRIPE_PRICE_PRO_MONTHLY"),
+        "price_pro_annual": cfg.get("STRIPE_PRICE_PRO_ANNUAL"),
+        "price_elite_monthly": cfg.get("STRIPE_PRICE_ELITE_MONTHLY"),
+        "price_elite_annual": cfg.get("STRIPE_PRICE_ELITE_ANNUAL"),
+    }
+    return render_template("pricing.html", **ctx)
 
 @bp.get("/feedback")
 def feedback_get():

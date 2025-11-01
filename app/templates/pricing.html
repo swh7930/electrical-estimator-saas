@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Pricing · KMT Electrical Estimator{% endblock %}
+{% block og_title %}Pricing · KMT Electrical Estimator{% endblock %}
+
+{% block content %}
+<div class="container-xxl my-4 pricing-page">
+
+  <!-- Hero -->
+  <section class="pricing-hero text-center py-5">
+    <h1 class="display-5 fw-bold mb-3">Bid Faster. Win More.</h1>
+    <p class="lead text-muted mb-4">Turn takeoffs into clean, reliable bids without the learning curve.</p>
+    <div class="d-flex gap-2 justify-content-center">
+      {% if not current_user.is_authenticated %}
+        <a id="createAccountCta" class="btn btn-primary btn-lg rounded-pill" href="{{ url_for('auth.register_get', next='/pricing') }}">Create Account</a>
+      {% elif is_active %}
+        <form id="manageBillingCta" action="{{ url_for('billing.portal') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-primary btn-lg rounded-pill">Manage Billing</button>
+        </form>
+      {% else %}
+        <form id="upgradeProCta" action="{{ url_for('billing.checkout') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="price_id" value="{{ price_pro_monthly }}">
+          <button type="submit" class="btn btn-primary btn-lg rounded-pill" {% if not price_pro_monthly %}disabled{% endif %}>Upgrade to Pro</button>
+        </form>
+      {% endif %}
+    </div>
+    <p class="text-muted mt-3 mb-0">Stripe billing · Cancel anytime · Taxes at checkout</p>
+  </section>
+
+  <!-- Plans -->
+  <section class="pricing-plans my-4">
+    <div class="row g-3">
+
+      <!-- Pro -->
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between">
+              <h2 class="h4 mb-1">Pro</h2>
+            </div>
+            <div class="mb-2">
+              <div class="fs-4 fw-semibold">$59<span class="fs-6 fw-normal">/seat/mo</span></div>
+              <div class="text-muted small">or $590/seat/yr</div>
+            </div>
+            <ul class="list-unstyled mb-4">
+              <li class="mb-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+              <li class="mb-1">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li>
+              <li class="mb-1">Ut enim ad minim veniam, quis nostrud exercitation ullamco.</li>
+            </ul>
+
+            {% if not is_active %}
+              <div class="mt-auto">
+                <form action="{{ url_for('billing.checkout') }}" method="post" class="d-grid gap-2">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="price_id" value="{{ price_pro_monthly }}">
+                  <button id="subscribeProMonthly" class="btn btn-primary" type="submit" {% if not price_pro_monthly %}disabled{% endif %}>
+                    Subscribe Monthly
+                  </button>
+                </form>
+                <form action="{{ url_for('billing.checkout') }}" method="post" class="d-grid gap-2 mt-2">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="price_id" value="{{ price_pro_annual }}">
+                  <button id="subscribeProAnnual" class="btn btn-outline-primary" type="submit" {% if not price_pro_annual %}disabled{% endif %}>
+                    Subscribe Annually (2 months free)
+                  </button>
+                </form>
+              </div>
+            {% else %}
+              <div class="mt-auto">
+                <form action="{{ url_for('billing.portal') }}" method="post">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-primary">Open Customer Portal</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Elite -->
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between">
+              <h2 class="h4 mb-1">Elite</h2>
+              <span class="badge bg-secondary-subtle text-secondary border">Coming soon</span>
+            </div>
+            <div class="mb-2">
+              <div class="fs-4 fw-semibold">$99<span class="fs-6 fw-normal">/seat/mo</span></div>
+              <div class="text-muted small">or $990/seat/yr</div>
+            </div>
+            <ul class="list-unstyled mb-4">
+              <li class="mb-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+              <li class="mb-1">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li>
+              <li class="mb-1">Ut enim ad minim veniam, quis nostrud exercitation ullamco.</li>
+            </ul>
+
+            <div class="mt-auto">
+              <a id="eliteNotifyCta" href="{{ url_for('main.feedback_get') }}?topic=elite" class="btn btn-outline-secondary">Notify me when it’s live</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Comparison (Option 2 – 4-row table) -->
+  <section class="pricing-compare my-5">
+    <h3 class="h5 mb-3">Compare plans</h3>
+    <div class="table-responsive table-scroll">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Feature</th>
+            <th scope="col" class="text-end">Pro</th>
+            <th scope="col" class="text-end">Elite (coming soon)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Assemblies (edit &amp; reuse)</td>
+            <td class="text-end">✔︎</td>
+            <td class="text-end">✔︎</td>
+          </tr>
+          <tr>
+            <td>Material &amp; labor libraries</td>
+            <td class="text-end">✔︎</td>
+            <td class="text-end">✔︎</td>
+          </tr>
+          <tr>
+            <td>PDF &amp; CSV exports</td>
+            <td class="text-end">✔︎</td>
+            <td class="text-end">✔︎</td>
+          </tr>
+          <tr>
+            <td>Advanced assemblies &amp; workflows</td>
+            <td class="text-end">—</td>
+            <td class="text-end">✔︎</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Trial & promos -->
+  <section class="pricing-promo my-4">
+    <div class="row">
+      <div class="col">
+        <div class="alert alert-info mb-3" role="alert">
+          <strong>3‑day Pro trial</strong>. Full features. Cancel anytime.
+        </div>
+        <p class="text-muted mb-0">Go annual and get <strong>2 months free</strong>. Prices exclude tax; calculated at checkout.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQs (placeholder) -->
+  <section class="pricing-faqs my-5">
+    <h3 class="h5 mb-3">FAQs</h3>
+    <div class="accordion" id="pricingFaqs">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="faqOne">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqOneBody">
+            Lorem ipsum dolor sit amet?
+          </button>
+        </h2>
+        <div id="faqOneBody" class="accordion-collapse collapse" data-bs-parent="#pricingFaqs">
+          <div class="accordion-body">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="faqTwo">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqTwoBody">
+            Sed do eiusmod tempor?
+          </button>
+        </h2>
+        <div id="faqTwoBody" class="accordion-collapse collapse" data-bs-parent="#pricingFaqs">
+          <div class="accordion-body">
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fine print -->
+  <section class="pricing-fineprint my-5">
+    <p class="text-muted small mb-0">Kingsmark Tech d/b/a KMT Electrical Estimator.</p>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/pricing_index.js') }}"></script>
+{% endblock %}

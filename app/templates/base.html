@@ -65,6 +65,13 @@
             </li>
             <li class="nav-item">
               <a
+                class="nav-link{% if request.path.startswith('/pricing') %} active{% endif %}"
+                href="{{ url_for('main.pricing') }}"
+                >Pricing</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
                 class="nav-link{% if request.path.startswith('/estimator') %} active{% endif %}"
                 href="{{ url_for('estimator.estimator_home') }}"
                 >Fast Estimate</a
