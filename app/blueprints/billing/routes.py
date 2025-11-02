@@ -98,11 +98,11 @@ def stripe_publishable_key():
 @limiter.limit("10/minute")
 def checkout_json():
     """
-    Create a Checkout Session and return its ID for Stripe.js redirect.
-    Mirrors the logic in /billing/checkout but returns JSON instead of 303.
+    Create a Stripe Checkout Session and return its ID for Stripe.js redirect.
+    Guest-safe, returns JSON only.
     """
     data = request.get_json(silent=True) or {}
-    price_id = data.get("price_id")
+    price_id = (data.get("price_id") or "").strip()
     if not price_id:
         return jsonify({"error": "Missing price_id"}), 400
 
@@ -112,13 +112,9 @@ def checkout_json():
         return jsonify({"error": "Stripe is not configured"}), 500
     stripe.api_key = secret
 
-    # Reuse your existing success/cancel URLs
     success_url = url_for("billing.success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = url_for("billing.index", _external=True)
-
-    # Respect the project’s env flag (ENABLE_STRIPE_TAX) for exclusive pricing
     auto_tax_enabled = bool(current_app.config.get("ENABLE_STRIPE_TAX", True))
-
 
     try:
         session = stripe.checkout.Session.create(
@@ -133,10 +129,10 @@ def checkout_json():
             # Offers
             allow_promotion_codes=True,
 
-            # Tax behavior stays env‑driven (flip ENABLE_STRIPE_TAX=true for launch)
+            # Tax (env-controlled)
             automatic_tax={"enabled": auto_tax_enabled},
 
-            # **New for checkout‑first**
+            # Checkout-first required collection (valid for subscriptions)
             billing_address_collection="required",
             phone_number_collection={"enabled": True},
             tax_id_collection={"enabled": True},
@@ -162,7 +158,6 @@ def checkout_json():
         )
         return jsonify({"sessionId": session["id"]})
     except Exception as e:
-        # ensure the frontend gets JSON instead of hanging on an HTML 500
         current_app.logger.exception(
             "billing.checkout_json.session_create_failed",
             extra={
