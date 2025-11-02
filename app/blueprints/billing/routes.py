@@ -14,15 +14,13 @@ def _checkout_url(session_obj):
         return session_obj.get("url")
     return getattr(session_obj, "url", None)
 
-def create_checkout_session(price_id: str, org_id: int):
-    org = Org.query.get(org_id)
-    if not org:
-        abort(400, description="Org not found")
-    # pass the Org object; the service can use org.id safely
+def create_checkout_session(price_id: str, org_id: int | None):
+    # Guests (no org yet): allow Checkout to collect details; webhook will create Org.
+    safe_org_id = int(org_id) if org_id else 0
     return billing_service.create_checkout_session(
         price_id=price_id,
-        org_id=org_id,
-        user_id=current_user.id,
+        org_id=safe_org_id,
+        user_id=(getattr(current_user, "id", None) or 0),
     )
 
 @billing_bp.get("")
@@ -50,16 +48,14 @@ def index():
 
 @billing_bp.post("/checkout")
 @limiter.limit("10/minute")
-@login_required
 def checkout():
     org_id = getattr(current_user, "org_id", None)
-    if not org_id:
-        abort(403)
-
-    # Block duplicate purchases if already active/trialing
-    sub = Subscription.query.filter_by(org_id=org_id).first()
-    if sub and sub.status in ("active", "trialing"):
-        abort(409, description="Subscription already active")
+    # Guests proceed without an org; webhook will create the Org from “Company”.
+    if org_id:
+        # Block duplicate purchases only for signed‑in orgs
+        sub = Subscription.query.filter_by(org_id=org_id).first()
+        if sub and sub.status in ("active", "trialing"):
+            abort(409, description="Subscription already active")
 
     price_id = (request.form.get("price_id") or "").strip()
     if not price_id:
@@ -84,7 +80,6 @@ def checkout():
     return redirect(url, code=303)
 
 @billing_bp.get("/stripe-pk")
-@login_required
 def stripe_publishable_key():
     """
     Return the publishable key for Stripe.js initialization (safe to expose).
@@ -93,7 +88,6 @@ def stripe_publishable_key():
     return jsonify({"publishable_key": pk})
 
 @billing_bp.post("/checkout.json")
-@login_required
 def checkout_json():
     """
     Create a Checkout Session and return its ID for Stripe.js redirect.
@@ -118,21 +112,40 @@ def checkout_json():
             mode="subscription",
             line_items=[{"price": price_id, "quantity": 1}],
             customer_email=(getattr(current_user, "email", None) or None),
-            success_url=success_url,              # you already build this via url_for("billing.success") + session_id
-            cancel_url=cancel_url,                # you already build this via url_for("billing.index")
+
+            # Redirects
+            success_url=success_url,
+            cancel_url=cancel_url,
+
+            # Offers
             allow_promotion_codes=True,
+
+            # Tax behavior stays env‑driven (flip ENABLE_STRIPE_TAX=true for launch)
             automatic_tax={"enabled": auto_tax_enabled},
 
-            # keep the metadata you added — this is what unlocks via webhook
+            # **New for checkout‑first**
+            billing_address_collection="required",
+            phone_number_collection={"enabled": True},
+            tax_id_collection={"enabled": True},
+            customer_creation="always",
+            custom_fields=[{
+                "key": "company",
+                "label": {"type": "custom", "custom": "Company"},
+                "type": "text",
+                "optional": False
+            }],
+
+            # Context for webhooks + trial
             metadata={
                 "org_id": str(getattr(current_user, "org_id", "")),
                 "user_id": str(getattr(current_user, "id", "")),
             },
             subscription_data={
+                "trial_period_days": 3,
                 "metadata": {
                     "org_id": str(getattr(current_user, "org_id", "")),
                     "user_id": str(getattr(current_user, "id", "")),
-                }
+                },
             },
         )
         return jsonify({"sessionId": session["id"]})

@@ -33,11 +33,28 @@ def create_checkout_session(*, price_id: str, org_id: int, user_id: int) -> Dict
         "line_items": [{"price": price_id, "quantity": 1}],
         "success_url": _absolute_url("billing/success?session_id={CHECKOUT_SESSION_ID}"),
         "cancel_url": _absolute_url("billing/cancelled"),
-        # Exclusive tax policy: compute at checkout/invoice
+
+        # Tax (env‑controlled; enable for launch)
         "automatic_tax": {"enabled": bool(current_app.config.get("ENABLE_STRIPE_TAX", True))},
-        # Carry org/user context through to resulting objects
+
+        # **New for checkout‑first**
+        "billing_address_collection": "required",
+        "phone_number_collection": {"enabled": True},
+        "tax_id_collection": {"enabled": True},
+        "customer_creation": "always",
+        "custom_fields": [{
+            "key": "company",
+            "label": {"type": "custom", "custom": "Company"},
+            "type": "text",
+            "optional": False
+        }],
+
+        # Webhook context + trial
         "metadata": {"org_id": str(org_id), "user_id": str(user_id)},
-        "subscription_data": {"metadata": {"org_id": str(org_id), "user_id": str(user_id)}},
+        "subscription_data": {
+            "trial_period_days": 3,
+            "metadata": {"org_id": str(org_id), "user_id": str(user_id)},
+        },
     }
     # Include the tax flag + mode + URLs so any real change gets a fresh key
     auto_tax_enabled = bool(params.get("automatic_tax", {}).get("enabled", False))
