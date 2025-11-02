@@ -21,6 +21,10 @@ def make_idempotency_key(*parts: Any) -> str:
     raw = "|".join(str(p) for p in parts)
     return "checkout:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
 
+def _params_hash(d: Dict[str, Any]) -> str:
+    # Stable across runs if params identical; changes when you change fields
+    return hashlib.sha256(json.dumps(d, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()[:16]
+
 
 def create_checkout_session(*, price_id: str, org_id: int, user_id: int) -> Dict[str, Any]:
     """
@@ -55,18 +59,14 @@ def create_checkout_session(*, price_id: str, org_id: int, user_id: int) -> Dict
             "metadata": {"org_id": str(org_id), "user_id": str(user_id)},
         },
     }
-    # Include the tax flag + mode + URLs so any real change gets a fresh key
-    auto_tax_enabled = bool(params.get("automatic_tax", {}).get("enabled", False))
+    # Param-aware idempotency: new key whenever you change Checkout params
     idem = make_idempotency_key(
-        "v2",                     # bump format to avoid old collisions
+        "checkout", "v3",  # bump once to break old collisions
         org_id, user_id, price_id,
-        auto_tax_enabled,
-        params.get("mode"),
-        params.get("success_url"),
-        params.get("cancel_url"),
+        _params_hash(params),
     )
     session = client.checkout.sessions.create(params=params, options={"idempotency_key": idem})
-    return {"id": session.id, "url": getattr(session, "url", None)}
+        return {"id": session.id, "url": getattr(session, "url", None)}
 
 
 def create_portal_session(*, stripe_customer_id: str) -> Dict[str, Any]:
