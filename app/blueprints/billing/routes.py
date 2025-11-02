@@ -68,9 +68,9 @@ def checkout():
         current_app.logger.exception(
             "billing.checkout_json.session_create_failed",
             extra={
-                "org_id": getattr(current_user, "org_id", None),
-                "user_id": getattr(current_user, "id", None),
+                "org_id": org_id,
                 "price_id": price_id,
+                "user_id": getattr(current_user, "id", None),
             },
         )
         if current_app.config.get("APP_ENV") in ("staging", "development"):
@@ -140,7 +140,6 @@ def checkout_json():
             billing_address_collection="required",
             phone_number_collection={"enabled": True},
             tax_id_collection={"enabled": True},
-            customer_creation="always",
             custom_fields=[{
                 "key": "company",
                 "label": {"type": "custom", "custom": "Company"},

@@ -41,7 +41,6 @@ def create_checkout_session(*, price_id: str, org_id: int, user_id: int) -> Dict
         "billing_address_collection": "required",
         "phone_number_collection": {"enabled": True},
         "tax_id_collection": {"enabled": True},
-        "customer_creation": "always",
         "custom_fields": [{
             "key": "company",
             "label": {"type": "custom", "custom": "Company"},
