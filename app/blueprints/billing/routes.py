@@ -66,8 +66,12 @@ def checkout():
     except Exception as e:
         # Log the real error (and surface it in staging so we don't have to hunt in Render)
         current_app.logger.exception(
-            "billing.checkout.session_create_failed",
-            extra={"org_id": org_id, "price_id": price_id, "user_id": current_user.id},
+            "billing.checkout_json.session_create_failed",
+            extra={
+                "org_id": getattr(current_user, "org_id", None),
+                "user_id": getattr(current_user, "id", None),
+                "price_id": price_id,
+            },
         )
         if current_app.config.get("APP_ENV") in ("staging", "development"):
             return (f"<pre>{e.__class__.__name__}: {e}</pre>", 500)
@@ -85,9 +89,13 @@ def stripe_publishable_key():
     Return the publishable key for Stripe.js initialization (safe to expose).
     """
     pk = current_app.config.get("STRIPE_PUBLISHABLE_KEY")
+    if not pk:
+        current_app.logger.error("billing.stripe_pk.missing_publishable_key")
+        return jsonify({"error": "Stripe is not configured"}), 500
     return jsonify({"publishable_key": pk})
 
 @billing_bp.post("/checkout.json")
+@limiter.limit("10/minute")
 def checkout_json():
     """
     Create a Checkout Session and return its ID for Stripe.js redirect.
@@ -98,14 +106,19 @@ def checkout_json():
     if not price_id:
         return jsonify({"error": "Missing price_id"}), 400
 
-    stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
+    secret = current_app.config.get("STRIPE_SECRET_KEY")
+    if not secret:
+        current_app.logger.error("billing.checkout_json.missing_secret_key")
+        return jsonify({"error": "Stripe is not configured"}), 500
+    stripe.api_key = secret
 
-    # Reuse your existing success/cancel URLs (adjust names if different)
+    # Reuse your existing success/cancel URLs
     success_url = url_for("billing.success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = url_for("billing.index", _external=True)
 
-     # Respect the project’s env flag (ENABLE_STRIPE_TAX) for exclusive pricing
+    # Respect the project’s env flag (ENABLE_STRIPE_TAX) for exclusive pricing
     auto_tax_enabled = bool(current_app.config.get("ENABLE_STRIPE_TAX", True))
+
 
     try:
         session = stripe.checkout.Session.create(
@@ -153,7 +166,11 @@ def checkout_json():
         # ensure the frontend gets JSON instead of hanging on an HTML 500
         current_app.logger.exception(
             "billing.checkout_json.session_create_failed",
-            extra={"org_id": getattr(current_user, "org_id", None), "price_id": price_id, "user_id": current_user.id},
+            extra={
+                "org_id": getattr(current_user, "org_id", None),
+                "user_id": getattr(current_user, "id", None),
+                "price_id": price_id,
+            },
         )
         user_msg = getattr(e, "user_message", None) or str(e)
         return jsonify({"error": user_msg}), 400
@@ -174,8 +191,12 @@ def portal_json():
         payload = create_portal_session(stripe_customer_id=bc.stripe_customer_id)
     except Exception as e:
         current_app.logger.exception(
-            "billing.portal_json.session_create_failed",
-            extra={"org_id": org_id, "user_id": getattr(current_user, "id", None)},
+            "billing.checkout_json.session_create_failed",
+            extra={
+                "org_id": getattr(current_user, "org_id", None),
+                "user_id": getattr(current_user, "id", None),
+                "price_id": price_id,
+            },
         )
         user_msg = getattr(e, "user_message", None) or str(e)
         return jsonify({"error": user_msg}), 400
