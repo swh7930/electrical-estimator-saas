@@ -119,8 +119,8 @@
                    href="{{ url_for('auth.login_get') }}">Sign in</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link{% if request.path.startswith('/auth/register') %} active{% endif %}"
-                   href="{{ url_for('auth.register_get') }}">Create account</a>
+                <a class="nav-link{% if request.path.startswith('/pricing') %} active{% endif %}"
+                  href="{{ url_for('main.pricing') }}">Sign up</a>
               </li>
             {% endif %}
           </ul>

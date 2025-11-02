@@ -11,7 +11,8 @@
     <p class="lead text-muted mb-4">Turn takeoffs into clean, reliable bids without the learning curve.</p>
     <div class="d-flex gap-2 justify-content-center">
       {% if not current_user.is_authenticated %}
-        <a id="createAccountCta" class="btn btn-primary btn-lg rounded-pill" href="{{ url_for('auth.register_get', next='/pricing') }}">Create Account</a>
+        <a id="createAccountCta" class="btn btn-primary btn-lg rounded-pill"
+           href="{{ url_for('auth.register_get', next='/pricing') }}">Create Account</a>
       {% elif is_active %}
         <form id="manageBillingCta" action="{{ url_for('billing.portal') }}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -25,7 +26,7 @@
         </form>
       {% endif %}
     </div>
-    <p class="text-muted mt-3 mb-0">Stripe billing · Cancel anytime · Taxes at checkout</p>
+    <p class="text-muted mt-3 mb-0">Stripe billing · Cancel anytime · Prices exclude tax.</p>
   </section>
 
   <!-- Plans -->
@@ -174,7 +175,7 @@
         <div class="alert alert-info mb-3" role="alert">
           <strong>3‑day Pro trial</strong>. Full features. Cancel anytime.
         </div>
-        <p class="text-muted mb-0">Go annual and get <strong>2 months free</strong>. Prices exclude tax; calculated at checkout.</p>
+        <p class="text-muted mb-0">Go annual and get <strong>2 months free</strong>. Prices exclude tax.</p>
       </div>
     </div>
   </section>
