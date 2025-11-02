@@ -189,7 +189,6 @@ def portal_json():
             extra={
                 "org_id": getattr(current_user, "org_id", None),
                 "user_id": getattr(current_user, "id", None),
-                "price_id": price_id,
             },
         )
         user_msg = getattr(e, "user_message", None) or str(e)

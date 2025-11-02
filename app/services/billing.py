@@ -66,7 +66,7 @@ def create_checkout_session(*, price_id: str, org_id: int, user_id: int) -> Dict
         _params_hash(params),
     )
     session = client.checkout.sessions.create(params=params, options={"idempotency_key": idem})
-        return {"id": session.id, "url": getattr(session, "url", None)}
+    return {"id": session.id, "url": getattr(session, "url", None)}
 
 
 def create_portal_session(*, stripe_customer_id: str) -> Dict[str, Any]:
