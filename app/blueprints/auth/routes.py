@@ -244,18 +244,27 @@ def set_password_post():
         # Backward-compatible: token refers to an existing user id
         user = db.session.get(User, data["uid"])
     elif isinstance(data, dict) and data.get("email"):
-        email = (data["email"] or "").strip().lower()
-        user = db.session.execute(
-            db.select(User).where(func.lower(User.email) == func.lower(email))
-        ).scalar_one_or_none()
-        if not user:
-            # Create user + org + owner membership atomically
-            user = User(email=email, is_active=True)
-            db.session.add(user); db.session.flush()
-            org = Org(name=email)
-            db.session.add(org); db.session.flush()
-            user.org_id = org.id
-            db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
+    email = (data["email"] or "").strip().lower()
+
+    user = db.session.execute(
+        db.select(User).where(func.lower(User.email) == func.lower(email))
+    ).scalar_one_or_none()
+
+    if not user:
+        # Create user and set password BEFORE any flush
+        user = User(email=email, is_active=True)
+        user.set_password(password)      # <-- set hash first
+        db.session.add(user)
+
+        # Create org; flush once for both new rows
+        org = Org(name=email)
+        db.session.add(org)
+
+        db.session.flush()               # <-- single flush after user has a hash
+
+        # Link membership after IDs exist
+        user.org_id = org.id
+        db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
     else:
         flash("This link has expired or is invalid.", "error")
         return redirect(url_for("auth.login_get"))
