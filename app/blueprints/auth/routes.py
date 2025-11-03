@@ -323,50 +323,90 @@ def set_password_post():
 
             # Upsert Subscription (one per org)
             if sub:
-                # pull first line item details (product/price/qty)
-                items = (getattr(sub, "items", None) or {}).get("data") if not isinstance(getattr(sub, "items", None), dict) else (sub.items.get("data") if hasattr(sub, "items") else [])
-                if not items:
-                    items = (sub.get("items") or {}).get("data") if isinstance(sub, dict) else []
-                first = items[0] if items else {}
-                price = (getattr(first, "price", None) or (first.get("price") if isinstance(first, dict) else {})) or {}
-                price_id = getattr(price, "id", None) or (price.get("id") if isinstance(price, dict) else None)
-                product = getattr(price, "product", None) or (price.get("product") if isinstance(price, dict) else None)
+                # Stripe returns a ListObject for sub.items; use its .data (not .get)
+                items_obj = getattr(sub, "items", None)
+                if items_obj and hasattr(items_obj, "data"):
+                    items = items_obj.data or []
+                elif isinstance(sub, dict):
+                    items = ((sub.get("items") or {}).get("data")) or []
+                else:
+                    items = []
+
+                first = items[0] if items else None
+
+                # price/product
+                if first is not None and hasattr(first, "price"):
+                    price = first.price
+                elif isinstance(first, dict):
+                    price = first.get("price") or {}
+                else:
+                    price = {}
+
+                price_id = (getattr(price, "id", None)
+                            if price and not isinstance(price, dict)
+                            else (price.get("id") if isinstance(price, dict) else None))
+                product = (getattr(price, "product", None)
+                           if price and not isinstance(price, dict)
+                           else (price.get("product") if isinstance(price, dict) else None))
                 product_id = getattr(product, "id", None) if isinstance(product, dict) else product
 
                 # current_period_end → datetime
-                if isinstance(sub, dict):
-                    cpe_ts = sub.get("current_period_end")
-                else:
-                    cpe_ts = getattr(sub, "current_period_end", None)
+                cpe_ts = (getattr(sub, "current_period_end", None)
+                          if not isinstance(sub, dict) else sub.get("current_period_end"))
                 from_ts = (lambda ts: datetime.fromtimestamp(ts, tz=timezone.utc) if ts else None)
                 cpe_dt = from_ts(cpe_ts)
 
-                qty = (first.get("quantity") if isinstance(first, dict) else getattr(first, "quantity", None)) or 1
+                # quantity
+                qty = 1
+                if first is not None:
+                    qv = (getattr(first, "quantity", None)
+                          if not isinstance(first, dict) else first.get("quantity"))
+                    try:
+                        qty = int(qv) if qv is not None else 1
+                    except Exception:
+                        qty = 1
+
+                sub_id_val = (getattr(sub, "id", None)
+                              if not isinstance(sub, dict) else sub.get("id"))
+                sub_status_val = (getattr(sub, "status", None)
+                                  if not isinstance(sub, dict) else sub.get("status"))
 
                 s = Subscription.query.filter_by(org_id=user.org_id).first()
                 if not s:
                     s = Subscription(
                         org_id=user.org_id,
-                        stripe_subscription_id=(sub.get("id") if isinstance(sub, dict) else getattr(sub, "id")),
+                        stripe_subscription_id=sub_id_val,
                         product_id=product_id,
                         price_id=price_id,
-                        status=(sub.get("status") if isinstance(sub, dict) else getattr(sub, "status", None)) or "incomplete",
+                        status=sub_status_val or "incomplete",
                         current_period_end=cpe_dt,
-                        cancel_at=(sub.get("cancel_at") if isinstance(sub, dict) else getattr(sub, "cancel_at", None)),
-                        cancel_at_period_end=bool((sub.get("cancel_at_period_end") if isinstance(sub, dict) else getattr(sub, "cancel_at_period_end", False))),
+                        cancel_at=(getattr(sub, "cancel_at", None)
+                                   if not isinstance(sub, dict) else sub.get("cancel_at")),
+                        cancel_at_period_end=bool(
+                            getattr(sub, "cancel_at_period_end", False)
+                            if not isinstance(sub, dict) else sub.get("cancel_at_period_end", False)
+                        ),
                         quantity=qty,
                     )
                     db.session.add(s)
+                    # initialize entitlements on create
                     s.entitlements_json = resolve_entitlements(product_id=product_id, price_id=price_id)
                 else:
-                    s.stripe_subscription_id = (sub.get("id") if isinstance(sub, dict) else getattr(sub, "id"))
-                    s.product_id = product_id
-                    s.price_id = price_id
-                    s.status = (sub.get("status") if isinstance(sub, dict) else getattr(sub, "status", None)) or s.status
+                    s.stripe_subscription_id = sub_id_val or s.stripe_subscription_id
+                    s.product_id = product_id or s.product_id
+                    s.price_id = price_id or s.price_id
+                    s.status = (sub_status_val or s.status)
                     s.current_period_end = cpe_dt or s.current_period_end
-                    s.cancel_at = (sub.get("cancel_at") if isinstance(sub, dict) else getattr(sub, "cancel_at", None))
-                    s.cancel_at_period_end = bool((sub.get("cancel_at_period_end") if isinstance(sub, dict) else getattr(sub, "cancel_at_period_end", False)))
+                    s.cancel_at = (getattr(sub, "cancel_at", None)
+                                   if not isinstance(sub, dict) else sub.get("cancel_at"))
+                    s.cancel_at_period_end = bool(
+                        getattr(sub, "cancel_at_period_end", False)
+                        if not isinstance(sub, dict) else sub.get("cancel_at_period_end", False)
+                    )
                     s.quantity = qty or s.quantity or 1
+                    # backfill entitlements if they were empty from a webhook-first insert
+                    if not getattr(s, "entitlements_json", None) and product_id and price_id:
+                        s.entitlements_json = resolve_entitlements(product_id=product_id, price_id=price_id)
     except Exception:
         current_app.logger.exception("Post-checkout subscription reconcile failed")
     # --- END: Post-checkout Stripe reconcile ---
