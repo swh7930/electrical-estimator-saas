@@ -262,7 +262,6 @@ def set_password_post():
 
     user.set_password(password)
     db.session.commit()
-    login_user(user)
 
     # One-time post-checkout nudge on Home
     session["post_checkout_nudge"] = True
