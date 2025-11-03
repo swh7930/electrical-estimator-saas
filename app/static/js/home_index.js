@@ -1,4 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const nudge = document.getElementById("settingsNudgeModal");
+  if (nudge && nudge.getAttribute("data-auto-open") === "1") {
+    const modal = new bootstrap.Modal(nudge);
+    modal.show();
+  }
   const tbody = document.getElementById("recentEstimatesBody");
   if (!tbody) return;
 

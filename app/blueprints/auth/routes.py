@@ -199,38 +199,21 @@ def register_post():
 @bp.get("/set-password-start")
 def set_password_start():
     """
-    Entry point from Stripe checkout success.
-    If user exists and has no password -> issue token & redirect to /set-password.
-    If user exists and has password -> send to login.
-    If user missing -> create stub account/org + redirect to /set-password.
+    Entry from Stripe checkout success (guest or signed-in).
+    Create-on-password: do not insert a user yet; issue a short-lived token
+    carrying the purchaser's email (and session id if available).
     """
     email = (request.args.get("email") or "").strip().lower()
     if not email:
         return redirect(url_for("auth.login_get"))
 
-    user = db.session.execute(
-        db.select(User).where(func.lower(User.email) == func.lower(email))
-    ).scalar_one_or_none()
+    session_id = (request.args.get("session_id") or "").strip()
+    payload = {"email": email}
+    if session_id:
+        payload["sid"] = session_id  # optional context
 
-    if user and user.check_password("dummy_check_for_has_password"):  # uses existing hash field
-        # already has password; normal login flow
-        flash("Please sign in to continue.", "info")
-        return redirect(url_for("auth.login_get", email=email))
-
-    if not user:
-        # create skeleton user/org; no password yet
-        user = User(email=email, is_active=True)
-        db.session.add(user); db.session.flush()
-        org = Org(name=email)
-        db.session.add(org); db.session.flush()
-        user.org_id = org.id
-        db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
-        db.session.commit()
-
-    # Generate one-time token via existing token service
-    token = tokens.issue("setpw", {"uid": user.id}, max_age_seconds=3600)
+    token = tokens.generate("setpw", payload)  # 60-min TTL enforced in verify()
     return redirect(url_for("auth.set_password", token=token))
-
 
 @bp.get("/set-password")
 def set_password():
@@ -240,7 +223,6 @@ def set_password():
         flash("This link has expired or is invalid.", "error")
         return redirect(url_for("auth.login_get"))
     return render_template("auth/set_password.html", token=token)
-
 
 @bp.post("/set-password")
 def set_password_post():
@@ -256,9 +238,34 @@ def set_password_post():
         flash("Passwords do not match.", "error")
         return redirect(url_for("auth.set_password", token=token))
 
-    user = db.session.get(User, data["uid"])
+    # Resolve or create the user on first set-password after checkout
+    user = None
+    if isinstance(data, dict) and data.get("uid"):
+        # Backward-compatible: token refers to an existing user id
+        user = db.session.get(User, data["uid"])
+    elif isinstance(data, dict) and data.get("email"):
+        email = (data["email"] or "").strip().lower()
+        user = db.session.execute(
+            db.select(User).where(func.lower(User.email) == func.lower(email))
+        ).scalar_one_or_none()
+        if not user:
+            # Create user + org + owner membership atomically
+            user = User(email=email, is_active=True)
+            db.session.add(user); db.session.flush()
+            org = Org(name=email)
+            db.session.add(org); db.session.flush()
+            user.org_id = org.id
+            db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
+    else:
+        flash("This link has expired or is invalid.", "error")
+        return redirect(url_for("auth.login_get"))
+
     user.set_password(password)
     db.session.commit()
+    login_user(user)
+
+    # One-time post-checkout nudge on Home
+    session["post_checkout_nudge"] = True
     login_user(user)
     flash("Password set. Welcome!", "success")
     return redirect(url_for("main.home"))

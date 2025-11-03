@@ -11,7 +11,8 @@ from . import bp
 
 @bp.get("/")
 def home():
-    return render_template("home.html")
+    show_settings_nudge = bool(session.pop("post_checkout_nudge", False))
+    return render_template("home.html", show_settings_nudge=show_settings_nudge)
 
 @bp.get("/pricing")
 def pricing():

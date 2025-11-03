@@ -57,10 +57,12 @@
       const stripe = await getStripe();
       const result = await stripe.redirectToCheckout({ sessionId: sessionId });
       if (result && result.error) {
-        console.error(result.error);
+        if (window.EM_NOTIFY) EM_NOTIFY.error(result.error.message || "Couldn't start checkout. Please try again.");
+        else console.error(result.error);
       }
     } catch (err) {
-      console.error(err);
+      if (window.EM_NOTIFY) EM_NOTIFY.error("Checkout couldn’t be started. Please try again.");
+      else console.error(err);
     } finally {
       setDisabled(form, false);
     }

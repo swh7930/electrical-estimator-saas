@@ -259,7 +259,7 @@ def success():
 
     # Hand off to a dedicated set-password flow (implemented in auth blueprint)
     # Note: This route will accept ?email=... (and ideally a signed token in the final step).
-    return redirect(url_for("auth.set_password_start", email=email))
+    return redirect(url_for("auth.set_password_start", email=email, session_id=session_id))
 
 @billing_bp.get("/cancelled")
 @login_required
