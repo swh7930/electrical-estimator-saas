@@ -71,6 +71,7 @@
                   <option value="{{ t }}" {% if type_filter and type_filter == t %}selected{% endif %}>{{ t }}</option>
                 {% endfor %}
               {% endif %}
+              <option value="__new__">+ New category…</option>
             </select>
           </div>
 
@@ -336,6 +337,29 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Material Category Modal -->
+<div class="modal fade" id="matNewCategoryModal" tabindex="-1" aria-labelledby="matNewCategoryTitle"
+     aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="matNewCategoryTitle">Add New Category</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label" id="matNewCategoryLabel" for="matNewCategoryInput">Category name</label>
+        <input type="text" class="form-control" id="matNewCategoryInput" autocomplete="off" placeholder="e.g., Conduit">
+        <div id="matNewCategoryHelp" class="form-text">This will be added to the Category list.</div>
+        <div id="matNewCategoryError" class="text-danger small mt-2 d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="matNewCategoryConfirmBtn">Add</button>
       </div>
     </div>
   </div>

@@ -101,6 +101,36 @@
     }
   }
 
+  // --- “+ New Category” support (Materials) ---
+  const NEW_SENTINEL = '__new__';
+
+  // Modal refs
+  const matNewCatModalEl = document.getElementById('matNewCategoryModal');
+  const matNewCatModal = matNewCatModalEl ? bootstrap.Modal.getOrCreateInstance(matNewCatModalEl) : null;
+  const matNewCatInput = document.getElementById('matNewCategoryInput');
+  const matNewCatError = document.getElementById('matNewCategoryError');
+
+  function showInlineError(el, msgs) {
+    if (!el) return;
+    const arr = Array.isArray(msgs) ? msgs : [String(msgs || 'Unknown error')];
+    el.classList.remove('d-none');
+    el.innerHTML = arr.map(m => `<div>${m}</div>`).join('');
+  }
+  function clearInlineError(el) {
+    if (!el) return;
+    el.classList.add('d-none');
+    el.innerHTML = '';
+  }
+  function addNewMaterialCategory(sel, name) {
+    const exists = Array.from(sel.options)
+      .some(o => o.value && o.value !== NEW_SENTINEL && o.value.toLowerCase() === name.toLowerCase());
+    if (exists) { showInlineError(matNewCatError, 'That category already exists.'); return false; }
+    const sentinelIdx = Array.from(sel.options).findIndex(o => o.value === NEW_SENTINEL);
+    sel.add(new Option(name, name), sentinelIdx > -1 ? sentinelIdx : null);
+    sel.value = name;
+    return true;
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
         var meta = document.querySelector('meta[name="x-can-write"]');
     var CAN_WRITE = !!(meta && meta.content === '1');
@@ -119,6 +149,29 @@
     if (addBtn) addBtn.addEventListener("click", () => onAdd(false), { passive: true });
     if (addContBtn) addContBtn.addEventListener("click", () => onAdd(true), { passive: true });
     if (resetBtn) resetBtn.addEventListener("click", () => resetForm(false), { passive: true });
+    // Wire “+ New category…” sentinel
+    const catSel = document.getElementById('materialType');
+    const matNewCatConfirm = document.getElementById('matNewCategoryConfirmBtn');
+
+    catSel?.addEventListener('change', () => {
+      if (catSel.value === NEW_SENTINEL) {
+        clearInlineError(matNewCatError);
+        if (matNewCatInput) matNewCatInput.value = '';
+        matNewCatModal?.show();
+      }
+    });
+
+    matNewCatConfirm?.addEventListener('click', () => {
+      const name = (matNewCatInput?.value || '').trim();
+      if (!name) { showInlineError(matNewCatError, 'Name is required.'); return; }
+      const ok = addNewMaterialCategory(catSel, name);
+      if (ok) matNewCatModal?.hide();
+    });
+
+    matNewCatModalEl?.addEventListener('hidden.bs.modal', () => {
+      // If user cancels, reset sentinel selection
+      if (catSel?.value === NEW_SENTINEL) catSel.value = '';
+    });
   });
 
   // --- Delete flow (open modal, confirm, DELETE, remove row) ---
