@@ -4,6 +4,15 @@
   function $(sel, ctx) { return (ctx || document).querySelector(sel); }
   function $all(sel, ctx) { return Array.from((ctx || document).querySelectorAll(sel)); }
 
+    // Safe Plausible wrapper for checkout events
+  function track(name, props) {
+    try {
+      if (window.plausible && typeof window.plausible === 'function') {
+        window.plausible(name, props ? { props } : undefined);
+      }
+    } catch (_) { /* no-op */ }
+  }
+
   // Lazy-load Stripe instance using publishable key from server
   let stripePromise = null;
   async function getStripe() {
@@ -54,13 +63,19 @@
     try {
       setDisabled(form, true);
       const sessionId = await createSession(priceId);
+      // Track that checkout session was created (non-PII)
+      track('pricing:checkout_started', { price_id: priceId });
       const stripe = await getStripe();
       const result = await stripe.redirectToCheckout({ sessionId: sessionId });
       if (result && result.error) {
+        // Track redirect error (non-PII)
+        track('pricing:checkout_error', { reason: 'redirect' });
         if (window.EM_NOTIFY) EM_NOTIFY.error(result.error.message || "Couldn't start checkout. Please try again.");
         else console.error(result.error);
       }
     } catch (err) {
+      // Track generic start failure (network/exception)
+      track('pricing:checkout_error', { reason: 'exception' });
       if (window.EM_NOTIFY) EM_NOTIFY.error("Checkout couldn’t be started. Please try again.");
       else console.error(err);
     } finally {
