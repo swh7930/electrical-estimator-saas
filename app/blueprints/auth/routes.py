@@ -209,6 +209,8 @@ def set_password_start():
 
     session_id = (request.args.get("session_id") or "").strip()
     payload = {"email": email}
+    sid = (request.args.get("session_id") or "").strip()
+    if sid: payload["sid"] = sid
     if session_id:
         payload["sid"] = session_id  # optional context
 
@@ -281,8 +283,80 @@ def set_password_post():
         flash("This link has expired or is invalid.", "error")
         return redirect(url_for("auth.login_get"))
 
-    user.set_password(password)
-    db.session.commit()
+        user.set_password(password)
+
+        # --- BEGIN: Post-checkout Stripe reconcile (attach subscription to org/user) ---
+        try:
+            # We included 'sid' (Stripe Checkout Session ID) in the token at set_password_start
+            sid = data.get("sid")
+            if sid:
+                # Local imports to avoid touching top-of-file imports
+                import stripe
+                from datetime import datetime, timezone
+                from app.models import BillingCustomer, Subscription  # use your actual model module
+
+                stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
+
+                # Get the Checkout Session with expanded subscription
+                sess = stripe.checkout.Session.retrieve(sid, expand=["subscription"])
+                cust_id = sess.customer
+                sub = sess.subscription
+
+                sub_id = sub.id if sub else None
+                sub_status = sub.status if sub else None
+                cpe_dt = (datetime.fromtimestamp(sub.current_period_end, tz=timezone.utc)
+                        if (sub and getattr(sub, "current_period_end", None)) else None)
+
+                # Upsert BillingCustomer and link it to this org/user
+                bc = None
+                if cust_id:
+                    bc = db.session.execute(
+                        db.select(BillingCustomer).where(BillingCustomer.stripe_customer_id == cust_id)
+                    ).scalar_one_or_none()
+
+                if not bc:
+                    # Fallback by email (covers webhook inserts by email first)
+                    bc = db.session.execute(
+                        db.select(BillingCustomer).where(func.lower(BillingCustomer.email) == func.lower(user.email))
+                    ).scalar_one_or_none()
+
+                if not bc and cust_id:
+                    bc = BillingCustomer(
+                        email=user.email,
+                        stripe_customer_id=cust_id,
+                        org_id=user.org_id,
+                        user_id=user.id,
+                    )
+                    db.session.add(bc)
+                elif bc:
+                    bc.email = user.email
+                    bc.org_id = user.org_id
+                    bc.user_id = user.id
+
+                # Upsert Subscription and attach to this org
+                if sub_id:
+                    subrow = db.session.execute(
+                        db.select(Subscription).where(Subscription.stripe_subscription_id == sub_id)
+                    ).scalar_one_or_none()
+
+                    if not subrow:
+                        subrow = Subscription(
+                            org_id=user.org_id,
+                            stripe_subscription_id=sub_id,
+                            status=sub_status,
+                            current_period_end=cpe_dt,
+                        )
+                        db.session.add(subrow)
+                    else:
+                        subrow.org_id = user.org_id
+                        subrow.status = sub_status
+                        subrow.current_period_end = cpe_dt
+        except Exception:
+            current_app.logger.exception("Post-checkout subscription reconcile failed")
+        # --- END: Post-checkout Stripe reconcile ---
+
+        db.session.commit()
+
 
     # One-time post-checkout nudge on Home
     session["post_checkout_nudge"] = True
