@@ -265,6 +265,7 @@ def set_password_post():
             user.org_id = org.id
             db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
         else:
+            user.is_active = True  # allow Flask-Login to establish the session for an existing account
             # Existing account: make sure org + membership exist
             if not user.org_id:
                 org = Org(name=email)
