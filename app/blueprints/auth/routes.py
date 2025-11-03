@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, jsonify, flash
+from flask import render_template, request, redirect, url_for, session, jsonify, flash, current_app
 from flask_login import login_user, logout_user, current_user
 from sqlalchemy import func
 from app.extensions import db, limiter
@@ -372,7 +372,6 @@ def set_password_post():
     # --- END: Post-checkout Stripe reconcile ---
 
     db.session.commit()
-
 
     # One-time post-checkout nudge on Home
     session["post_checkout_nudge"] = True
