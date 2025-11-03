@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, jsonify
+from flask import render_template, request, redirect, url_for, session, jsonify, flash
 from flask_login import login_user, logout_user, current_user
 from sqlalchemy import func
 from app.extensions import db, limiter
