@@ -238,7 +238,6 @@ def materials_import_starter_pack_post():
         flash(msg, category)
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
-        flash(msg, "success")
         return redirect(url_for("libraries.materials", rt=rt))
     except Exception as e:
         if "application/json" in (request.headers.get("Accept") or ""):
@@ -507,7 +506,6 @@ def dje_import_starter_pack_post():
         flash(msg, category)
         if "application/json" in (request.headers.get("Accept") or ""):
             return jsonify(ok=True, message=msg, inserted=inserted, updated=updated)
-        flash(msg, "success")
         return redirect(url_for("libraries.dje", rt=rt))
     except Exception as e:
         if "application/json" in (request.headers.get("Accept") or ""):
