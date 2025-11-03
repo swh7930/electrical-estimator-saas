@@ -251,20 +251,32 @@ def set_password_post():
         ).scalar_one_or_none()
 
         if not user:
-            # Create user and set password BEFORE any flush
+            # New account: create user, set password BEFORE any flush, then org + membership
             user = User(email=email, is_active=True)
-            user.set_password(password)      # <-- set hash first
+            user.set_password(password)      # <-- set hash first (avoids NOT NULL flush)
             db.session.add(user)
 
-            # Create org; flush once for both new rows
             org = Org(name=email)
             db.session.add(org)
-
             db.session.flush()               # <-- single flush after user has a hash
 
-            # Link membership after IDs exist
             user.org_id = org.id
             db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
+        else:
+            # Existing account: make sure org + membership exist
+            if not user.org_id:
+                org = Org(name=email)
+                db.session.add(org)
+                db.session.flush()
+                user.org_id = org.id
+                db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
+            else:
+                # Ensure membership row exists for the user’s org
+                m = db.session.query(OrgMembership).filter_by(
+                    org_id=user.org_id, user_id=user.id
+                ).one_or_none()
+                if not m:
+                    db.session.add(OrgMembership(org_id=user.org_id, user_id=user.id, role=ROLE_OWNER))
     else:
         flash("This link has expired or is invalid.", "error")
         return redirect(url_for("auth.login_get"))
@@ -274,6 +286,7 @@ def set_password_post():
 
     # One-time post-checkout nudge on Home
     session["post_checkout_nudge"] = True
+    session["current_org_id"] = user.org_id
     login_user(user)
     flash("Password set. Welcome!", "success")
     return redirect(url_for("main.home"))
