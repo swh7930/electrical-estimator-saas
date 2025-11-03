@@ -221,19 +221,45 @@ def portal():
 
 
 @billing_bp.get("/success")
-@login_required
 def success():
+    """
+    Guest-aware checkout success handler:
+    - If the buyer is already authenticated, show success and go home.
+    - If not authenticated, use the Stripe session_id to look up their email
+      and hand them off to account setup (Set Password) instead of bouncing to Sign-in.
+    """
     session_id = request.args.get("session_id")
-    if session_id:
-        try:
-            # Optional sanity (keep your existing style if you already do this)
-            stripe.checkout.Session.retrieve(session_id)
-        except Exception as e:
-            current_app.logger.warning("Checkout success: could not retrieve session %s: %s", session_id, e)
 
-    flash("Your organization has an active subscription.", "success")
-    return redirect("/")
+    # Authenticated users keep the current behavior
+    if getattr(current_user, "is_authenticated", False):
+        if session_id:
+            try:
+                stripe.checkout.Session.retrieve(session_id)
+            except Exception as e:
+                current_app.logger.warning("Checkout success: could not retrieve session %s: %s", session_id, e)
+        flash("Your organization has an active subscription.", "success")
+        return redirect("/")
 
+    # --- Guest path: extract email from Stripe Session and move to setup flow ---
+    if not session_id:
+        flash("We couldn't verify your checkout yet. Please sign in or try again.", "error")
+        return redirect(url_for("auth.login"))
+
+    try:
+        sess = stripe.checkout.Session.retrieve(session_id, expand=["customer", "payment_intent"])
+    except Exception as e:
+        current_app.logger.warning("Checkout success: retrieve failed for %s: %s", session_id, e)
+        flash("We couldn't verify your checkout yet. Please sign in or try again.", "error")
+        return redirect(url_for("auth.login"))
+
+    email = (sess.get("customer_details") or {}).get("email") or sess.get("customer_email")
+    if not email:
+        flash("We couldn't confirm your email from Stripe. Please sign in or contact support.", "error")
+        return redirect(url_for("auth.login"))
+
+    # Hand off to a dedicated set-password flow (implemented in auth blueprint)
+    # Note: This route will accept ?email=... (and ideally a signed token in the final step).
+    return redirect(url_for("auth.set_password_start", email=email))
 
 @billing_bp.get("/cancelled")
 @login_required

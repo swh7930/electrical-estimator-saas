@@ -194,6 +194,75 @@ def register_post():
 
     return redirect(url_for("billing.index"))
 
+# --- Stripe guest handoff: Set Password flow ---
+
+@bp.get("/set-password-start")
+def set_password_start():
+    """
+    Entry point from Stripe checkout success.
+    If user exists and has no password -> issue token & redirect to /set-password.
+    If user exists and has password -> send to login.
+    If user missing -> create stub account/org + redirect to /set-password.
+    """
+    email = (request.args.get("email") or "").strip().lower()
+    if not email:
+        return redirect(url_for("auth.login_get"))
+
+    user = db.session.execute(
+        db.select(User).where(func.lower(User.email) == func.lower(email))
+    ).scalar_one_or_none()
+
+    if user and user.check_password("dummy_check_for_has_password"):  # uses existing hash field
+        # already has password; normal login flow
+        flash("Please sign in to continue.", "info")
+        return redirect(url_for("auth.login_get", email=email))
+
+    if not user:
+        # create skeleton user/org; no password yet
+        user = User(email=email, is_active=True)
+        db.session.add(user); db.session.flush()
+        org = Org(name=email)
+        db.session.add(org); db.session.flush()
+        user.org_id = org.id
+        db.session.add(OrgMembership(org_id=org.id, user_id=user.id, role=ROLE_OWNER))
+        db.session.commit()
+
+    # Generate one-time token via existing token service
+    token = tokens.issue("setpw", {"uid": user.id}, max_age_seconds=3600)
+    return redirect(url_for("auth.set_password", token=token))
+
+
+@bp.get("/set-password")
+def set_password():
+    token = (request.args.get("token") or "").strip()
+    data = tokens.verify("setpw", token, max_age_seconds=3600)
+    if not data:
+        flash("This link has expired or is invalid.", "error")
+        return redirect(url_for("auth.login_get"))
+    return render_template("auth/set_password.html", token=token)
+
+
+@bp.post("/set-password")
+def set_password_post():
+    token = (request.form.get("token") or "").strip()
+    data = tokens.verify("setpw", token, max_age_seconds=3600)
+    if not data:
+        flash("This link has expired or is invalid.", "error")
+        return redirect(url_for("auth.login_get"))
+
+    password = request.form.get("password") or ""
+    confirm = request.form.get("confirm") or ""
+    if not password or password != confirm:
+        flash("Passwords do not match.", "error")
+        return redirect(url_for("auth.set_password", token=token))
+
+    user = db.session.get(User, data["uid"])
+    user.set_password(password)
+    db.session.commit()
+    login_user(user)
+    flash("Password set. Welcome!", "success")
+    return redirect(url_for("main.home"))
+
 @csrf.exempt
 @bp.get("/csrf-token")
 def csrf_token():
