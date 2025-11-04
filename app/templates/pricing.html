@@ -7,8 +7,8 @@
 
   <!-- Hero -->
   <section class="pricing-hero text-center py-5">
-    <h1 class="display-5 fw-bold mb-3">Bid Faster. Win More.</h1>
-    <p class="lead text-muted mb-4">Turn takeoffs into clean, reliable bids without the learning curve.</p>
+    <h1 class="display-5 fw-bold mb-3">Estimate with Confidence.</h1>
+    <p class="lead text-muted mb-4">Build accurate, repeatable bids with a workflow that mirrors how real jobs are priced.</p>
     <div class="d-flex gap-2 justify-content-center">
       {% if not current_user.is_authenticated %}
         
@@ -25,7 +25,7 @@
         </form>
       {% endif %}
     </div>
-    <p class="text-muted mt-3 mb-0">Stripe billing · Cancel anytime · Prices exclude tax.</p>
+    <p class="text-muted mt-3 mb-0">No setup fees · Cancel anytime · Prices exclude tax.</p>
   </section>
 
   <!-- Plans -->
@@ -34,7 +34,7 @@
 
       <!-- Pro -->
       <div class="col-md-6">
-        <div class="card h-100 shadow-sm">
+        <div class="card h-100 border-0 rounded-3 shadow">
           <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between">
               <h2 class="h4 mb-1">Pro</h2>
@@ -44,10 +44,11 @@
               <div class="text-muted small">or $590/year</div>
             </div>
             <ul class="list-unstyled mb-4">
-              <li class="mb-1">Easy to follow workflow that doesn’t require a degree to understand.</li>
-              <li class="mb-1">Materials, DJE, and Assemblies databases you can customize to your business—seeded with a robust starter set so you can get moving fast.</li>
-              <li class="mb-1">Fully customizable labor adjustments, material adders, and more.</li>
-              <li class="mb-1">Simple PDF and CSV exports.</li>
+              <li class="mb-1">Guided workflow built around how professional estimates are done.</li>
+              <li class="mb-1">Starter <strong>Materials</strong> and <strong>DJE</strong> libraries you can edit and expand to match your business.</li>
+              <li class="mb-1">Customizable labor adjustments and material adders you can tune to job conditions.</li>
+              <li class="mb-1">Simple PDF and CSV exports for your records.</li>
+              <li class="mb-1">More powerful exports and reporting tools coming soon.</li>
             </ul>
 
             {% if not is_active %}
@@ -81,7 +82,7 @@
 
       <!-- Elite -->
       <div class="col-md-6">
-        <div class="card h-100 shadow-sm">
+        <div class="card h-100 border-0 rounded-3 shadow">
           <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between">
               <h2 class="h4 mb-1">Elite</h2>
@@ -92,11 +93,11 @@
               <div class="text-muted small">or $790/year</div>
             </div>
             <ul class="list-unstyled mb-4">
-              <li class="mb-1">Advanced assemblies.</li>
-              <li class="mb-1">Exportable BOM.</li>
-              <li class="mb-1">Estimate breakouts.</li>
-              <li class="mb-1">Change order tracking.</li>
-              <li class="mb-1">Plus more.</li>
+              <li class="mb-1">Advanced assemblies with nested components.</li>
+              <li class="mb-1">Exportable Bills of Material for vendor quotes.</li>
+              <li class="mb-1">Estimate breakouts by phase, area, or alternate.</li>
+              <li class="mb-1">Change-order tracking and revision history.</li>
+              <li class="mb-1">Designed for growing teams (coming soon).</li>
             </ul>
 
             <div class="mt-auto">
@@ -112,6 +113,7 @@
   <!-- Comparison (Option 2 – 4-row table) -->
   <section class="pricing-compare my-5">
     <h3 class="h5 mb-3">Compare plans</h3>
+    <p class="text-muted mb-3">Choose what fits your workflow today—upgrade when you need more control.</p>
     <div class="table-responsive table-scroll">
       <table class="table table-sm table-hover align-middle mb-0">
         <thead>
@@ -179,7 +181,7 @@
     </div>
   </section>
 
-  <!-- FAQs (placeholder) -->
+  <!-- FAQs -->
   <section class="pricing-faqs my-5">
     <h3 class="h5 mb-3">FAQs</h3>
     <div class="accordion" id="pricingFaqs">
@@ -191,7 +193,7 @@
         </h2>
         <div id="faqOneBody" class="accordion-collapse collapse" data-bs-parent="#pricingFaqs">
           <div class="accordion-body">
-            Simple monthly or annual billing. No long‑term contracts. Secure checkout and receipts via Stripe.
+            Simple monthly or annual billing—no setup fees, no long contracts. Secure checkout and receipts through Stripe.
           </div>
         </div>
       </div>
@@ -203,7 +205,8 @@
         </h2>
         <div id="faqTwoBody" class="accordion-collapse collapse" data-bs-parent="#pricingFaqs">
           <div class="accordion-body">
-            An easy workflow, editable Materials/DJE/Assemblies databases, customizable labor adjustments and material adders, plus PDF and CSV exports.
+            Everything you need to take a job from takeoff to total: a guided workflow, editable <strong>Materials</strong> and <strong>DJE</strong> libraries (both include a starter set), labor adjustments, and PDF/CSV exports. 
+            <strong>Assemblies</strong> do not include a starter set.
           </div>
         </div>
       </div>
@@ -215,7 +218,8 @@
         </h2>
         <div id="faqThreeBody" class="accordion-collapse collapse" data-bs-parent="#pricingFaqs">
           <div class="accordion-body">
-            Advanced assemblies, exportable BOM, estimate breakouts, and change‑order tracking—plus more as we roll out updates.
+            Tools for larger jobs and teams: advanced assemblies (nested), exportable BOMs, estimate breakouts, 
+            and change-order tracking—plus more as we roll out updates.
           </div>
         </div>
       </div>
@@ -239,7 +243,7 @@
         </h2>
         <div id="faqFiveBody" class="accordion-collapse collapse" data-bs-parent="#pricingFaqs">
           <div class="accordion-body">
-            Yes—switch monthly ↔ annual or cancel from the customer portal. Changes take effect at your next renewal.
+            Yes—switch monthly ↔ annual or cancel anytime from the billing portal. Changes take effect at your next renewal.
           </div>
         </div>
       </div>
@@ -251,7 +255,8 @@
         </h2>
         <div id="faqSixBody" class="accordion-collapse collapse" data-bs-parent="#pricingFaqs">
           <div class="accordion-body">
-            Yes—Pro supports PDF and CSV exports. Elite adds exportable BOM and estimate breakouts.
+            Yes—Pro supports PDF and CSV exports for internal use. Future updates will add more client-ready formats and deeper reporting. 
+            Elite adds exportable BOMs and estimate breakouts.
           </div>
         </div>
       </div>

@@ -1043,3 +1043,35 @@ header.border-bottom + .card {
 }
 
 #toastStack { z-index: 1200; }
+
+/* Pricing page polish (scoped, non-breaking) */
+.pricing-page .card {
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.pricing-page .card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--bs-box-shadow-lg);
+}
+
+/* Friendlier feature list with checkmarks, no markup changes */
+.pricing-page .list-unstyled li {
+  position: relative;
+  padding-left: 1.25rem;
+  line-height: 1.45;
+}
+.pricing-page .list-unstyled li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+  opacity: 0.55;
+}
+
+/* Tighten plan titles/prices slightly */
+.pricing-page .card-body .fs-4 {
+  letter-spacing: -0.2px;
+}
+.pricing-page .badge.border {
+  border-color: rgba(0,0,0,.08) !important;
+}
