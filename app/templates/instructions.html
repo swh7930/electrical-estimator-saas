@@ -10,7 +10,7 @@
     <header class="text-center border-bottom py-3 mb-3">
       <div>
         <h1 class="h3 mb-1">Instructions</h1>
-        <div class="text-muted">How to build fast, consistent estimates and export clean outputs.</div>
+        <div class="text-muted">A proven method for creating accurate estimates and confident bids.</div>
         <div class="text-muted small mt-1">Last updated: October 24, 2025 · Need help? Email <a href="mailto:support@kingsmarktech.com">support@kingsmarktech.com</a>.</div>
       </div>
     </header>
@@ -22,14 +22,13 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Quick Start</h2>
         <ol class="mb-2">
-          <li>Open <strong>Admin → Settings</strong> and enter company details and estimator defaults (labor rate, overhead, margin, tax).</li>
-          <li>Review <strong>Libraries → Materials / DJE / Assemblies / Customers</strong> and add anything you’ll need.</li>
-          <li>Go to <strong>Estimates → New Estimate</strong> and fill in project info.</li>
-          <li>Work through <strong>Materials → Adjustments → DJE → Summary</strong>.</li>
-          <li><strong>Save</strong> your estimate, then <strong>Export</strong> a PDF or CSV.</li>
+          <li><strong>Admin → Settings:</strong> Set company identity and estimator defaults (labor rate, overhead %, target margin, tax rules).</li>
+          <li><strong>Libraries:</strong> Verify <em>Materials</em> (name, unit, cost&nbsp;ea, labor unit), <em>DJE</em> (permits, rentals, fees), <em>Assemblies</em> (common bundles), and <em>Customers</em>. Add anything missing.</li>
+          <li><strong>Estimates → New Estimate:</strong> Enter project details and select the customer.</li>
+          <li><strong>Estimator:</strong> Add items (materials or assemblies), enter quantities, apply labor‑unit adjustments where conditions require (height, access, schedule), and add DJE. Then review <strong>Summary</strong>.</li>
+          <li><strong>Save</strong>, confirm totals, and <strong>Export</strong> (PDF or CSV).</li>
         </ol>
-        <p class="small text-muted mb-0">Shortcuts you’ll use a lot: <kbd>Tab</kbd>/<kbd>Shift</kbd>+<kbd>Tab</kbd> to move between inputs;
-           <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>F</kbd> to find items.</p>
+        
         <hr class="my-3">
         <div class="row g-2">
           <div class="col-6 col-md-3"><a href="#workflow" class="btn btn-outline-secondary w-100">Workflow</a></div>
@@ -55,11 +54,11 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Recommended Workflow</h2>
         <ol class="mb-0">
-          <li><strong>Set defaults first</strong> (Admin → Settings) so new estimates start with your rates, taxes, and margin.</li>
-          <li><strong>Build the estimate</strong> (Estimator): add scoped line items, quantities, and any labor adjustments.</li>
-          <li><strong>Review totals</strong> (Summary): verify labor hours, OH, DJE, margin, and taxes.</li>
-          <li><strong>Save &amp; export</strong>: PDF for clients, CSV for your records/imports.</li>
-          <li><strong>Tune libraries</strong>: when you create new line items more than once, add them to Libraries for re-use.</li>
+          <li><strong>Set your defaults.</strong> In <em>Settings</em>, confirm labor rate, overhead, margin, and tax before you start.</li>
+          <li><strong>Verify your libraries.</strong> Check <em>Materials</em>, <em>DJE</em>, and <em>Assemblies</em> for completeness and current pricing.</li>
+          <li><strong>Build the estimate.</strong> Add line items, enter quantities, and apply labor adjustments that match field conditions.</li>
+          <li><strong>Review your numbers.</strong> Use <em>Summary</em> to verify labor hours, DJE, overhead, and margin before pricing.</li>
+          <li><strong>Save and export.</strong> Lock in the final version and produce a polished PDF or CSV for delivery.</li>
         </ol>
       </div>
     </section>
@@ -71,12 +70,12 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Libraries (Materials / DJE / Customers)</h2>
         <ul class="mb-0">
-          <li><strong>Materials.</strong> Give each item a clear name, unit (ea, ft, m, roll), <em>Cost ea</em>, and <em>Labor Unit</em> (hours per unit). Keep descriptions concise and searchable (e.g., “EMT ¾″, 10′ stick”).</li>
-          <li><strong>DJE (Direct Job Expense).</strong> Non-material costs (permits, equipment, fees, travel). Use a predictable naming scheme (“Permit – City of Tulsa,” “Lift – 45′, 2 days”).</li>
-          <li><strong>Assemblies.</strong> Group commonly installed items into a single drop-in (e.g., “(4) duplex on EMT, ¾″, 100′”). Include typical hardware and an aggregate labor unit.</li>
-          <li><strong>Customers.</strong> Store company name, contact, and address so you can tag estimates and export with the right identity.</li>
+          <li><strong>Materials.</strong> Define each item’s name, <em>Unit</em> (1 / 100 / 1000), <em>Cost ea</em>, and <em>Labor Unit</em> (hrs per unit). Keep descriptions short and searchable. Use the unit that matches how the item is counted or ordered.</li>
+          <li><strong>DJE (Direct Job Expense).</strong> Non-material costs such as permits, rentals, delivery, disposal, or travel. Use consistent names and enter cost or labor where applicable.</li>
+          <li><strong>Assemblies.</strong> Reusable unit prices built from specific materials. Labor and cost are calculated from the parts included—no separate entry required. Use assemblies to speed repeat work and keep pricing consistent.</li>
+          <li><strong>Customers.</strong> Store company, contact, and address details once, then select them when creating or exporting estimates.</li>
         </ul>
-        <div class="text-muted small mt-2">Note: Data editing screens are design-complete stubs until wiring is enabled.</div>
+        <div class="text-muted small mt-2">Tips: Review pricing regularly, remove duplicates, and keep naming consistent for clean searches and exports.</div>
       </div>
     </section>
   </div>
@@ -87,38 +86,41 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Estimator</h2>
         <ul class="mb-3">
-          <li><strong>Row anatomy (Materials):</strong>
+          <li><strong>Row anatomy (Materials & Assemblies):</strong>
             <ul class="mb-2">
-              <li><em>Notes</em> (free text scope)</li>
-              <li><em>Material Type</em> (DB-driven) → Description fills from the library</li>
-              <li><em>Qty</em> (number) • <em>Labor Adj</em> (×0.25, ×0.5, ×1, ×1.5, ×2)</li>
-              <li><em>Cost ea</em> (read-only) → <em>Material Ext</em> = Qty × Cost ea</li>
-              <li><em>Labor Unit</em> (read-only) → <em>Labor Hrs</em> = Qty × Labor Unit</li>
-              <li><em>Unit</em> (ea, ft, etc.)</li>
+              <li><em>Notes</em> — short scope/assumptions for this line.</li>
+              <li><em>Material Type</em> (DB-driven) → <em>Description</em> fills from the library.</li>
+              <li><em>Qty</em> (number) and <em>Labor Adj</em> (×0.25, ×0.5, ×1, ×1.5, ×2).</li>
+              <li><em>Cost ea</em> (read-only) → <em>Material Ext</em> = Qty × Cost ea.</li>
+              <li><em>Labor Unit</em> (read-only) → <em>Labor Hrs</em> = Qty × Labor Unit.</li>
+              <li><em>Unit</em> — 1 / 100 / 1000 (matches how the item is counted or ordered).</li>
             </ul>
           </li>
-          <li><strong>Adjustments (Labor-Unit Adjustment):</strong> Apply a multiplier when warranted (height, tight access, premium schedule). Keep rationale in Notes.</li>
-          <li><strong>DJE:</strong> Add non-material job expenses (permits, rentals, fees). DJE totals roll up on Summary.</li>
-          <li><strong>Totals:</strong> Mat Total and Total Hrs update live in the header area.</li>
+          <li><strong>Assemblies:</strong> Add one line for the assembly; labor and cost are calculated from the included parts. No separate labor entry.</li>
+          <li><strong>DJE:</strong> Add non-material job expenses (permits, rentals, delivery, disposal, travel). These roll up on Summary.</li>
+          <li><strong>Totals:</strong> “Mat Total” and “Total Hrs” update live in the header.</li>
         </ul>
         <div class="row g-3">
           <div class="col-md-6">
             <div class="bg-light rounded p-3 h-100">
               <div class="fw-semibold mb-1">Tips</div>
               <ul class="mb-0">
-                <li>Make each line represent a measurable unit of work.</li>
-                <li>Use <em>Notes</em> to capture assumptions (height, night work, off-hours).</li>
-                <li>When in doubt, add a line for setup/cleanup or layout—small items reduce surprises.</li>
+                <li>One scope per line with a measurable quantity.</li>
+                <li>Use <em>Assemblies</em> for repeat combos; add custom work as separate lines.</li>
+                <li>Write assumptions and any labor-adjustment reasons in <em>Notes</em> (height, access, off-hours, coordination).</li>
+                <li>Add separate lines (or DJE) for setup, layout, delivery, or disposal—don’t bury them in adjustments.</li>
               </ul>
             </div>
           </div>
           <div class="col-md-6">
             <div class="bg-light rounded p-3 h-100">
-              <div class="fw-semibold mb-1">Keyboard</div>
+              <div class="fw-semibold mb-1">Adjustment guide</div>
               <ul class="mb-0">
-                <li><kbd>Tab</kbd> to move cells; <kbd>Shift</kbd> + <kbd>Tab</kbd> to go back.</li>
-                <li><kbd>Enter</kbd> in Notes adds a new row (when supported).</li>
-                <li><kbd>Esc</kbd> to cancel edits (when supported).</li>
+                <li><strong>×1.0</strong> — baseline conditions.</li>
+                <li><strong>&lt; ×1.0</strong> — repetitive work, open access, prefabrication.</li>
+                <li><strong>×1.25 to ×1.5</strong> — height/ladder work, tight access, congested areas.</li>
+                <li><strong>×2.0</strong> — premium/off-hours, severe constraints, unusual coordination.</li>
+                <li class="mt-1">Record the reason for any adjustment in <em>Notes</em>.</li>
               </ul>
             </div>
           </div>
@@ -132,18 +134,19 @@
     <section class="card">
       <div class="card-body">
         <h2 class="h5 mb-3">Summary</h2>
-        <p class="mb-2">The Summary page rolls up:</p>
+        <p class="mb-2">The Summary page rolls up your estimate into one place:</p>
         <ul class="mb-3">
-          <li><strong>Materials</strong> (costs, totals)</li>
-          <li><strong>Labor</strong> (hours × rate) and any Labor Adjustments</li>
-          <li><strong>DJE</strong> (non-material costs)</li>
-          <li><strong>Overhead</strong>, <strong>Margin/Markup</strong>, and <strong>Tax</strong> (based on your Settings and estimate-level choices)</li>
+          <li><strong>Materials</strong> — item costs and totals.</li>
+          <li><strong>Labor</strong> — total hours (including adjustments) × your labor rate.</li>
+          <li><strong>DJE</strong> — job-specific, non-material expenses (e.g., permits, rentals, delivery, disposal, travel).</li>
+          <li><strong>Overhead</strong>, <strong>Margin/Markup</strong>, and <strong>Tax</strong> — applied per <em>Settings</em> and estimate-level choices.</li>
         </ul>
         <p class="mb-1 fw-semibold">What you can do here</p>
         <ul class="mb-0">
-          <li>Verify totals and adjust permitted fields (e.g., margin target).</li>
-          <li>Confirm whether materials and/or DJE are taxable for this estimate.</li>
-          <li>Check the final sell price before exporting.</li>
+          <li>Sanity-check totals for labor hours, materials, and DJE before pricing.</li>
+          <li>Adjust permitted fields (e.g., target margin) and review the effect on sell price.</li>
+          <li>Set taxable flags for materials and/or DJE as required by the job.</li>
+          <li>Confirm customer and project details are correct for exports.</li>
         </ul>
       </div>
     </section>
@@ -154,10 +157,11 @@
     <section class="card">
       <div class="card-body">
         <h2 class="h5 mb-3">Customers</h2>
-        <p class="mb-2">Select an existing customer when creating a new estimate.</p>
+        <p class="mb-2">Store client details once, then reuse them whenever you create or export an estimate.</p>
         <ul class="mb-0">
-          <li>Add a new customer from the <strong>Customers</strong> page (and, if enabled, directly from the estimate form).</li>
-          <li>Customer details are used for exports and future proposal features.</li>
+          <li>Select an existing customer when you start a new estimate.</li>
+          <li>Add or update customers on the <strong>Customers</strong> page (company, primary contact, email/phone, address).</li>
+          <li>Use one record per client and consistent naming to keep searches and exports clean.</li>
         </ul>
       </div>
     </section>
@@ -168,13 +172,13 @@
     <section class="card">
       <div class="card-body">
         <h2 class="h5 mb-3">Settings</h2>
-        <p class="mb-2">Configure company identity (for proposals) and estimator defaults (labor rate, overhead, margin, taxes, etc.).</p>
+        <p class="mb-2">Settings control what new estimates start with. Update them here to keep numbers consistent across jobs.</p>
         <ul class="mb-0">
-          <li><strong>Company identity:</strong> name, address, contact details → used on exports and proposals.</li>
-          <li><strong>Estimator defaults:</strong> labor rate, overhead %, margin/markup, tax behavior (prices are tax-exclusive).</li>
-          <li><strong>Behavior:</strong> rounding, currency, materials taxable by default (on/off).</li>
+          <li><strong>Company identity:</strong> Company name, address, and primary contact. Appears on exports and client-facing outputs.</li>
+          <li><strong>Estimator defaults:</strong> Labor rate, overhead %, target margin (or markup), and tax behavior.</li>
+          <li><strong>Taxable defaults:</strong> Choose whether <em>Materials</em> are taxable by default; you can change this per estimate.</li>
         </ul>
-        <div class="text-muted small mt-2">Save changes, then create a new estimate to apply updated defaults.</div>
+        <div class="text-muted small mt-2">Saved changes apply to new estimates. Existing saved estimates keep their current values.</div>
       </div>
     </section>
   </div>
@@ -185,12 +189,12 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Saving &amp; Loading</h2>
         <ul class="mb-0">
-          <li><strong>Save:</strong> Save an estimate any time; exports reflect the last saved state.</li>
-          <li><strong>Open:</strong> Open saved estimates from <strong>Estimates → List</strong>.</li>
-          <li><strong>Clone:</strong> Branch variations without changing the original.</li>
-          <li><strong>Delete:</strong> Remove a test or stale estimate from the list.</li>
+          <li><strong>Save</strong> — Writes the current numbers, notes, and selections. Exports always use the <em>last saved</em> state.</li>
+          <li><strong>Open</strong> — Load a saved estimate from <strong>Estimates → List</strong> to continue where you left off.</li>
+          <li><strong>Clone</strong> — Make a copy for alternates or revisions without touching the original (e.g., “Bid A”, “Bid B”).</li>
+          <li><strong>Delete</strong> — Remove a test/stale estimate from the list. This action can’t be undone.</li>
         </ul>
-        <div class="text-muted small mt-2">Tip: After saving, use the <strong>Home → Recent Estimates</strong> card for quick access to your last few jobs.</div>
+        <div class="text-muted small mt-2">Tips: Name estimates clearly, clone for alternates, and remember—exports reflect the last saved version. Use <strong>Home → Recent Estimates</strong> for quick access.</div>
       </div>
     </section>
   </div>
@@ -201,15 +205,16 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Exporting</h2>
         <ul class="mb-3">
-          <li><strong>PDF:</strong> A clean, client-ready summary with your branding, project info, and totals.</li>
-          <li><strong>CSV:</strong> Line-level export (items, quantities, costs, labor units/hours, totals) for audit/import.</li>
+          <li><strong>PDF:</strong> Summary export showing project details, materials, labor, DJE, overhead, and totals.</li>
+          <li><strong>CSV:</strong> Line-level export of all items, quantities, unit costs, labor units/hours, and totals for recordkeeping or import.</li>
         </ul>
-        <p class="mb-1 fw-semibold">Checklist before export</p>
+        <p class="mb-1 fw-semibold">Before exporting</p>
         <ul class="mb-0">
-          <li>Save the estimate.</li>
-          <li>Confirm Summary totals (labor, DJE, OH, margin, tax).</li>
-          <li>Verify customer and project fields for the output header.</li>
+          <li>Save the estimate — exports use the most recent saved version.</li>
+          <li>Review <em>Summary</em> to confirm labor, DJE, overhead, margin, and tax values.</li>
+          <li>Check that customer and project information is complete.</li>
         </ul>
+        <div class="text-muted small mt-2">Additional export formats and client-ready layouts are planned for future updates.</div>
       </div>
     </section>
   </div>
@@ -220,11 +225,13 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Tips</h2>
         <ul class="mb-0">
-          <li>Structure lines by scope so each row is easy to verify.</li>
-          <li>Write assumptions in <em>Notes</em> to defend adjustments and conditions.</li>
-          <li>Tune libraries over time—small improvements compound across jobs.</li>
-          <li>Review Summary after big scope changes; adjust OH/Margin intentionally, not by accident.</li>
-          <li>Keep your browser current; close heavy tabs when doing large edits.</li>
+          <li>Make each row a measurable unit of work; avoid mixing scopes in one line.</li>
+          <li>Use <em>Notes</em> to capture assumptions (height, access, off-hours, coordination) and any labor adjustment rationale.</li>
+          <li>Match <em>Unit</em> to how the item is counted/ordered (1 / 100 / 1000); be consistent across similar items.</li>
+          <li>Use <em>Assemblies</em> for repeat work; keep libraries current (pricing and labor) to maintain consistency.</li>
+          <li>Apply labor adjustments intentionally; document the reason. Extreme conditions may warrant a separate line item.</li>
+          <li>After major changes, open <em>Summary</em> to validate labor hours, DJE, overhead, margin, and tax before exporting.</li>
+          <li>Use <em>Clone</em> to create alternates; don’t overwrite a priced version.</li>
         </ul>
       </div>
     </section>
@@ -236,11 +243,12 @@
       <div class="card-body">
         <h2 class="h5 mb-3">Troubleshooting</h2>
         <ul class="mb-0">
-          <li><strong>Dropdowns look empty:</strong> Check Libraries for the item; refresh the page after adding.</li>
-          <li><strong>Totals look wrong:</strong> Re-check Qty and Labor Adj, then visit Summary to confirm OH/Margin/Tax.</li>
-          <li><strong>Export shows old values:</strong> Save the estimate, then export again.</li>
-          <li><strong>A new estimate shows unexpected data:</strong> Start from <strong>Estimates → New Estimate</strong> (not by reusing a previously edited tab). If it persists, note the steps/time and email support.</li>
-          <li><strong>Something feels slow or off:</strong> Hard-refresh your browser and try again; include browser/OS in any support email.</li>
+          <li><strong>Dropdowns or lists are empty</strong> — Verify the item exists in <em>Libraries</em> and refresh the page after adding new data.</li>
+          <li><strong>Totals look off</strong> — Double-check quantities, labor adjustments, and units. Open <em>Summary</em> to confirm overhead, margin, and tax values.</li>
+          <li><strong>Exports don’t match screen values</strong> — Save the estimate first; exports always reflect the last saved version.</li>
+          <li><strong>Old data appears in a new estimate</strong> — Always start from <strong>Estimates → New Estimate</strong>. Reusing an old browser tab can pull cached data.</li>
+          <li><strong>Page performance issues</strong> — Refresh your browser or close heavy tabs. Large estimates may take a moment to update totals.</li>
+          <li><strong>Still stuck?</strong> — Note the steps you took, what you expected, and what you saw. Email <a href="mailto:support@kingsmarktech.com">support@kingsmarktech.com</a> with that info for faster help.</li>
         </ul>
       </div>
     </section>
@@ -253,28 +261,28 @@
         <h2 class="h5 mb-3">Glossary</h2>
         <dl class="mb-0">
           <dt>Labor Unit</dt>
-          <dd>Hours to install one unit of an item.</dd>
+          <dd>The base labor time to install one unit of material under normal conditions. Expressed in hours per unit.</dd>
 
           <dt>Labor Adjustment</dt>
-          <dd>Multiplier reflecting conditions (e.g., ×1.5 for tight access).</dd>
+          <dd>A multiplier applied to labor units to reflect job conditions such as height, access, repetition, or schedule.</dd>
 
-          <dt>Overhead (OH)</dt>
-          <dd>General business costs not tied to one job (office, insurance, trucks).</dd>
-
-          <dt>Margin</dt>
-          <dd>Target profit percentage after OH and direct costs.</dd>
-
-          <dt>Markup</dt>
-          <dd>Increase over cost to reach a sell price (related to, but not the same as, margin).</dd>
-
-          <dt>DJE</dt>
-          <dd>Direct Job Expense — non-material costs (permits, rentals, fees).</dd>
+          <dt>DJE (Direct Job Expense)</dt>
+          <dd>Any job-specific expense that isn’t labor or material — permits, rentals, delivery, disposal, travel, or specialty fees.</dd>
 
           <dt>Assembly</dt>
-          <dd>A reusable bundle of materials/tasks with an aggregate labor unit.</dd>
+          <dd>A reusable group of materials that together form a single unit price. Labor and cost are calculated from the parts included.</dd>
 
-          <dt>Material Type / Unit</dt>
-          <dd>Item category (e.g., EMT) / measurement (ea, ft, m, roll).</dd>
+          <dt>Overhead (OH)</dt>
+          <dd>Business operating costs not tied to a single job — insurance, vehicles, rent, office, supervision, etc.</dd>
+
+          <dt>Margin</dt>
+          <dd>The percentage of profit remaining after all direct costs and overhead are covered.</dd>
+
+          <dt>Markup</dt>
+          <dd>The percentage added to cost to reach a sell price. Markup and margin are related but not identical.</dd>
+
+          <dt>Material Unit</dt>
+          <dd>The quantity basis used for pricing and labor (1, 100, or 1000). Choose the unit that matches how the item is measured or ordered.</dd>
         </dl>
       </div>
     </section>
@@ -286,11 +294,15 @@
       <div class="card-body">
         <h2 class="h5 mb-3">What’s Next</h2>
         <ul class="mb-0">
-          <li>Proposal builder templates connected to Settings/Customers.</li>
-          <li>Estimate versioning &amp; side-by-side compare.</li>
-          <li>Additional export formats and options.</li>
+          <li>Proposal builder tied to <em>Settings</em> and <em>Customers</em>.</li>
+          <li>Estimate versioning with side-by-side compare.</li>
+          <li>Change order tracking and history.</li>
+          <li>Bill of Material (BOM) with RFQ emailing.</li>
+          <li>Breakouts by phase/area/alternate.</li>
+          <li>Expanded exports and client-ready layouts.</li>
+          <li>Assemblies enhancements (e.g., nested assemblies).</li>
         </ul>
-        <div class="text-muted small mt-2">(Roadmap items are subject to change.)</div>
+        <div class="text-muted small mt-2">Roadmap items and timing may change.</div>
       </div>
     </section>
   </div>
