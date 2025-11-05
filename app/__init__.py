@@ -176,9 +176,8 @@ def create_app():
     def sitemap_xml():
         from flask import current_app, Response
         base = current_app.config.get("APP_BASE_URL", "").rstrip("/")
-        # Keep to public, always-available paths; we'll add /pricing when that page ships.
-        # Keep to public, always-available paths
-        paths = ["/", "/auth/login", "/auth/register", "/pricing"]
+        # Keep to public, always-available marketing/legal paths (exclude auth pages)
+        paths = ["/", "/pricing", "/terms", "/privacy"]
         urls = "\n".join(f"  <url><loc>{base}{p}</loc></url>" for p in paths)
         xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
