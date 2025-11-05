@@ -33,6 +33,23 @@ def create_app():
     # Config: clean, explicit, class-based
     app.config.from_object(get_config())
     
+        # --- Required env validation for prod-like envs (staging/production) ---
+    def _require(name: str):
+        val = os.getenv(name) or app.config.get(name)
+        if not val:
+            raise RuntimeError(f"Missing required environment variable: {name}")
+        return val
+
+    env_key = (os.getenv("APP_ENV", "development") or "development").lower()
+    if env_key in ("staging", "production"):
+        # Enforce hard requirements at startup (not at import time)
+        _require("SECRET_KEY")
+        _require("DATABASE_URL")
+        _require("STRIPE_SECRET_KEY")
+        _require("STRIPE_WEBHOOK_SECRET")
+        # Add more if you consider them mandatory at boot:
+        # _require("APP_BASE_URL"); _require("REDIS_URL"); _require("SENTRY_DSN")
+    
     # --- M3: Observability & Security ---
     init_logging(app)
     init_sentry(app)

@@ -77,13 +77,17 @@ class ProductionConfig(BaseConfig):
     DEBUG = False
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARNING")
     # REQUIRE env vars in production (fail fast if missing)
-    SECRET_KEY = os.environ["SECRET_KEY"]
-    SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
+    SECRET_KEY = os.environ.get("SECRET_KEY")  
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
     # allow override if you need "Strict" for purely internal apps
     SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
     MAIL_SUPPRESS_SEND = False
+
+class StagingConfig(ProductionConfig):
+    # Inherit production-grade security/cookies; override here only if needed for staging
+    pass
 
 class TestingConfig(BaseConfig):
     TESTING = True
@@ -94,11 +98,22 @@ class TestingConfig(BaseConfig):
 
 _ENV_MAP = {
     "development": DevelopmentConfig,
+    "staging": StagingConfig,
     "production": ProductionConfig,
     "testing": TestingConfig,
 }
 
 def get_config():
-    env = os.environ.get("APP_ENV", "development").lower()
-    return _ENV_MAP.get(env, DevelopmentConfig)
-
+    """
+    Resolve the runtime config class from environment.
+    Priority: APP_ENV -> FLASK_ENV -> ENV -> 'development'
+    Accepts case-insensitive values and ignores surrounding whitespace.
+    """
+    val = (
+        os.getenv("APP_ENV")
+        or os.getenv("FLASK_ENV")
+        or os.getenv("ENV")
+        or "development"
+    )
+    key = val.strip().lower()
+    return _ENV_MAP.get(key, DevelopmentConfig)
