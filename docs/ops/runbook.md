@@ -75,6 +75,20 @@ Stabilization (first 60 min)
 - **Feature flags**: disable new flags/entitlements immediately  
 - **Database**: expand/contract strategy avoids DB rollback; if data risk: **PITR restore to a new DB**, validate, repoint app
 
+### Rollback (fast path — PR Revert)
+
+> One path only. No force‑pushes. Always revert the **Release PR** targeting `prod`.
+
+1) GitHub → **Pull requests** → **Closed** → open the last **Release PR (`master` → `prod`)**.  
+2) Click **Revert** (top‑right). GitHub creates a new PR with **base = `prod`**.  
+3) **Create pull request** (Draft is fine), then **Squash and merge** to apply the revert.  
+4) Watch Render **production** redeploy (it follows `prod`).  
+5) Verify **/healthz = 200**, Sentry/logs stable, Stripe webhooks delivering.  
+6) Add an Ops Log line noting the revert and open follow‑ups (root cause, forward‑fix).
+
+_Timebox:_ if stabilization fails > 5 minutes (error budget thresholds breached), execute this **immediately**. 
+
+
 Artifacts: incident note (symptoms, TTD/MTTR, action), follow‑ups ticketed
 
 ---
