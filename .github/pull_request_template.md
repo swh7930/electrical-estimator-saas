@@ -8,6 +8,7 @@
 ---
 
 ## Pre‑Flight (must be ✅ before merge)
+> Reference: [Staging Smoke Test script](docs/ops/smoke-staging.md)
 - [ ] **Staging green** on smoke: login → estimate create/save → export (PDF) → (Stripe test in staging). Link run/output.
 - [ ] **Migrations:** expand/contract only; no destructive drops in this release.
 - [ ] **Feature exposure:** default safe; new features behind flags/entitlements.

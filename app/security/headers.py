@@ -9,7 +9,7 @@ def init_security(app):
         "default-src": ["'self'"],
         # Allow Plausible's loader
         "script-src":  ["'self'", "https://js.stripe.com", "https://plausible.io"],
-        "style-src":   ["'self'", "'unsafe-inline'"],  # allow print CSS in PDF templates
+        "style-src":   ["'self'", "'unsafe-inline'"],
         "img-src":     ["'self'", "data:", "blob:"],
         "font-src":    ["'self'", "data:"],
         # Allow Plausible's event beacon

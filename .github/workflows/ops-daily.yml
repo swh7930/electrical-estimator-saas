@@ -1,0 +1,19 @@
+name: Ops — Daily Checklist
+on:
+  schedule:
+    - cron: "0 14 * * 1-5"   # Weekdays at 14:00 UTC
+  workflow_dispatch: {}
+permissions:
+  issues: write
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Open Daily Ops issue
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "✅ Daily Ops Checklist"
+          content-filepath: .github/ISSUE_TEMPLATE/ops-daily.md
+          labels: ops,daily
+          assignees: swh7930

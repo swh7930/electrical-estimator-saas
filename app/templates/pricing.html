@@ -5,6 +5,19 @@
 {% block content %}
 <div class="container-xxl my-4 pricing-page">
 
+  {% if back_label %}
+    <div class="mb-2 text-start">
+      <a href="{{ back_href or '#' }}"
+         id="pricingBackLink"
+         class="btn btn-link p-0"
+         data-action="lib-back"
+         data-rt="{{ rt }}"
+         data-href="{{ back_href or '' }}">
+        &larr; {{ back_label }}
+      </a>
+    </div>
+  {% endif %}
+
   <!-- Hero -->
   <section class="pricing-hero text-center py-5">
     <h1 class="display-5 fw-bold mb-3">Estimate with Confidence.</h1>
@@ -25,7 +38,7 @@
         </form>
       {% endif %}
     </div>
-    <p class="text-muted mt-3 mb-0">No setup fees · Cancel anytime · Prices exclude tax.</p>
+    <p class="text-muted mt-3 mb-0">No setup fees · Cancel anytime</p>
   </section>
 
   <!-- Plans -->
@@ -43,7 +56,7 @@
               <div class="fs-4 fw-semibold">$59<span class="fs-6 fw-normal">/month</span></div>
               <div class="text-muted small">or $590/year</div>
             </div>
-            <ul class="list-unstyled mb-4">
+            <ul class="list-unstyled mb-4 d-none" aria-hidden="true">
               <li class="mb-1">Guided workflow built around how professional estimates are done.</li>
               <li class="mb-1">Starter <strong>Materials</strong> and <strong>DJE</strong> libraries you can edit and expand to match your business.</li>
               <li class="mb-1">Customizable labor adjustments and material adders you can tune to job conditions.</li>
@@ -92,7 +105,7 @@
               <div class="fs-4 fw-semibold">$79<span class="fs-6 fw-normal">/month</span></div>
               <div class="text-muted small">or $790/year</div>
             </div>
-            <ul class="list-unstyled mb-4">
+            <ul class="list-unstyled mb-4 d-none" aria-hidden="true">
               <li class="mb-1">Advanced assemblies with nested components.</li>
               <li class="mb-1">Exportable Bills of Material for vendor quotes.</li>
               <li class="mb-1">Estimate breakouts by phase, area, or alternate.</li>
@@ -101,7 +114,7 @@
             </ul>
 
             <div class="mt-auto">
-              <a id="eliteNotifyCta" href="{{ url_for('main.feedback_get') }}?topic=elite" class="btn btn-outline-secondary">Notify me when it’s live</a>
+               <button id="eliteNotifyCta" type="button" disabled class="btn btn-outline-secondary">Coming Soon</button>
             </div>
           </div>
         </div>
@@ -111,7 +124,7 @@
   </section>
 
   <!-- Comparison (Option 2 – 4-row table) -->
-  <section class="pricing-compare my-5">
+  <section class="pricing-compare my-5 d-none" aria-hidden="true">
     <h3 class="h5 mb-3">Compare plans</h3>
     <p class="text-muted mb-3">Choose what fits your workflow today—upgrade when you need more control.</p>
     <div class="table-responsive table-scroll">
@@ -176,13 +189,13 @@
         <div class="alert alert-info mb-3" role="alert">
           <strong>3‑day Pro trial</strong>. Full features. Cancel anytime.
         </div>
-        <p class="text-muted mb-0">Go annual and get <strong>2 months free</strong>. Prices exclude tax.</p>
+        <p class="text-muted mb-0">Go annual and get <strong>2 months free</strong>.</p>
       </div>
     </div>
   </section>
 
   <!-- FAQs -->
-  <section class="pricing-faqs my-5">
+  <section class="pricing-faqs my-5 d-none" aria-hidden="true">
     <h3 class="h5 mb-3">FAQs</h3>
     <div class="accordion" id="pricingFaqs">
       <div class="accordion-item">
