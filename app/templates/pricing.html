@@ -5,6 +5,19 @@
 {% block content %}
 <div class="container-xxl my-4 pricing-page">
 
+  {% if back_label %}
+    <div class="mb-2 text-start">
+      <a href="{{ back_href or '#' }}"
+         id="pricingBackLink"
+         class="btn btn-link p-0"
+         data-action="lib-back"
+         data-rt="{{ rt }}"
+         data-href="{{ back_href or '' }}">
+        &larr; {{ back_label }}
+      </a>
+    </div>
+  {% endif %}
+
   <!-- Hero -->
   <section class="pricing-hero text-center py-5">
     <h1 class="display-5 fw-bold mb-3">Estimate with Confidence.</h1>

@@ -50,5 +50,24 @@
       });
     }
   });
+
+  // 5) Back-link handshake (consistent with libraries/admin pages)
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('#pricingBackLink');
+    if (!a) return;
+    e.preventDefault();
+    try {
+      const rt   = a.getAttribute('data-rt')   || '';
+      const href = a.getAttribute('data-href') || '';
+      const ref  = document.referrer || '';
+      // Estimator return prefers history.back(), with safe fallback
+      if (rt.startsWith('estimator') && /\/(estimator|estimates)\b/.test(ref)) {
+        history.back();
+        return;
+      }
+      if (href) window.location.assign(href);
+    } catch (_) { /* no-op */ }
+  });
+
 })();
 

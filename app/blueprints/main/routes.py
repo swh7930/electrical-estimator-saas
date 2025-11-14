@@ -28,6 +28,20 @@ def pricing():
     except Exception:
         is_active = False
 
+    # Back-link handshake (Home / Estimator), page-specific mapping for pricing
+    # Incoming links should append ?rt=home from kingsmarktech.com
+    rt = (request.args.get("rt") or "").strip()
+    back_label = None
+    back_href = None
+    if rt == "home":
+        # For pricing specifically, 'home' means the marketing site.
+        back_label = "Back to Website"
+        back_href = "https://kingsmarktech.com"
+    elif rt.startswith("estimator"):
+        back_label = "Back to Estimate"
+        # No href required; JS will prefer history.back() with a safe fallback.
+
+
     cfg = current_app.config
     ctx = {
         "is_active": is_active,
@@ -35,6 +49,10 @@ def pricing():
         "price_pro_annual": cfg.get("STRIPE_PRICE_PRO_ANNUAL"),
         "price_elite_monthly": cfg.get("STRIPE_PRICE_ELITE_MONTHLY"),
         "price_elite_annual": cfg.get("STRIPE_PRICE_ELITE_ANNUAL"),
+        # Handshake context
+        "rt": rt,
+        "back_label": back_label,
+        "back_href": back_href,
     }
     return render_template("pricing.html", **ctx)
 
