@@ -28,18 +28,33 @@ def pricing():
     except Exception:
         is_active = False
 
-    # Back-link handshake (Home / Estimator), page-specific mapping for pricing
-    # Incoming links should append ?rt=home from kingsmarktech.com
+    # Back-link handshake (Home / Estimator) for /pricing
+    # Primary: ?rt=... (per collaboration rules). Fallback: Referer host check for kingsmarktech.com.
     rt = (request.args.get("rt") or "").strip()
     back_label = None
     back_href = None
+
+    # Fallback: if no rt=..., infer "home" when Referer is kingsmarktech.com (any path)
+    if not rt:
+        ref = request.referrer or ""
+        try:
+            u = urlparse(ref)
+            host = (u.netloc or "").lower()
+            if host.endswith("kingsmarktech.com"):
+                rt = "home"
+                origin = f"{u.scheme}://{u.netloc}" if (u.scheme and u.netloc) else "https://kingsmarktech.com"
+                back_label = "Back to Website"
+                back_href = origin
+        except Exception:
+            pass
+
+    # Contract: explicit mapping (no CSP changes; matches established pattern)
     if rt == "home":
-        # For pricing specifically, 'home' means the marketing site.
-        back_label = "Back to Website"
-        back_href = "https://kingsmarktech.com"
+        back_label = back_label or "Back to Website"
+        back_href  = back_href  or "https://kingsmarktech.com"
     elif rt.startswith("estimator"):
         back_label = "Back to Estimate"
-        # No href required; JS will prefer history.back() with a safe fallback.
+        # href optional; JS will prefer history.back() when coming from estimator
 
 
     cfg = current_app.config
